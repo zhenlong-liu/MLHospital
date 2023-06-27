@@ -1,4 +1,9 @@
 import torchvision
+
+import sys
+sys.path.append('/home/liuzhenlong/MIA/MLHospital/')
+sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
+
 from mlh.attacks.membership_inference.attacks import AttackDataset, BlackBoxMIA, MetricBasedMIA, LabelOnlyMIA
 from tqdm import tqdm
 import torch
