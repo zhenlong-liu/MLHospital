@@ -26,7 +26,7 @@ import os
 import time
 from runx.logx import logx
 import torch.nn as nn
-from mlh.defenses.membership_inference.trainer import Trainer
+from defenses.membership_inference.trainer import Trainer
 
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False

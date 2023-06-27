@@ -27,7 +27,7 @@ import time
 from runx.logx import logx
 import torch.nn.functional as F
 from tqdm import tqdm
-from mlh.defenses.membership_inference.trainer import Trainer
+from defenses.membership_inference.trainer import Trainer
 
 
 """

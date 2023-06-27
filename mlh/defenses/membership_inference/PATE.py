@@ -32,9 +32,9 @@ import torch.optim as optim
 from torch.utils.data import TensorDataset, Subset
 
 
-from mlh.defenses.membership_inference.trainer import Trainer
+from defenses.membership_inference.trainer import Trainer
 
-from mlh.defenses.pate import perform_analysis
+from defenses.pate import perform_analysis
 
 
 torch.backends.cudnn.deterministic = True

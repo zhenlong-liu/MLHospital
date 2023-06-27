@@ -25,7 +25,7 @@ import numpy as np
 import os
 import time
 from runx.logx import logx
-from mlh.defenses.membership_inference.trainer import Trainer
+from defenses.membership_inference.trainer import Trainer
 from opacus import PrivacyEngine
 from opacus.validators import ModuleValidator
 

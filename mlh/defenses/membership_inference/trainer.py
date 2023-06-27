@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import abc
-from mlh.models.attack_model import MLP_BLACKBOX
+from models.attack_model import MLP_BLACKBOX
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, classification_report
 from runx.logx import logx
 import torch

@@ -1,16 +1,20 @@
 import os
+import sys
+sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
+sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/defenses')
+
 import torchvision
-from mlh.defenses.membership_inference.AdvReg import TrainTargetAdvReg
-from mlh.defenses.membership_inference.DPSGD import TrainTargetDP
-from mlh.defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothing
-from mlh.defenses.membership_inference.MixupMMD import TrainTargetMixupMMD
-from mlh.defenses.membership_inference.PATE import TrainTargetPATE
-from mlh.defenses.membership_inference.Normal import TrainTargetNormal
+from defenses.membership_inference.AdvReg import TrainTargetAdvReg
+from defenses.membership_inference.DPSGD import TrainTargetDP
+from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothing
+from defenses.membership_inference.MixupMMD import TrainTargetMixupMMD
+from defenses.membership_inference.PATE import TrainTargetPATE
+from defenses.membership_inference.Normal import TrainTargetNormal
 from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from mlh.data_preprocessing.data_loader import GetDataLoader
+from data_preprocessing.data_loader import GetDataLoader
 from torchvision import datasets
 import torchvision.transforms as transforms
 import argparse

@@ -24,11 +24,11 @@ import torchvision.transforms as transforms
 import torch
 import numpy as np
 from io import RawIOBase
-from mlh.data_preprocessing.dataset_preprocessing import prepare_dataset, cut_dataset, prepare_inference_dataset
+from data_preprocessing.dataset_preprocessing import prepare_dataset, cut_dataset, prepare_inference_dataset
 from torchvision import datasets
 from PIL import Image
 from tqdm import tqdm
-from mlh.data_preprocessing import configs
+from data_preprocessing import configs
 
 torch.manual_seed(0)
 
