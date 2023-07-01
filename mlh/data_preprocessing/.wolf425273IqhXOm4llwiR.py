@@ -91,7 +91,7 @@ class GetDataLoader(object):
                 32, padding=4), transforms.RandomHorizontalFlip(), ]
 
             print("add simple data augmentation!")
-            ## 是在此处做的print
+
         transform_list.append(transforms.ToTensor())
 
         if dataset in ["MNIST", "FashionMNIST", "EMNIST"]:
@@ -138,7 +138,7 @@ class GetDataLoader(object):
         return dataset
 
     def get_data_supervised(self, batch_size=128, num_workers=2):
-        # self.args.dataset 默认为CIFAR10
+
         train_transform = self.get_data_transform(self.args.dataset)
         test_transform = self.get_data_transform(self.args.dataset)
 

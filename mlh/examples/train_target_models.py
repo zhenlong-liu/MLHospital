@@ -60,6 +60,8 @@ def parse_args():
                         help='comma delimited input shape input')
     parser.add_argument('--log_path', type=str,
                         default='./save', help='data_path')
+    # 默认储存到save里
+    
 
     args = parser.parse_args()
 
@@ -73,6 +75,8 @@ def get_target_model(name="resnet18", num_classes=10):
     if name == "resnet18":
         model = torchvision.models.resnet18()
         model.fc = nn.Sequential(nn.Linear(512, 10))
+        # 代码修改了ResNet-18模型的最后一层全连接层，将其替换为一个新的全连接层nn.Linear(512, 10)，
+        # 其中512是ResNet-18模型中最后一个卷积层的输出通道数，10是类别数量。这样做是为了将模型的输出调整为与任务中的类别数量相匹配。
     else:
         raise ValueError("Model not implemented yet :P")
     return model
@@ -99,8 +103,13 @@ if __name__ == "__main__":
     s = GetDataLoader(opt)
     target_train_loader, target_inference_loader, target_test_loader, shadow_train_loader, shadow_inference_loader, shadow_test_loader = s.get_data_supervised()
 
+
+    # 选择是训练target model 还是训练shadow model
     if opt.mode == "target":
-        train_loader, inference_loader, test_loader = target_train_loader, target_inference_loader, target_test_loader,
+        train_loader, inference_loader, test_loader = target_train_loader, target_inference_loader, target_test_loader
+        
+        # train_loader is a dataloader, using next(), feature shape is [128,3,32,32], label shape [128]
+    # 
     elif opt.mode == "shadow":
         train_loader, inference_loader, test_loader = shadow_train_loader, shadow_inference_loader, shadow_test_loader
     else:

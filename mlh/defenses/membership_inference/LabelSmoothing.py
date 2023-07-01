@@ -68,7 +68,7 @@ class TrainTargetLabelSmoothing(Trainer):
         self.smooth_eps = smooth_eps
 
         self.model = self.model.to(self.device)
-
+        
         self.optimizer = torch.optim.SGD(
             self.model.parameters(), learning_rate, momentum, weight_decay)
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

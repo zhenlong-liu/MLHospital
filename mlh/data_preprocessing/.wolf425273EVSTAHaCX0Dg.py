@@ -91,7 +91,7 @@ class GetDataLoader(object):
                 32, padding=4), transforms.RandomHorizontalFlip(), ]
 
             print("add simple data augmentation!")
-            ## 是在此处做的print
+
         transform_list.append(transforms.ToTensor())
 
         if dataset in ["MNIST", "FashionMNIST", "EMNIST"]:
