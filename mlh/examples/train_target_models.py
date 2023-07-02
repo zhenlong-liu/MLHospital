@@ -10,6 +10,11 @@ from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothi
 from defenses.membership_inference.MixupMMD import TrainTargetMixupMMD
 from defenses.membership_inference.PATE import TrainTargetPATE
 from defenses.membership_inference.Normal import TrainTargetNormal
+
+from defenses.membership_inference.logit_norm import TrainTargetLogitsNorm
+
+from defenses.membership_inference.logit_norm import LogitNormLoss
+
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -60,6 +65,9 @@ def parse_args():
                         help='comma delimited input shape input')
     parser.add_argument('--log_path', type=str,
                         default='./save', help='data_path')
+    
+    parser.add_argument('--temp', type=float, default=1,
+                        help='temperature')
     # 默认储存到save里
     
 
@@ -120,9 +128,16 @@ if __name__ == "__main__":
     save_pth = f'{opt.log_path}/{opt.dataset}/{opt.training_type}/{opt.mode}'
 
     if opt.training_type == "Normal":
-
+        
         total_evaluator = TrainTargetNormal(
             model=target_model, epochs=opt.epochs, log_path=save_pth)
+        total_evaluator.train(train_loader, test_loader)
+        
+    elif opt.training_type == "TrainTargetLogitNorm":
+        
+        total_evaluator = TrainTargetNormal(
+            model=target_model, epochs=opt.epochs, log_path=save_pth)
+        total_evaluator.criterion = LogitNormLoss(opt.device,opt.temp)
         total_evaluator.train(train_loader, test_loader)
 
     elif opt.training_type == "LabelSmoothing":
@@ -170,3 +185,4 @@ if __name__ == "__main__":
     torch.save(target_model.state_dict(),
                os.path.join(save_pth, f"{opt.model}.pth"))
     print("Finish Training")
+

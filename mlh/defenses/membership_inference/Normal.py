@@ -77,7 +77,7 @@ class TrainTargetNormal(Trainer):
         self.criterion = nn.CrossEntropyLoss()
 
         # self.log_path = "%smodel_%s_bs_%s_dataset_%s/%s/label_smoothing_%.1f" % (self.opt.model_save_path, self.opt.model,
-        # #                                                                           self.opt.batch_size, self.opt.dataset, self.opt.mode, self.opt.smooth_eps)
+        # #                                                                              self.opt.batch_size, self.opt.dataset, self.opt.mode, self.opt.smooth_eps)
         # self.model_save_name = 'model_%s_label_smoothing_%.1f' % (
         #     self.opt.mode, self.opt.smooth_eps)
 
@@ -87,6 +87,8 @@ class TrainTargetNormal(Trainer):
         self.log_path = log_path
         logx.initialize(logdir=self.log_path,
                         coolname=False, tensorboard=False)
+
+    # 需要通过装饰器 @staticmethod 来进行修饰， 静态方法既不需要传递类对象也不需要传递实例对象（形参没有self/cls ） 。
 
     @staticmethod
     def _sample_weight_decay():
@@ -136,17 +138,18 @@ class TrainTargetNormal(Trainer):
                 img, label = img.to(self.device), label.to(self.device)
                 # print("img", img.shape)
                 logits = self.model(img)
+                # 其形状是torch.Size([128, 10])
                 loss = self.criterion(logits, label)
-
+                
                 loss.backward()
                 self.optimizer.step()
-
+    
             train_acc = self.eval(train_loader)
             test_acc = self.eval(test_loader)
             logx.msg('Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Total Time: %.3fs' % (
                 e, len(train_loader.dataset), train_acc, test_acc, time.time() - t_start))
             self.scheduler.step()
-            # posteriors = F.softmax(logits, dim=1)
+            # posteriors =              F.softmax(logits, dim=1)
             # print("prediction posteriors", posteriors[0])
             # if e % 10 == 0:
             #     torch.save(self.model.state_dict(), os.path.join(
