@@ -1,0 +1,222 @@
+Traceback (most recent call last):
+  File "/home/liuzhenlong/MIA/MLHospital/mlh/examples/train_target_models.py", line 7, in <module>
+    from defenses.membership_inference.AdvReg import TrainTargetAdvReg
+  File "/home/liuzhenlong/MIA/MLHospital/mlh/defenses/membership_inference/AdvReg.py", line 27, in <module>
+    from runx.logx import logx
+ModuleNotFoundError: No module named 'runx'
+add simple data augmentation!
+add simple data augmentation!
+Files already downloaded and verified
+Files already downloaded and verified
+Preparing dataloader!
+dataset:  60000
+target_train: 10000 	 target_inference: 10000 	 target_test: 10000
+Train Epoch: 1, Total Sample: 10000, Train Acc: 32.090, Test Acc: 31.090, Total Time: 7.615s
+Train Epoch: 2, Total Sample: 10000, Train Acc: 38.180, Test Acc: 36.540, Total Time: 12.720s
+Train Epoch: 3, Total Sample: 10000, Train Acc: 42.130, Test Acc: 40.340, Total Time: 17.943s
+Train Epoch: 4, Total Sample: 10000, Train Acc: 41.910, Test Acc: 40.600, Total Time: 23.191s
+Train Epoch: 5, Total Sample: 10000, Train Acc: 42.790, Test Acc: 41.250, Total Time: 28.502s
+Train Epoch: 6, Total Sample: 10000, Train Acc: 49.220, Test Acc: 46.070, Total Time: 33.698s
+Train Epoch: 7, Total Sample: 10000, Train Acc: 47.610, Test Acc: 45.200, Total Time: 38.899s
+Train Epoch: 8, Total Sample: 10000, Train Acc: 45.690, Test Acc: 43.150, Total Time: 44.136s
+Train Epoch: 9, Total Sample: 10000, Train Acc: 46.000, Test Acc: 42.460, Total Time: 49.307s
+Train Epoch: 10, Total Sample: 10000, Train Acc: 56.760, Test Acc: 51.340, Total Time: 54.466s
+Train Epoch: 11, Total Sample: 10000, Train Acc: 52.510, Test Acc: 48.300, Total Time: 59.710s
+Train Epoch: 12, Total Sample: 10000, Train Acc: 60.490, Test Acc: 53.520, Total Time: 64.863s
+Train Epoch: 13, Total Sample: 10000, Train Acc: 54.760, Test Acc: 48.930, Total Time: 70.186s
+Train Epoch: 14, Total Sample: 10000, Train Acc: 60.610, Test Acc: 53.650, Total Time: 75.425s
+Train Epoch: 15, Total Sample: 10000, Train Acc: 56.990, Test Acc: 50.580, Total Time: 80.637s
+Train Epoch: 16, Total Sample: 10000, Train Acc: 46.980, Test Acc: 42.240, Total Time: 85.844s
+Train Epoch: 17, Total Sample: 10000, Train Acc: 64.020, Test Acc: 55.910, Total Time: 91.129s
+Train Epoch: 18, Total Sample: 10000, Train Acc: 56.660, Test Acc: 49.840, Total Time: 96.335s
+Train Epoch: 19, Total Sample: 10000, Train Acc: 65.360, Test Acc: 55.570, Total Time: 101.593s
+Train Epoch: 20, Total Sample: 10000, Train Acc: 67.700, Test Acc: 58.150, Total Time: 106.907s
+Train Epoch: 21, Total Sample: 10000, Train Acc: 64.310, Test Acc: 55.500, Total Time: 112.144s
+Train Epoch: 22, Total Sample: 10000, Train Acc: 58.860, Test Acc: 50.980, Total Time: 117.322s
+Train Epoch: 23, Total Sample: 10000, Train Acc: 65.370, Test Acc: 55.500, Total Time: 122.552s
+Train Epoch: 24, Total Sample: 10000, Train Acc: 68.720, Test Acc: 57.370, Total Time: 127.739s
+Train Epoch: 25, Total Sample: 10000, Train Acc: 67.430, Test Acc: 56.420, Total Time: 132.833s
+Train Epoch: 26, Total Sample: 10000, Train Acc: 70.220, Test Acc: 59.730, Total Time: 137.979s
+Train Epoch: 27, Total Sample: 10000, Train Acc: 75.510, Test Acc: 62.440, Total Time: 143.041s
+Train Epoch: 28, Total Sample: 10000, Train Acc: 76.340, Test Acc: 61.470, Total Time: 148.285s
+Train Epoch: 29, Total Sample: 10000, Train Acc: 76.960, Test Acc: 61.620, Total Time: 153.644s
+Train Epoch: 30, Total Sample: 10000, Train Acc: 72.520, Test Acc: 58.140, Total Time: 159.014s
+Train Epoch: 31, Total Sample: 10000, Train Acc: 71.430, Test Acc: 58.050, Total Time: 164.291s
+Train Epoch: 32, Total Sample: 10000, Train Acc: 73.530, Test Acc: 59.400, Total Time: 169.588s
+Train Epoch: 33, Total Sample: 10000, Train Acc: 72.650, Test Acc: 59.520, Total Time: 174.919s
+Train Epoch: 34, Total Sample: 10000, Train Acc: 77.410, Test Acc: 60.940, Total Time: 180.400s
+Train Epoch: 35, Total Sample: 10000, Train Acc: 71.800, Test Acc: 57.520, Total Time: 185.773s
+Train Epoch: 36, Total Sample: 10000, Train Acc: 72.570, Test Acc: 57.760, Total Time: 191.135s
+Train Epoch: 37, Total Sample: 10000, Train Acc: 79.350, Test Acc: 62.570, Total Time: 196.969s
+Train Epoch: 38, Total Sample: 10000, Train Acc: 73.570, Test Acc: 56.920, Total Time: 202.503s
+Train Epoch: 39, Total Sample: 10000, Train Acc: 82.000, Test Acc: 63.180, Total Time: 208.707s
+Train Epoch: 40, Total Sample: 10000, Train Acc: 80.890, Test Acc: 61.950, Total Time: 214.092s
+Train Epoch: 41, Total Sample: 10000, Train Acc: 73.010, Test Acc: 57.640, Total Time: 219.607s
+Train Epoch: 42, Total Sample: 10000, Train Acc: 81.510, Test Acc: 62.120, Total Time: 225.187s
+Train Epoch: 43, Total Sample: 10000, Train Acc: 85.630, Test Acc: 63.690, Total Time: 230.805s
+Train Epoch: 44, Total Sample: 10000, Train Acc: 85.490, Test Acc: 62.710, Total Time: 236.448s
+Train Epoch: 45, Total Sample: 10000, Train Acc: 84.140, Test Acc: 63.070, Total Time: 241.622s
+Train Epoch: 46, Total Sample: 10000, Train Acc: 87.240, Test Acc: 63.750, Total Time: 246.878s
+Train Epoch: 47, Total Sample: 10000, Train Acc: 89.000, Test Acc: 64.680, Total Time: 252.252s
+Train Epoch: 48, Total Sample: 10000, Train Acc: 86.800, Test Acc: 63.430, Total Time: 257.341s
+Train Epoch: 49, Total Sample: 10000, Train Acc: 89.590, Test Acc: 64.590, Total Time: 262.502s
+Train Epoch: 50, Total Sample: 10000, Train Acc: 87.910, Test Acc: 63.250, Total Time: 267.734s
+Train Epoch: 51, Total Sample: 10000, Train Acc: 88.590, Test Acc: 64.020, Total Time: 272.890s
+Train Epoch: 52, Total Sample: 10000, Train Acc: 82.360, Test Acc: 60.450, Total Time: 278.301s
+Train Epoch: 53, Total Sample: 10000, Train Acc: 89.450, Test Acc: 63.870, Total Time: 283.367s
+Train Epoch: 54, Total Sample: 10000, Train Acc: 88.490, Test Acc: 63.390, Total Time: 288.551s
+Train Epoch: 55, Total Sample: 10000, Train Acc: 89.080, Test Acc: 64.460, Total Time: 293.790s
+Train Epoch: 56, Total Sample: 10000, Train Acc: 89.570, Test Acc: 63.790, Total Time: 299.028s
+Train Epoch: 57, Total Sample: 10000, Train Acc: 92.470, Test Acc: 64.820, Total Time: 304.237s
+Train Epoch: 58, Total Sample: 10000, Train Acc: 88.770, Test Acc: 63.170, Total Time: 309.447s
+Train Epoch: 59, Total Sample: 10000, Train Acc: 92.070, Test Acc: 64.880, Total Time: 314.673s
+Train Epoch: 60, Total Sample: 10000, Train Acc: 93.260, Test Acc: 64.940, Total Time: 319.824s
+Train Epoch: 61, Total Sample: 10000, Train Acc: 94.280, Test Acc: 66.250, Total Time: 325.063s
+Train Epoch: 62, Total Sample: 10000, Train Acc: 92.860, Test Acc: 63.970, Total Time: 330.245s
+Train Epoch: 63, Total Sample: 10000, Train Acc: 94.900, Test Acc: 64.780, Total Time: 335.387s
+Train Epoch: 64, Total Sample: 10000, Train Acc: 95.360, Test Acc: 65.820, Total Time: 340.610s
+Train Epoch: 65, Total Sample: 10000, Train Acc: 94.860, Test Acc: 64.850, Total Time: 345.855s
+Train Epoch: 66, Total Sample: 10000, Train Acc: 95.040, Test Acc: 64.700, Total Time: 351.000s
+Train Epoch: 67, Total Sample: 10000, Train Acc: 95.000, Test Acc: 65.990, Total Time: 356.183s
+Train Epoch: 68, Total Sample: 10000, Train Acc: 95.090, Test Acc: 65.050, Total Time: 361.257s
+Train Epoch: 69, Total Sample: 10000, Train Acc: 97.010, Test Acc: 65.560, Total Time: 366.378s
+Train Epoch: 70, Total Sample: 10000, Train Acc: 96.500, Test Acc: 66.080, Total Time: 371.601s
+Train Epoch: 71, Total Sample: 10000, Train Acc: 95.670, Test Acc: 65.260, Total Time: 376.814s
+Train Epoch: 72, Total Sample: 10000, Train Acc: 96.960, Test Acc: 66.620, Total Time: 382.040s
+Train Epoch: 73, Total Sample: 10000, Train Acc: 96.740, Test Acc: 66.070, Total Time: 387.182s
+Train Epoch: 74, Total Sample: 10000, Train Acc: 97.720, Test Acc: 65.880, Total Time: 392.447s
+Train Epoch: 75, Total Sample: 10000, Train Acc: 97.730, Test Acc: 66.690, Total Time: 397.613s
+Train Epoch: 76, Total Sample: 10000, Train Acc: 97.520, Test Acc: 66.210, Total Time: 402.941s
+Train Epoch: 77, Total Sample: 10000, Train Acc: 97.880, Test Acc: 66.410, Total Time: 408.263s
+Train Epoch: 78, Total Sample: 10000, Train Acc: 98.040, Test Acc: 67.030, Total Time: 413.427s
+Train Epoch: 79, Total Sample: 10000, Train Acc: 97.830, Test Acc: 66.810, Total Time: 418.658s
+Train Epoch: 80, Total Sample: 10000, Train Acc: 98.170, Test Acc: 66.650, Total Time: 423.792s
+Train Epoch: 81, Total Sample: 10000, Train Acc: 98.210, Test Acc: 66.870, Total Time: 429.066s
+Train Epoch: 82, Total Sample: 10000, Train Acc: 98.390, Test Acc: 66.730, Total Time: 434.221s
+Train Epoch: 83, Total Sample: 10000, Train Acc: 98.530, Test Acc: 66.740, Total Time: 439.446s
+Train Epoch: 84, Total Sample: 10000, Train Acc: 98.510, Test Acc: 66.740, Total Time: 444.733s
+Train Epoch: 85, Total Sample: 10000, Train Acc: 98.610, Test Acc: 66.840, Total Time: 449.886s
+Train Epoch: 86, Total Sample: 10000, Train Acc: 98.450, Test Acc: 66.930, Total Time: 455.109s
+Train Epoch: 87, Total Sample: 10000, Train Acc: 98.710, Test Acc: 67.090, Total Time: 460.451s
+Train Epoch: 88, Total Sample: 10000, Train Acc: 98.800, Test Acc: 67.410, Total Time: 465.642s
+Train Epoch: 89, Total Sample: 10000, Train Acc: 98.810, Test Acc: 67.640, Total Time: 470.849s
+Train Epoch: 90, Total Sample: 10000, Train Acc: 98.750, Test Acc: 67.180, Total Time: 476.103s
+Train Epoch: 91, Total Sample: 10000, Train Acc: 98.750, Test Acc: 66.840, Total Time: 481.279s
+Train Epoch: 92, Total Sample: 10000, Train Acc: 98.910, Test Acc: 66.660, Total Time: 486.356s
+Train Epoch: 93, Total Sample: 10000, Train Acc: 98.840, Test Acc: 67.550, Total Time: 491.543s
+Train Epoch: 94, Total Sample: 10000, Train Acc: 98.640, Test Acc: 66.470, Total Time: 496.801s
+Train Epoch: 95, Total Sample: 10000, Train Acc: 99.110, Test Acc: 66.820, Total Time: 502.053s
+Train Epoch: 96, Total Sample: 10000, Train Acc: 98.950, Test Acc: 66.980, Total Time: 507.196s
+Train Epoch: 97, Total Sample: 10000, Train Acc: 98.920, Test Acc: 66.980, Total Time: 512.324s
+Train Epoch: 98, Total Sample: 10000, Train Acc: 98.910, Test Acc: 67.220, Total Time: 517.584s
+Train Epoch: 99, Total Sample: 10000, Train Acc: 99.090, Test Acc: 66.710, Total Time: 522.683s
+Train Epoch: 100, Total Sample: 10000, Train Acc: 98.900, Test Acc: 66.740, Total Time: 527.878s
+Finish Training
+add simple data augmentation!
+add simple data augmentation!
+Files already downloaded and verified
+Files already downloaded and verified
+Preparing dataloader!
+dataset:  60000
+target_train: 10000 	 target_inference: 10000 	 target_test: 10000
+Train Epoch: 1, Total Sample: 10000, Train Acc: 35.470, Test Acc: 34.630, Total Time: 7.645s
+Train Epoch: 2, Total Sample: 10000, Train Acc: 41.060, Test Acc: 39.880, Total Time: 13.019s
+Train Epoch: 3, Total Sample: 10000, Train Acc: 40.770, Test Acc: 38.780, Total Time: 18.478s
+Train Epoch: 4, Total Sample: 10000, Train Acc: 45.970, Test Acc: 44.160, Total Time: 23.854s
+Train Epoch: 5, Total Sample: 10000, Train Acc: 46.630, Test Acc: 43.660, Total Time: 29.253s
+Train Epoch: 6, Total Sample: 10000, Train Acc: 48.170, Test Acc: 44.740, Total Time: 34.601s
+Train Epoch: 7, Total Sample: 10000, Train Acc: 47.670, Test Acc: 44.680, Total Time: 39.807s
+Train Epoch: 8, Total Sample: 10000, Train Acc: 52.880, Test Acc: 48.020, Total Time: 45.176s
+Train Epoch: 9, Total Sample: 10000, Train Acc: 48.870, Test Acc: 45.200, Total Time: 50.537s
+Train Epoch: 10, Total Sample: 10000, Train Acc: 56.570, Test Acc: 50.130, Total Time: 55.933s
+Train Epoch: 11, Total Sample: 10000, Train Acc: 58.260, Test Acc: 52.370, Total Time: 61.316s
+Train Epoch: 12, Total Sample: 10000, Train Acc: 52.910, Test Acc: 47.830, Total Time: 66.757s
+Train Epoch: 13, Total Sample: 10000, Train Acc: 58.490, Test Acc: 52.700, Total Time: 72.128s
+Train Epoch: 14, Total Sample: 10000, Train Acc: 55.160, Test Acc: 49.880, Total Time: 77.448s
+Train Epoch: 15, Total Sample: 10000, Train Acc: 56.320, Test Acc: 49.130, Total Time: 82.849s
+Train Epoch: 16, Total Sample: 10000, Train Acc: 56.810, Test Acc: 51.390, Total Time: 88.327s
+Train Epoch: 17, Total Sample: 10000, Train Acc: 57.490, Test Acc: 51.260, Total Time: 93.695s
+Train Epoch: 18, Total Sample: 10000, Train Acc: 56.610, Test Acc: 49.500, Total Time: 99.074s
+Train Epoch: 19, Total Sample: 10000, Train Acc: 61.900, Test Acc: 54.460, Total Time: 104.581s
+Train Epoch: 20, Total Sample: 10000, Train Acc: 65.740, Test Acc: 56.760, Total Time: 109.950s
+Train Epoch: 21, Total Sample: 10000, Train Acc: 66.420, Test Acc: 57.610, Total Time: 115.261s
+Train Epoch: 22, Total Sample: 10000, Train Acc: 64.960, Test Acc: 55.850, Total Time: 120.671s
+Train Epoch: 23, Total Sample: 10000, Train Acc: 67.950, Test Acc: 58.270, Total Time: 126.154s
+Train Epoch: 24, Total Sample: 10000, Train Acc: 70.370, Test Acc: 58.200, Total Time: 131.648s
+Train Epoch: 25, Total Sample: 10000, Train Acc: 69.140, Test Acc: 57.770, Total Time: 137.105s
+Train Epoch: 26, Total Sample: 10000, Train Acc: 74.220, Test Acc: 61.060, Total Time: 142.541s
+Train Epoch: 27, Total Sample: 10000, Train Acc: 69.760, Test Acc: 58.080, Total Time: 147.882s
+Train Epoch: 28, Total Sample: 10000, Train Acc: 71.300, Test Acc: 57.920, Total Time: 153.172s
+Train Epoch: 29, Total Sample: 10000, Train Acc: 68.500, Test Acc: 54.930, Total Time: 158.565s
+Train Epoch: 30, Total Sample: 10000, Train Acc: 75.330, Test Acc: 60.880, Total Time: 163.915s
+Train Epoch: 31, Total Sample: 10000, Train Acc: 69.100, Test Acc: 55.870, Total Time: 169.335s
+Train Epoch: 32, Total Sample: 10000, Train Acc: 70.170, Test Acc: 55.780, Total Time: 174.620s
+Train Epoch: 33, Total Sample: 10000, Train Acc: 77.800, Test Acc: 61.980, Total Time: 179.976s
+Train Epoch: 34, Total Sample: 10000, Train Acc: 76.790, Test Acc: 60.590, Total Time: 185.404s
+Train Epoch: 35, Total Sample: 10000, Train Acc: 68.260, Test Acc: 55.260, Total Time: 190.795s
+Train Epoch: 36, Total Sample: 10000, Train Acc: 68.770, Test Acc: 55.440, Total Time: 196.151s
+Train Epoch: 37, Total Sample: 10000, Train Acc: 80.850, Test Acc: 62.300, Total Time: 201.594s
+Train Epoch: 38, Total Sample: 10000, Train Acc: 80.500, Test Acc: 61.920, Total Time: 206.886s
+Train Epoch: 39, Total Sample: 10000, Train Acc: 80.180, Test Acc: 61.360, Total Time: 212.301s
+Train Epoch: 40, Total Sample: 10000, Train Acc: 81.000, Test Acc: 61.160, Total Time: 217.761s
+Train Epoch: 41, Total Sample: 10000, Train Acc: 79.460, Test Acc: 60.220, Total Time: 223.166s
+Train Epoch: 42, Total Sample: 10000, Train Acc: 79.600, Test Acc: 60.190, Total Time: 228.547s
+Train Epoch: 43, Total Sample: 10000, Train Acc: 79.490, Test Acc: 60.810, Total Time: 234.038s
+Train Epoch: 44, Total Sample: 10000, Train Acc: 83.110, Test Acc: 61.120, Total Time: 239.586s
+Train Epoch: 45, Total Sample: 10000, Train Acc: 85.230, Test Acc: 62.660, Total Time: 245.135s
+Train Epoch: 46, Total Sample: 10000, Train Acc: 82.880, Test Acc: 60.190, Total Time: 250.443s
+Train Epoch: 47, Total Sample: 10000, Train Acc: 81.610, Test Acc: 60.950, Total Time: 255.834s
+Train Epoch: 48, Total Sample: 10000, Train Acc: 78.260, Test Acc: 57.910, Total Time: 261.255s
+Train Epoch: 49, Total Sample: 10000, Train Acc: 83.200, Test Acc: 60.940, Total Time: 266.651s
+Train Epoch: 50, Total Sample: 10000, Train Acc: 87.870, Test Acc: 62.170, Total Time: 272.169s
+Train Epoch: 51, Total Sample: 10000, Train Acc: 83.750, Test Acc: 61.540, Total Time: 277.504s
+Train Epoch: 52, Total Sample: 10000, Train Acc: 84.780, Test Acc: 60.840, Total Time: 282.869s
+Train Epoch: 53, Total Sample: 10000, Train Acc: 88.240, Test Acc: 63.390, Total Time: 288.178s
+Train Epoch: 54, Total Sample: 10000, Train Acc: 88.920, Test Acc: 62.350, Total Time: 293.561s
+Train Epoch: 55, Total Sample: 10000, Train Acc: 90.840, Test Acc: 64.190, Total Time: 299.014s
+Train Epoch: 56, Total Sample: 10000, Train Acc: 90.280, Test Acc: 63.210, Total Time: 304.384s
+Train Epoch: 57, Total Sample: 10000, Train Acc: 91.570, Test Acc: 63.910, Total Time: 309.785s
+Train Epoch: 58, Total Sample: 10000, Train Acc: 88.340, Test Acc: 62.190, Total Time: 315.230s
+Train Epoch: 59, Total Sample: 10000, Train Acc: 92.020, Test Acc: 64.230, Total Time: 320.527s
+Train Epoch: 60, Total Sample: 10000, Train Acc: 90.410, Test Acc: 62.570, Total Time: 326.108s
+Train Epoch: 61, Total Sample: 10000, Train Acc: 92.480, Test Acc: 63.790, Total Time: 331.547s
+Train Epoch: 62, Total Sample: 10000, Train Acc: 92.600, Test Acc: 63.780, Total Time: 336.945s
+Train Epoch: 63, Total Sample: 10000, Train Acc: 94.580, Test Acc: 65.420, Total Time: 342.345s
+Train Epoch: 64, Total Sample: 10000, Train Acc: 93.400, Test Acc: 63.550, Total Time: 347.722s
+Train Epoch: 65, Total Sample: 10000, Train Acc: 95.470, Test Acc: 65.460, Total Time: 353.093s
+Train Epoch: 66, Total Sample: 10000, Train Acc: 95.330, Test Acc: 64.480, Total Time: 358.444s
+Train Epoch: 67, Total Sample: 10000, Train Acc: 95.470, Test Acc: 64.790, Total Time: 363.859s
+Train Epoch: 68, Total Sample: 10000, Train Acc: 95.410, Test Acc: 65.240, Total Time: 369.199s
+Train Epoch: 69, Total Sample: 10000, Train Acc: 95.370, Test Acc: 64.670, Total Time: 374.549s
+Train Epoch: 70, Total Sample: 10000, Train Acc: 95.450, Test Acc: 64.540, Total Time: 380.002s
+Train Epoch: 71, Total Sample: 10000, Train Acc: 96.610, Test Acc: 65.720, Total Time: 385.470s
+Train Epoch: 72, Total Sample: 10000, Train Acc: 97.130, Test Acc: 64.790, Total Time: 390.920s
+Train Epoch: 73, Total Sample: 10000, Train Acc: 96.460, Test Acc: 64.410, Total Time: 396.271s
+Train Epoch: 74, Total Sample: 10000, Train Acc: 96.810, Test Acc: 65.420, Total Time: 401.643s
+Train Epoch: 75, Total Sample: 10000, Train Acc: 97.120, Test Acc: 65.090, Total Time: 406.925s
+Train Epoch: 76, Total Sample: 10000, Train Acc: 97.200, Test Acc: 65.250, Total Time: 412.430s
+Train Epoch: 77, Total Sample: 10000, Train Acc: 97.560, Test Acc: 65.560, Total Time: 417.792s
+Train Epoch: 78, Total Sample: 10000, Train Acc: 97.890, Test Acc: 65.560, Total Time: 423.213s
+Train Epoch: 79, Total Sample: 10000, Train Acc: 97.590, Test Acc: 65.600, Total Time: 428.676s
+Train Epoch: 80, Total Sample: 10000, Train Acc: 98.170, Test Acc: 66.330, Total Time: 434.063s
+Train Epoch: 81, Total Sample: 10000, Train Acc: 98.200, Test Acc: 65.350, Total Time: 439.397s
+Train Epoch: 82, Total Sample: 10000, Train Acc: 98.270, Test Acc: 65.530, Total Time: 444.726s
+Train Epoch: 83, Total Sample: 10000, Train Acc: 98.100, Test Acc: 65.630, Total Time: 450.199s
+Train Epoch: 84, Total Sample: 10000, Train Acc: 98.370, Test Acc: 65.460, Total Time: 455.724s
+Train Epoch: 85, Total Sample: 10000, Train Acc: 98.560, Test Acc: 65.570, Total Time: 461.170s
+Train Epoch: 86, Total Sample: 10000, Train Acc: 98.290, Test Acc: 66.490, Total Time: 466.502s
+Train Epoch: 87, Total Sample: 10000, Train Acc: 98.450, Test Acc: 65.440, Total Time: 471.836s
+Train Epoch: 88, Total Sample: 10000, Train Acc: 98.520, Test Acc: 65.950, Total Time: 477.294s
+Train Epoch: 89, Total Sample: 10000, Train Acc: 98.670, Test Acc: 65.720, Total Time: 482.640s
+Train Epoch: 90, Total Sample: 10000, Train Acc: 98.420, Test Acc: 66.360, Total Time: 488.054s
+Train Epoch: 91, Total Sample: 10000, Train Acc: 98.640, Test Acc: 65.730, Total Time: 493.418s
+Train Epoch: 92, Total Sample: 10000, Train Acc: 98.690, Test Acc: 65.510, Total Time: 498.852s
+Train Epoch: 93, Total Sample: 10000, Train Acc: 98.800, Test Acc: 65.640, Total Time: 504.178s
+Train Epoch: 94, Total Sample: 10000, Train Acc: 98.680, Test Acc: 65.360, Total Time: 509.557s
+Train Epoch: 95, Total Sample: 10000, Train Acc: 98.550, Test Acc: 65.770, Total Time: 514.931s
+Train Epoch: 96, Total Sample: 10000, Train Acc: 98.510, Test Acc: 65.920, Total Time: 520.352s
+Train Epoch: 97, Total Sample: 10000, Train Acc: 98.700, Test Acc: 65.820, Total Time: 525.966s
+Train Epoch: 98, Total Sample: 10000, Train Acc: 98.730, Test Acc: 65.500, Total Time: 531.285s
+Train Epoch: 99, Total Sample: 10000, Train Acc: 98.960, Test Acc: 65.480, Total Time: 536.612s
+Train Epoch: 100, Total Sample: 10000, Train Acc: 98.760, Test Acc: 66.180, Total Time: 541.940s
+Finish Training

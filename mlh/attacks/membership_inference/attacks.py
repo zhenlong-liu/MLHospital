@@ -50,7 +50,7 @@ class FeatureExtractor(nn.Module):
         for layer_id in layers:
             layer = dict([*self.model.named_modules()])[layer_id]
             layer.register_forward_hook(self.save_outputs_hook(layer_id))
-
+        ## 修饰器，register_forward_hook里面需要一个函数，这个函数需要三个参数，所以用下面的save_outputs_hook 来将其缩减为只需要一个参数的函数
     def save_outputs_hook(self, layer_id):
         def fn(_, __, output):
             self._features[layer_id] = output
@@ -229,7 +229,7 @@ class MembershipInferenceAttack(abc.ABC):
         """
         Calculate metrics for each class of the train (shadow) or test (target) dataset
         """
-
+        
         class_list = sorted(list(set(original_target_labels)))
         for class_idx in class_list:
             subset_label = []
@@ -240,7 +240,7 @@ class MembershipInferenceAttack(abc.ABC):
                     subset_label.append(label[i])
                     subset_pred_label.append(pred_label[i])
                     subset_pred_posteriors.append(pred_posteriors[i])
-
+                    # only contain subset 
             if len(subset_label) != 0:
                 acc, precision, recall, f1, auc = self.cal_metrics(
                     subset_label, subset_pred_label, subset_pred_posteriors)
@@ -307,12 +307,15 @@ class MetricBasedMIA(MembershipInferenceAttack):
 
     def parse_data_metric_based_attacks(self):
         # shadow model
-        self.s_tr_outputs, self.s_tr_labels = [], []
+        # For train set of shadow medel, we query shadow model, then obtain the outputs, that is **s_tr_outputs**
+        self.s_tr_outputs, self.s_tr_labels = [], []   
         self.s_te_outputs, self.s_te_labels = [], []
+         
         for i in range(len(self.attack_train_dataset)):
+            # mem_label: the data is a member or not
             data, mem_label, target_label = self.attack_train_dataset[i]
             data, mem_label, target_label = data.numpy(), mem_label.item(), target_label.item()
-
+        
             if mem_label == 1:
                 self.s_tr_outputs.append(data)
                 self.s_tr_labels.append(target_label)
@@ -557,8 +560,8 @@ class BlackBoxMIA(MembershipInferenceAttack):
             attack_train_dataset, batch_size=batch_size, shuffle=True)
         self.attack_test_loader = torch.utils.data.DataLoader(
             attack_test_dataset, batch_size=batch_size, shuffle=False)
-
-        if self.attack_type == "black-box":
+    
+        if self.attack_type == "black-box": 
             self.attack_model = MLP_BLACKBOX(dim_in=self.num_class)
         elif self.attack_type == "black-box-sorted":
             self.attack_model = MLP_BLACKBOX(dim_in=self.num_class)

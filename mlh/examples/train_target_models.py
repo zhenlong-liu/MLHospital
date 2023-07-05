@@ -15,6 +15,9 @@ from defenses.membership_inference.logit_norm import TrainTargetLogitsNorm
 
 from defenses.membership_inference.logit_norm import LogitNormLoss
 
+from defenses.membership_inference.LogitClip import TrainTargetLogitClip
+
+
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -69,6 +72,7 @@ def parse_args():
     parser.add_argument('--temp', type=float, default=1,
                         help='temperature')
     # 默认储存到save里
+    parser.add_argument('--tau', type=float, default=1, help = "logitclip tau")
     
 
     args = parser.parse_args()
@@ -125,7 +129,7 @@ if __name__ == "__main__":
 
     target_model = get_target_model(name="resnet18", num_classes=10)
 
-    save_pth = f'{opt.log_path}/{opt.dataset}/{opt.training_type}/{opt.mode}'
+    save_pth = f'{opt.log_path}/{opt.dataset}/{opt.training_type}/{opt.mode}/{opt.temp}'
 
     if opt.training_type == "Normal":
         
@@ -138,6 +142,12 @@ if __name__ == "__main__":
         total_evaluator = TrainTargetNormal(
             model=target_model, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.criterion = LogitNormLoss(opt.device,opt.temp)
+        total_evaluator.train(train_loader, test_loader)
+        
+    elif opt.training_type == "LogitClip":
+        
+        total_evaluator = TrainTargetLogitClip(
+            model=target_model, epochs=opt.epochs, log_path=save_pth, tau = opt.tau)
         total_evaluator.train(train_loader, test_loader)
 
     elif opt.training_type == "LabelSmoothing":

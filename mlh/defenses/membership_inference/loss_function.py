@@ -1,0 +1,838 @@
+import torch.nn as nn
+import torch
+import torch.nn.functional as F
+import numpy as np
+import math
+from torch.autograd.function import Function
+from torch.autograd import Variable
+
+class _ECELoss(nn.Module):
+    """
+    Calculates the Expected Calibration Error of a model.
+    (This isn't necessary for temperature scaling, just a cool metric).
+    The input to this loss is the logits of a model, NOT the softmax scores.
+    This divides the confidence outputs into equally-sized interval bins.
+    In each bin, we compute the confidence gap:
+    bin_gap = | avg_confidence_in_bin - accuracy_in_bin |
+    We then return a weighted average of the gaps, based on the number
+    of samples in each bin
+    See: Naeini, Mahdi Pakdaman, Gregory F. Cooper, and Milos Hauskrecht.
+    "Obtaining Well Calibrated Probabilities Using Bayesian Binning." AAAI.
+    2015.
+    """
+    def __init__(self, n_bins=15):
+        """
+        n_bins (int): number of confidence interval bins
+        """
+        super(_ECELoss, self).__init__()
+        bin_boundaries = torch.linspace(0, 1, n_bins + 1)
+        self.bin_lowers = bin_boundaries[:-1]
+        self.bin_uppers = bin_boundaries[1:]
+
+    def forward(self, logits, labels, t=1.0):
+        softmaxes = F.softmax(logits/t, dim=1)
+        confidences, predictions = torch.max(softmaxes, 1)
+        accuracies = predictions.eq(labels)
+
+        ece = torch.zeros(1, device=logits.device)
+        for bin_lower, bin_upper in zip(self.bin_lowers, self.bin_uppers):
+            # Calculated |confidence - accuracy| in each bin
+            in_bin = confidences.gt(bin_lower.item()) * confidences.le(bin_upper.item())
+            prop_in_bin = in_bin.float().mean()
+            if prop_in_bin.item() > 0:
+                accuracy_in_bin = accuracies[in_bin].float().mean()
+                avg_confidence_in_bin = confidences[in_bin].mean()
+                ece += torch.abs(avg_confidence_in_bin - accuracy_in_bin) * prop_in_bin
+
+        return ece
+
+class LDAMLoss(nn.Module):
+
+    def __init__(self, device, max_m=0.5, s=30):
+        super(LDAMLoss, self).__init__()
+        cls_num_list = [5000] * 10
+        m_list = 1.0 / np.sqrt(np.sqrt(cls_num_list))
+        m_list = m_list * (max_m / np.max(m_list))
+        m_list = torch.cuda.FloatTensor(m_list, device=device)
+        self.device = device
+        self.m_list = m_list
+        assert s > 0
+        self.s = s
+
+    def forward(self, x, target):
+        index = torch.zeros_like(x, dtype=torch.uint8)
+        index.scatter_(1, target.data.view(-1, 1), 1)
+
+        index_float = index.type(torch.cuda.FloatTensor).to(self.device)
+        batch_m = torch.matmul(self.m_list[None, :], index_float.transpose(0, 1))
+        batch_m = batch_m.view((-1, 1))
+        x_m = x - batch_m
+
+        output = torch.where(index, x_m, x)
+        return F.cross_entropy(self.s * output, target)
+
+
+class RingLoss(nn.Module):
+    """
+    Refer to paper
+    Ring loss: Convex Feature Normalization for Face Recognition
+    """
+
+    def __init__(self, type='L2', loss_weight=1.0):
+        super(RingLoss, self).__init__()
+        self.radius = nn.Parameter(torch.Tensor(1))
+        self.radius.data.fill_(-1)
+        self.loss_weight = loss_weight
+        self.type = type
+
+    def forward(self, x):
+        x = x.pow(2).sum(dim=1).pow(0.5)
+        if self.radius.data[0] < 0:  # Initialize the radius with the mean feature norm of first iteration
+            self.radius.data.fill_(x.mean().data[0])
+        if self.type == 'L1':  # Smooth L1 Loss
+            loss1 = F.smooth_l1_loss(x, self.radius.expand_as(x)).mul_(self.loss_weight)
+            loss2 = F.smooth_l1_loss(self.radius.expand_as(x), x).mul_(self.loss_weight)
+            ringloss = loss1 + loss2
+        elif self.type == 'auto':  # Divide the L2 Loss by the feature's own norm
+            diff = x.sub(self.radius.expand_as(x)) / (x.mean().detach().clamp(min=0.5))
+            diff_sq = torch.pow(torch.abs(diff), 2).mean()
+            ringloss = diff_sq.mul_(self.loss_weight)
+        else:  # L2 Loss, if not specified
+            diff = x.sub(self.radius.expand_as(x))
+            diff_sq = torch.pow(torch.abs(diff), 2).mean()
+            ringloss = diff_sq.mul_(self.loss_weight)
+        return ringloss
+
+
+class COCOLoss(nn.Module):
+    """
+        Refer to paper:
+        Yu Liu, Hongyang Li, Xiaogang Wang
+        Rethinking Feature Discrimination and Polymerization for Large scale recognition. NIPS workshop 2017
+        re-implement by yirong mao
+        2018 07/02
+        """
+
+    def __init__(self, num_classes, feat_dim, alpha=6.25):
+        super(COCOLoss, self).__init__()
+        self.feat_dim = feat_dim
+        self.num_classes = num_classes
+        self.alpha = alpha
+        self.centers = nn.Parameter(torch.randn(num_classes, feat_dim))
+
+    def forward(self, feat):
+        norms = torch.norm(feat, p=2, dim=-1, keepdim=True)
+        nfeat = torch.div(feat, norms)
+        snfeat = self.alpha * nfeat
+
+        norms_c = torch.norm(self.centers, p=2, dim=-1, keepdim=True)
+        ncenters = torch.div(self.centers, norms_c)
+
+        logits = torch.matmul(snfeat, torch.transpose(ncenters, 0, 1))
+
+        return logits
+
+
+class LMCL_loss(nn.Module):
+    """
+        Refer to paper:
+        Hao Wang, Yitong Wang, Zheng Zhou, Xing Ji, Dihong Gong, Jingchao Zhou,Zhifeng Li, and Wei Liu
+        CosFace: Large Margin Cosine Loss for Deep Face Recognition. CVPR2018
+        re-implement by yirong mao
+        2018 07/02
+        """
+
+    def __init__(self, num_classes, feat_dim, s=7.00, m=0.2):
+        super(LMCL_loss, self).__init__()
+        self.feat_dim = feat_dim
+        self.num_classes = num_classes
+        self.s = s
+        self.m = m
+        self.centers = nn.Parameter(torch.randn(num_classes, feat_dim))
+
+    def forward(self, feat, label):
+        batch_size = feat.shape[0]
+        norms = torch.norm(feat, p=2, dim=-1, keepdim=True)
+        nfeat = torch.div(feat, norms)
+
+        norms_c = torch.norm(self.centers, p=2, dim=-1, keepdim=True)
+        ncenters = torch.div(self.centers, norms_c)
+        logits = torch.matmul(nfeat, torch.transpose(ncenters, 0, 1))
+
+        # y_onehot = torch.FloatTensor(batch_size, self.num_classes)
+        # y_onehot.zero_()
+        # y_onehot = Variable(y_onehot).cuda()
+        # y_onehot.scatter_(1, torch.unsqueeze(label, dim=-1), self.m)
+
+        y_onehot = F.one_hot(label, self.num_classes) * self.m
+        margin_logits = self.s * (logits - y_onehot)
+
+        return logits, margin_logits
+
+
+class LGMLoss(nn.Module):
+    """
+    Refer to paper:
+    Weitao Wan, Yuanyi Zhong,Tianpeng Li, Jiansheng Chen
+    Rethinking Feature Distribution for Loss Functions in Image Classification. CVPR 2018
+    re-implement by yirong mao
+    2018 07/02
+    """
+
+    def __init__(self, num_classes, feat_dim, alpha):
+        super(LGMLoss, self).__init__()
+        self.feat_dim = feat_dim
+        self.num_classes = num_classes
+        self.alpha = alpha
+
+        self.centers = nn.Parameter(torch.randn(num_classes, feat_dim))
+        self.log_covs = nn.Parameter(torch.zeros(num_classes, feat_dim))
+
+    def forward(self, feat, label):
+        batch_size = feat.shape[0]
+        log_covs = torch.unsqueeze(self.log_covs, dim=0)
+
+        covs = torch.exp(log_covs)  # 1*c*d
+        tcovs = covs.repeat(batch_size, 1, 1)  # n*c*d
+        diff = torch.unsqueeze(feat, dim=1) - torch.unsqueeze(self.centers, dim=0)
+        wdiff = torch.div(diff, tcovs)
+        diff = torch.mul(diff, wdiff)
+        dist = torch.sum(diff, dim=-1)  # eq.(18)
+
+        y_onehot = torch.FloatTensor(batch_size, self.num_classes)
+        y_onehot.zero_()
+        y_onehot = Variable(y_onehot).cuda()
+        y_onehot.scatter_(1, torch.unsqueeze(label, dim=-1), self.alpha)
+        y_onehot = y_onehot + 1.0
+        margin_dist = torch.mul(dist, y_onehot)
+
+        slog_covs = torch.sum(log_covs, dim=-1)  # 1*c
+        tslog_covs = slog_covs.repeat(batch_size, 1)
+        margin_logits = -0.5 * (tslog_covs + margin_dist)  # eq.(17)
+        logits = -0.5 * (tslog_covs + dist)
+
+        cdiff = feat - torch.index_select(self.centers, dim=0, index=label.long())
+        cdist = cdiff.pow(2).sum(1).sum(0) / 2.0
+
+        slog_covs = torch.squeeze(slog_covs)
+        reg = 0.5 * torch.sum(torch.index_select(slog_covs, dim=0, index=label.long()))
+        likelihood = (1.0 / batch_size) * (cdist + reg)
+
+        return logits, margin_logits, likelihood
+
+
+class LGMLoss_v0(nn.Module):
+    """
+    LGMLoss whose covariance is fixed as Identity matrix
+    """
+
+    def __init__(self, num_classes, feat_dim, alpha):
+        super(LGMLoss_v0, self).__init__()
+        self.feat_dim = feat_dim
+        self.num_classes = num_classes
+        self.alpha = alpha
+
+        self.centers = nn.Parameter(torch.randn(num_classes, feat_dim))
+
+    def forward(self, feat, label):
+        batch_size = feat.shape[0]
+
+        diff = torch.unsqueeze(feat, dim=1) - torch.unsqueeze(self.centers, dim=0)
+        diff = torch.mul(diff, diff)
+        dist = torch.sum(diff, dim=-1)
+
+        y_onehot = torch.FloatTensor(batch_size, self.num_classes)
+        y_onehot.zero_()
+        y_onehot = Variable(y_onehot).cuda()
+        y_onehot.scatter_(1, torch.unsqueeze(label, dim=-1), self.alpha)
+        y_onehot = y_onehot + 1.0
+        margin_dist = torch.mul(dist, y_onehot)
+        margin_logits = -0.5 * margin_dist
+        logits = -0.5 * dist
+
+        cdiff = feat - torch.index_select(self.centers, dim=0, index=label.long())
+        likelihood = (1.0 / batch_size) * cdiff.pow(2).sum(1).sum(0) / 2.0
+        return logits, margin_logits, likelihood
+
+
+class CenterLoss(nn.Module):
+    def __init__(self, num_classes, feat_dim):
+        super(CenterLoss, self).__init__()
+        self.num_classes = num_classes
+        self.feat_dim = feat_dim
+        self.centers = nn.Parameter(torch.randn(num_classes, feat_dim))
+        self.centerlossfunction = CenterlossFunction.apply
+
+    def forward(self, y, feat):
+        # To squeeze the Tenosr
+        batch_size = feat.size(0)
+        feat = feat.view(batch_size, 1, 1, -1).squeeze()
+        # To check the dim of centers and features
+        if feat.size(1) != self.feat_dim:
+            raise ValueError(
+                "Center's dim: {0} should be equal to input feature's dim: {1}".format(self.feat_dim, feat.size(1)))
+        return self.centerlossfunction(feat, y, self.centers)
+
+
+class CenterlossFunction(Function):
+
+    @staticmethod
+    def forward(ctx, feature, label, centers):
+        ctx.save_for_backward(feature, label, centers)
+        centers_pred = centers.index_select(0, label.long())
+        return (feature - centers_pred).pow(2).sum(1).sum(0) / 2.0
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        feature, label, centers = ctx.saved_variables
+        grad_feature = feature - centers.index_select(0, label.long())  # Eq. 3
+
+        # init every iteration
+        counts = torch.ones(centers.size(0))
+        grad_centers = torch.zeros(centers.size())
+        if feature.is_cuda:
+            counts = counts.cuda()
+            grad_centers = grad_centers.cuda()
+        # print counts, grad_centers
+
+        # Eq. 4 || need optimization !! To be vectorized, but how?
+        for i in range(feature.size(0)):
+            j = int(label[i].data[0])
+            counts[j] += 1
+            grad_centers[j] += (centers.data[j] - feature.data[i])
+        # print counts
+        grad_centers = Variable(grad_centers / counts.view(-1, 1))
+
+        return grad_feature * grad_output, None, grad_centers
+
+
+
+class LogitNormLoss(nn.Module):
+
+    def __init__(self, device, t=1.0, p=2):
+        super(LogitNormLoss, self).__init__()
+        self.device = device
+        self.t = t
+        self.p = p
+
+    def forward(self, x, target):
+        norms = torch.norm(x, p=self.p, dim=-1, keepdim=True) + 1e-7
+        logit_norm = torch.div(x, norms) / self.t
+        return F.cross_entropy(logit_norm, target)
+
+
+class NormRegLoss(nn.Module):
+
+    def __init__(self, device, t=1.0, p=2):
+        super(NormRegLoss, self).__init__()
+        self.device = device
+        self.t = t
+        self.p = p
+
+    def forward(self, x, target):
+        norms = torch.norm(x, p=self.p, dim=-1)
+        return F.cross_entropy(x, target) + self.t * norms.mean()
+
+class CNormLoss(nn.Module):
+
+    def __init__(self, device, t=1.0, p=2):
+        super(CNormLoss, self).__init__()
+        self.device = device
+        self.t = t
+        self.p = p
+        self.softmax = nn.Softmax(dim=1)
+
+
+    def forward(self, x, target):
+        norms = torch.norm(x, p=self.p, dim=-1, keepdim=True) + 1e-7
+        norms_condition = torch.norm(x, p=self.p, dim=-1)
+        x_norm = torch.div(x, norms) / self.t
+
+        p = self.softmax(x)
+        p = p[torch.arange(p.shape[0]), target]
+
+        p_norm = self.softmax(x_norm)
+        p_norm = p_norm[torch.arange(p_norm.shape[0]), target]
+
+        loss = torch.empty_like(p)
+        clip = norms_condition > self.t
+
+        loss[clip] = -torch.log(p_norm[clip])
+        loss[~clip] = -torch.log(p[~clip])
+
+        return torch.mean(loss)
+
+class TLogitNormLoss(nn.Module):
+
+    def __init__(self, device, t=1.0, m=10):
+        super(TLogitNormLoss, self).__init__()
+        self.device = device
+        self.t = t
+        self.m = m
+        # Probability threshold for the clipping
+        self.prob_thresh = 1 / self.m
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, x, target):
+        norms = torch.norm(x, p=2, dim=-1, keepdim=True) + 1e-7
+        x_norm = torch.div(x, norms) / self.t
+
+        p = self.softmax(x)
+        p = p[torch.arange(p.shape[0]), target]
+
+        p_norm = self.softmax(x_norm)
+        p_norm = p_norm[torch.arange(p_norm.shape[0]), target]
+
+        loss = torch.empty_like(p)
+        clip = p <= self.prob_thresh
+
+        loss[clip] = -torch.log(p_norm[clip])
+        loss[~clip] = -torch.log(p[~clip])
+
+        return torch.mean(loss)
+
+
+class logNegLoss(nn.Module):
+
+    def __init__(self, device, t=1.0):
+        super(logNegLoss, self).__init__()
+        self.device = device
+        self.t = t
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, x, target):
+        p = self.softmax(x)
+        p = p[torch.arange(p.shape[0]), target]
+        # loss = torch.log(p**(-self.t)*(1-p)**(1-self.t))
+        loss = -self.t * torch.log(p) + (1 - self.t) * torch.log(1 - p)
+        return torch.mean(loss)
+
+class FloodLoss(nn.Module):
+
+    def __init__(self, device, t=0.01):
+        super(FloodLoss, self).__init__()
+        self.device = device
+        self.t = t
+
+    def forward(self, x, target):
+        losses = F.cross_entropy(x, target, reduction="none")
+        losses = (losses - self.t).abs()+self.t
+        return losses.mean()
+
+class DoubleSoftLoss(nn.Module):
+
+    def __init__(self, device, t=1.0):
+        super(DoubleSoftLoss, self).__init__()
+        self.device = device
+        self.t = t
+
+    def forward(self, x, target):
+        logit_norm = F.softmax(x, dim=-1)
+        return F.cross_entropy(logit_norm/self.t, target)
+
+
+class LogitClipLoss(nn.Module):
+
+    def __init__(self, device, threshold=1.0):
+        super(LogitClipLoss, self).__init__()
+        self.device = device
+        self.min = -threshold
+        self.max = threshold
+
+    def forward(self, x, target):
+        x = torch.clamp(x, self.min, self.max)
+        return F.cross_entropy(x, target)
+
+
+class LogitTempLoss(nn.Module):
+
+    def __init__(self, device, t=1.0):
+        super(LogitTempLoss, self).__init__()
+        self.device = device
+        self.t = t
+
+    def forward(self, x, target):
+        return F.cross_entropy(x / self.t, target)
+
+
+
+class LogitPenLoss(nn.Module):
+
+    def __init__(self, device, beta=0):
+        super(LogitPenLoss, self).__init__()
+        self.device = device
+        self.beta = beta
+
+    def forward(self, x, target):
+        norms = torch.norm(x, p=2)
+
+        return F.cross_entropy(x, target) + self.beta * norms
+
+class SigmoidCE(nn.Module):
+
+    def __init__(self, device, num_class):
+        super(SigmoidCE, self).__init__()
+        self.device = device
+        self.num_class = num_class
+    def forward(self, x, target):
+        label_one_hot = F.one_hot(target, self.num_class).float()
+        return F.binary_cross_entropy(x * torch.sigmoid(x), label_one_hot)
+
+class SquaredLoss(nn.Module):
+
+    def __init__(self, device, num_class=10, k=9, m=60):
+        super(SquaredLoss, self).__init__()
+        self.device = device
+        self.num_class = num_class
+        self.k = k
+        self.m = m
+
+    def forward(self, x, target):
+        label_one_hot = F.one_hot(target, self.num_class)
+        self.k * label_one_hot * x
+        return F.binary_cross_entropy(x * torch.sigmoid(x), target)
+
+def focal_loss(input_values, gamma):
+    """Computes the focal loss"""
+    p = torch.exp(-input_values)
+    loss = (1 - p) ** gamma * input_values
+    return loss.mean()
+
+
+class FocalLoss(nn.Module):
+    def __init__(self, gamma=0.):
+        super(FocalLoss, self).__init__()
+        assert gamma >= 0
+        self.gamma = gamma
+
+    def forward(self, input, target):
+        return focal_loss(F.cross_entropy(input, target, reduction='none'), self.gamma)
+
+class PHuberCE(nn.Module):
+    def __init__(self, tau=10):
+        super(PHuberCE, self).__init__()
+        self.tau = tau
+
+        # Probability threshold for the clipping
+        self.prob_thresh = 1 / self.tau
+        # Negative of the Fenchel conjugate of base loss at tau
+        self.boundary_term = math.log(self.tau) + 1
+
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        p = self.softmax(input)
+        p = p[torch.arange(p.shape[0]), target]
+
+        loss = torch.empty_like(p)
+        clip = p <= self.prob_thresh
+        loss[clip] = -self.tau * p[clip] + self.boundary_term
+        loss[~clip] = -torch.log(p[~clip])
+
+        return torch.mean(loss)
+
+def loss_sce(y, labels_one_hot, alpha, beta):
+
+    pred = F.softmax(y, dim=1)
+
+    pred = torch.clamp(pred, min=1e-7, max=1.0)
+    label_one_hot = torch.clamp(labels_one_hot, min=1e-4, max=1.0)
+
+    ce = (-1 * torch.sum(label_one_hot * torch.log(pred), dim=1)).mean()
+    rce = (-1 * torch.sum(pred * torch.log(label_one_hot), dim=1)).mean()
+    loss = alpha * ce + beta * rce
+
+    return loss
+
+class SCE(nn.Module):
+    def __init__(self, alpha=0.5, beta=1.0, num_classes=10):
+        super(SCE, self).__init__()
+        self.alpha = alpha
+        self.beta = beta
+        self.num_classes = num_classes
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        labels_one_hot = torch.zeros(target.shape[0], self.num_classes).to(input.device).scatter_(1,
+                                                                                                 target.unsqueeze(
+                                                                                                     1), 1)
+        loss = loss_sce(input, labels_one_hot, self.alpha, self.beta)
+        return loss
+
+
+
+class GCE(nn.Module):
+    def __init__(self, device, q=0.7, k=10):
+        super(GCE, self).__init__()
+        self.q = q
+        self.k = k
+        self.device = device
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        soft_max = nn.Softmax(dim=1)
+        sm_outputs = soft_max(input)
+        label_one_hot = nn.functional.one_hot(target, self.k).float().to(self.device)
+        sm_out = torch.pow((sm_outputs * label_one_hot).sum(dim=1), self.q)
+        target = torch.ones_like(target)
+        loss_vec = (target - sm_out) / self.q
+        average_loss = loss_vec.mean()
+        return average_loss
+
+class AGCELoss(nn.Module):
+    def __init__(self, num_classes=10, a=1, q=2, eps=1e-7, scale=1.):
+        super(AGCELoss, self).__init__()
+        self.a = a
+        self.q = q
+        self.num_classes = num_classes
+        self.eps = eps
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
+        loss = ((self.a+1)**self.q - torch.pow(self.a + torch.sum(label_one_hot * pred, dim=1), self.q)) / self.q
+        return loss.mean() * self.scale
+
+
+class NGCE(torch.nn.Module):
+    def __init__(self, num_classes, scale=1.0, q=0.7):
+        super(NGCE, self).__init__()
+        self.num_classes = num_classes
+        self.q = q
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = torch.nn.functional.one_hot(labels, self.num_classes).float().to(pred.device)
+        numerators = 1. - torch.pow(torch.sum(label_one_hot * pred, dim=1), self.q)
+        denominators = self.num_classes - pred.pow(self.q).sum(dim=1)
+        ngce = numerators / denominators
+        return self.scale * ngce.mean()
+# class MAE(nn.Module):
+#     def __init__(self, device, temp=0):
+#         super(MAE, self).__init__()
+#         self.device = device
+#         self.temp = temp
+#
+#     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+#         if self.temp != 0:
+#             norms = torch.norm(input, p=2, dim=-1, keepdim=True) + 1e-7
+#             input = torch.div(input, norms) / self.temp
+#         labels_one_hot = torch.zeros(target.shape[0], input.shape[-1]).to(self.device).scatter_(1,
+#                                                                                                  target.unsqueeze(
+#                                                                                                      1), 1)
+#         softmax = torch.nn.Softmax(dim=-1)
+#         loss_l1 = torch.nn.L1Loss()
+#         loss = loss_l1(softmax(input), labels_one_hot)
+#         return loss
+
+
+
+
+class TaylorCE(nn.Module):
+    def __init__(self, device, series=2):
+        super(TaylorCE, self).__init__()
+        self.series = series
+        self.device = device
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        n = self.series
+        k = input.shape[1]
+        soft_max = nn.Softmax(dim=1)
+        sm_outputs = soft_max(input)
+        label_one_hot = nn.functional.one_hot(target, k).float().to(self.device)
+        final_outputs = (sm_outputs * label_one_hot).sum(dim=1)
+
+        total_loss = 0
+        for i in range(n):  # 0 to n-1
+            total_loss += torch.pow(torch.tensor([-1.0]).to(self.device), i + 1) * torch.pow(final_outputs - 1, i + 1) * 1.0 / (
+                    i + 1)  # \sum_i=0^n(x-1)^(i+1)*(-1)^(i+1)/(i+1)
+        average_loss = total_loss.mean()
+        return average_loss
+
+
+class NLNL(nn.Module):
+    def __init__(self, device, train_loader, num_classes=10, ln_neg=1):
+        super(NLNL, self).__init__()
+        self.num_classes = num_classes
+        self.ln_neg = ln_neg
+        weight = torch.FloatTensor(num_classes).zero_() + 1.
+        if not hasattr(train_loader.dataset, 'targets'):
+            weight = [1] * num_classes
+            weight = torch.FloatTensor(weight)
+        else:
+            for i in range(num_classes):
+                weight[i] = (torch.from_numpy(np.array(train_loader.dataset.targets)) == i).sum()
+            weight = 1 / (weight / weight.max())
+
+        self.device = device
+        self.weight = weight.to(self.device)
+        self.criterion = torch.nn.CrossEntropyLoss(weight=self.weight)
+        self.criterion_nll = torch.nn.NLLLoss()
+
+
+    def forward(self, pred, labels):
+
+        labels_neg = (labels.unsqueeze(-1).repeat(1, self.ln_neg)
+                      + torch.LongTensor(len(labels), self.ln_neg).to(self.device).random_(1, self.num_classes)) % self.num_classes
+        labels_neg = torch.autograd.Variable(labels_neg)
+
+        assert labels_neg.max() <= self.num_classes-1
+        assert labels_neg.min() >= 0
+        assert (labels_neg != labels.unsqueeze(-1).repeat(1, self.ln_neg)).sum() == len(labels)*self.ln_neg
+
+        s_neg = torch.log(torch.clamp(1. - F.softmax(pred, 1), min=1e-5, max=1.))
+        s_neg *= self.weight[labels].unsqueeze(-1).expand(s_neg.size()).to(self.device)
+        labels = labels * 0 - 100
+        loss = self.criterion(pred, labels) * float((labels >= 0).sum())
+        loss_neg = self.criterion_nll(s_neg.repeat(self.ln_neg, 1), labels_neg.t().contiguous().view(-1)) * float((labels_neg >= 0).sum())
+        loss = ((loss+loss_neg) / (float((labels >= 0).sum())+float((labels_neg[:, 0] >= 0).sum())))
+        return loss
+
+class NCELoss(nn.Module):
+    def __init__(self, num_classes, scale=1.0):
+        super(NCELoss, self).__init__()
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.log_softmax(pred, dim=1)
+        label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
+        loss = -1 * torch.sum(label_one_hot * pred, dim=1) / (-pred.sum(dim=1))
+        return self.scale * loss.mean()
+
+class RCELoss(nn.Module):
+    def __init__(self, num_classes=10, scale=1.0):
+        super(RCELoss, self).__init__()
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        pred = torch.clamp(pred, min=1e-7, max=1.0)
+        label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
+        label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
+        loss = (-1 * torch.sum(pred * torch.log(label_one_hot), dim=1))
+        return self.scale * loss.mean()
+class NCEandRCE(nn.Module):
+    def __init__(self, alpha=1., beta=1., num_classes=10):
+        super(NCEandRCE, self).__init__()
+        self.num_classes = num_classes
+        self.nce = NCELoss(num_classes=num_classes, scale=alpha)
+        self.rce = RCELoss(num_classes=num_classes, scale=beta)
+
+    def forward(self, pred, labels):
+        return self.nce(pred, labels) + self.rce(pred, labels)
+
+class NCEandAGCE(torch.nn.Module):
+    def __init__(self, alpha=1., beta = 1., num_classes=10, a=3, q=1.5):
+        super(NCEandAGCE, self).__init__()
+        self.num_classes = num_classes
+        self.nce = NCELoss(num_classes=num_classes, scale=alpha)
+        self.agce = AGCELoss(num_classes=num_classes, a=a, q=q, scale=beta)
+
+    def forward(self, pred, labels):
+        return self.nce(pred, labels) + self.agce(pred, labels)
+
+class MAELoss(nn.Module):
+    def __init__(self, num_classes=10, scale=2.0):
+        super(MAELoss, self).__init__()
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
+        loss = 1. - torch.sum(label_one_hot * pred, dim=1)
+        return self.scale * loss.mean()
+
+class NCEandMAE(nn.Module):
+    def __init__(self, alpha=1., beta=1., num_classes=10):
+        super(NCEandMAE, self).__init__()
+        self.num_classes = num_classes
+        self.nce = NCELoss(num_classes=num_classes, scale=alpha)
+        self.mae = MAELoss(num_classes=num_classes, scale=beta)
+
+    def forward(self, pred, labels):
+        return self.nce(pred, labels) + self.mae(pred, labels)
+
+class NGCEandMAE(torch.nn.Module):
+    def __init__(self, alpha, beta, num_classes, q=0.7):
+        super(NGCEandMAE, self).__init__()
+        self.num_classes = num_classes
+        self.ngce = NGCE(num_classes=num_classes, scale=alpha, q=q)
+        self.mae = MAELoss(scale=beta, num_classes=num_classes)
+
+    def forward(self, pred, labels):
+        return self.ngce(pred, labels) + self.mae(pred, labels)
+
+
+class AUELoss(nn.Module):
+    def __init__(self, num_classes=10, a=5.5, q=3, scale=1.0):
+        super(AUELoss, self).__init__()
+        self.num_classes = num_classes
+        self.a = a
+        self.q = q
+        self.eps = 1e-7
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
+        loss = (torch.pow(self.a - torch.sum(label_one_hot * pred, dim=1), self.q) - (self.a-1)**self.q)/ self.q
+        return loss.mean() * self.scale
+
+class AExpLoss(torch.nn.Module):
+    def __init__(self, num_classes=10, a=2.5, scale=1.0):
+        super(AExpLoss, self).__init__()
+        self.num_classes = num_classes
+        self.a = a
+        self.scale = scale
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
+        loss = torch.exp(-torch.sum(label_one_hot * pred, dim=1) / self.a)
+        return loss.mean() * self.scale
+
+
+
+class CoresLoss(torch.nn.Module):
+    def __init__(self, device):
+        super(CoresLoss, self).__init__()
+        self.device = device
+
+    def forward(self, pred, labels, epoch):
+        beta = f_beta(epoch)
+        loss = F.cross_entropy(pred, labels, reduce=False)
+        loss_numpy = loss.data.cpu().numpy()
+        num_batch = len(loss_numpy)
+        loss_v = np.zeros(num_batch)
+        loss_ = -torch.log(F.softmax(pred) + 1e-8)
+        # sel metric
+        loss_sel = loss - torch.mean(loss_, 1)
+        loss = loss - beta * torch.mean(loss_, 1)
+
+        loss_div_numpy = loss_sel.data.cpu().numpy()
+
+        for i in range(len(loss_numpy)):
+            if epoch <= 60:
+                loss_v[i] = 1.0
+            elif loss_div_numpy[i] <= 0:
+                loss_v[i] = 1.0
+        loss_v = loss_v.astype(np.float32)
+        loss_v_var = Variable(torch.from_numpy(loss_v)).to(self.device)
+        loss_ = loss_v_var * loss
+        if sum(loss_v) == 0.0:
+            return torch.mean(loss_) / 100000000
+        else:
+            return torch.sum(loss_) / sum(loss_v)
+# def loss_cores(epoch, y, t, class_list, ind, noise_or_not, loss_all, loss_div_all, noise_prior=None):
+
+def f_beta(epoch):
+    beta1 = np.linspace(0.0, 0.0, num=20)
+    beta2 = np.linspace(0.0, 2, num=60)
+    beta3 = np.linspace(2, 2, num=120)
+
+    beta = np.concatenate((beta1, beta2, beta3), axis=0)
+    return beta[epoch]

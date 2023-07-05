@@ -42,6 +42,7 @@ def parse_args():
                         help='number of classes')
     parser.add_argument('--training_type', type=str, default="Normal",
                         help='Normal, LabelSmoothing, AdvReg, DP, MixupMMD, PATE')
+    #--training type there is used for specifying path to load model
     parser.add_argument('--inference-dataset', type=str, default='CIFAR10',
                         help='if yes, load pretrained attack model to inference')
     parser.add_argument('--attack_type', type=str, default='black-box',
@@ -53,6 +54,8 @@ def parse_args():
     parser.add_argument('--log_path', type=str,
                         default='./save', help='')
 
+    parser.add_argument('--temp', type=float, default=1,
+                        help='temperature')
     args = parser.parse_args()
 
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
@@ -96,11 +99,11 @@ if __name__ == "__main__":
 
     # load target/shadow model to conduct the attacks
     target_model.load_state_dict(torch.load(
-        f'{args.log_path}/{args.dataset}/{args.training_type}/target/{args.model}.pth'))
+        f'{args.log_path}/{args.dataset}/{args.training_type}/target/{args.temp}/{args.model}.pth'))
     target_model = target_model.to(args.device)
 
     shadow_model.load_state_dict(torch.load(
-        f'{args.log_path}/{args.dataset}/{args.training_type}/shadow/{args.model}.pth'))
+        f'{args.log_path}/{args.dataset}/{args.training_type}/shadow/{args.temp}/{args.model}.pth'))
     shadow_model = shadow_model.to(args.device)
 
     # generate attack dataset
@@ -112,7 +115,7 @@ if __name__ == "__main__":
     if attack_type == "label-only":
         attack_model = LabelOnlyMIA(
             device=args.device,
-            target_model=target_model.eval(),
+            target_model=target_model.eval(), # 打开eval()模式
             shadow_model=shadow_model.eval(),
             target_loader=(target_train_loader, target_test_loader),
             shadow_loader=(shadow_train_loader, shadow_test_loader),

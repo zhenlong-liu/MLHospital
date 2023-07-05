@@ -66,7 +66,7 @@ class TrainTargetNormal(Trainer):
         self.num_class = num_class
         self.epochs = epochs
         self.smooth_eps = smooth_eps
-
+        
         self.model = self.model.to(self.device)
 
         self.optimizer = torch.optim.SGD(
