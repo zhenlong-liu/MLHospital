@@ -4,6 +4,8 @@ sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
 sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/defenses')
 
 import torchvision
+import utils
+from utils import get_loss
 from defenses.membership_inference.AdvReg import TrainTargetAdvReg
 from defenses.membership_inference.DPSGD import TrainTargetDP
 from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothing
@@ -17,7 +19,7 @@ from defenses.membership_inference.logit_norm import LogitNormLoss
 
 from defenses.membership_inference.LogitClip import TrainTargetLogitClip
 
-
+from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -74,7 +76,7 @@ def parse_args():
     # 默认储存到save里
     parser.add_argument('--tau', type=float, default=1, help = "logitclip tau")
     
-
+    parser.add_argument('--loss_type', type=str, default="ce", help = "Loss function")
     args = parser.parse_args()
 
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
@@ -148,6 +150,12 @@ if __name__ == "__main__":
         
         total_evaluator = TrainTargetLogitClip(
             model=target_model, epochs=opt.epochs, log_path=save_pth, tau = opt.tau)
+        total_evaluator.train(train_loader, test_loader)
+        
+    elif opt.training_type == "NormalLoss":
+        
+        total_evaluator = TrainTargetNormalLoss(
+            model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type ,epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
 
     elif opt.training_type == "LabelSmoothing":

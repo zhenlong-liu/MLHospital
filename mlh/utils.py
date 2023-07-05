@@ -83,3 +83,86 @@ def check_and_transform_label_format(
             )
 
     return labels
+
+
+
+def get_loss(self, loss_type, device, train_loader, args):
+    CIFAR10_CONFIG = {
+        "ce": nn.CrossEntropyLoss(),
+        "focal": FocalLoss(gamma=0.5),
+        "mae": MAELoss(num_classes=self.num_classes),
+        "gce": GCE(self.device, k=self.num_classes),
+        "sce": SCE(alpha=0.5, beta=1.0, num_classes=self.num_classes),
+        "ldam": LDAMLoss(device=device),
+        "logit_norm": LogitNormLoss(device, self.args.temp, p=self.args.lp),
+        "normreg": NormRegLoss(device, self.args.temp, p=self.args.lp),
+        "logneg": logNegLoss(device, t=self.args.temp),
+        "logit_clip": LogitClipLoss(device, threshold=self.args.temp),
+        "cnorm": CNormLoss(device, self.args.temp),
+        "tlnorm": TLogitNormLoss(device, self.args.temp, m=10),
+        "nlnl": NLNL(device, train_loader=train_loader, num_classes=self.num_classes),
+        "nce": NCELoss(num_classes=self.num_classes),
+        "ael": AExpLoss(num_classes=10, a=2.5),
+        "aul": AUELoss(num_classes=10, a=5.5, q=3),
+        "phuber": PHuberCE(tau=10),
+        "taylor": TaylorCE(device=self.device, series=args.series),
+        "cores": CoresLoss(device=self.device),
+        "ncemae": NCEandMAE(alpha=1, beta=1, num_classes=10),
+        "ngcemae": NGCEandMAE(alpha=1, beta=1, num_classes=10),
+        "ncerce": NGCEandMAE(alpha=1, beta=1.0, num_classes=10),
+        "nceagce": NCEandAGCE(alpha=1, beta=4, a=6, q=1.5, num_classes=10),
+    }
+    CIFAR100_CONFIG = {
+        "ce": nn.CrossEntropyLoss(),
+        "focal": FocalLoss(gamma=0.5),
+        "mae": MAELoss(num_classes=self.num_classes),
+        "gce": GCE(self.device, k=self.num_classes),
+        "sce": SCE(alpha=0.5, beta=1.0, num_classes=self.num_classes),
+        "ldam": LDAMLoss(device=device),
+        "logit_clip": LogitClipLoss(device, threshold=self.args.temp),
+        "logit_norm": LogitNormLoss(device, self.args.temp, p=self.args.lp),
+        "normreg": NormRegLoss(device, self.args.temp, p=self.args.lp),
+        "tlnorm": TLogitNormLoss(device, self.args.temp, m=100),
+        "cnorm": CNormLoss(device, self.args.temp),
+        "nlnl": NLNL(device, train_loader=train_loader, num_classes=self.num_classes),
+        "nce": NCELoss(num_classes=self.num_classes),
+        "ael": AExpLoss(num_classes=100, a=2.5),
+        "aul": AUELoss(num_classes=100, a=5.5, q=3),
+        "phuber": PHuberCE(tau=30),
+        "taylor": TaylorCE(device=self.device, series=args.series),
+        "cores": CoresLoss(device=self.device),
+        "ncemae": NCEandMAE(alpha=50, beta=1, num_classes=100),
+        "ngcemae": NGCEandMAE(alpha=50, beta=1, num_classes=100),
+        "ncerce": NGCEandMAE(alpha=50, beta=1.0, num_classes=100),
+        "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=1.8, q=3.0, num_classes=100),
+    }
+    WEB_CONFIG = {
+        "ce": nn.CrossEntropyLoss(),
+        "focal": FocalLoss(gamma=0.5),
+        "mae": MAELoss(num_classes=self.num_classes),
+        "gce": GCE(self.device, k=self.num_classes),
+        "sce": SCE(alpha=0.5, beta=1.0, num_classes=self.num_classes),
+        "ldam": LDAMLoss(device=device),
+        "logit_norm": LogitNormLoss(device, self.args.temp, p=self.args.lp),
+        "logit_clip": LogitClipLoss(device, threshold=self.args.temp),
+        "normreg": NormRegLoss(device, self.args.temp, p=self.args.lp),
+        "cnorm": CNormLoss(device, self.args.temp),
+        "tlnorm": TLogitNormLoss(device, self.args.temp, m=50),
+        "nlnl": NLNL(device, train_loader=train_loader, num_classes=self.num_classes),
+        "nce": NCELoss(num_classes=self.num_classes),
+        "ael": AExpLoss(num_classes=50, a=2.5),
+        "aul": AUELoss(num_classes=50, a=5.5, q=3),
+        "phuber": PHuberCE(tau=30),
+        "taylor": TaylorCE(device=self.device, series=args.series),
+        "cores": CoresLoss(device=self.device),
+        "ncemae": NCEandMAE(alpha=50, beta=0.1, num_classes=50),
+        "ngcemae": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
+        "ncerce": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
+        "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=2.5, q=3.0, num_classes=50),
+    }
+    if "CIFAR10" in args.dataset:
+        return CIFAR10_CONFIG[loss_type]
+    elif args.dataset == "cifar100":
+        return CIFAR100_CONFIG[loss_type]
+    elif args.dataset == "webvision":
+        return WEB_CONFIG[loss_type]

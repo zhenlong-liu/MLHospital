@@ -4,9 +4,10 @@ math: mathjax
 ---
 
 
-![center w:200px, h:400px](image.png)
+![w:200px, h:400px](image.png)
 
 Focal Loss adds a factor $(1- p_t)^{\gamma}$ to the standard cross entropy criterion. Setting $\gamma >0$ reduces the relative loss for well-classified examples ($p_t > .5$), putting more focus on **hard, misclassified** examples.
 
-
 ---
+
+
