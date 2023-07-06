@@ -77,6 +77,10 @@ def parse_args():
     parser.add_argument('--tau', type=float, default=1, help = "logitclip tau")
     
     parser.add_argument('--loss_type', type=str, default="ce", help = "Loss function")
+    
+    parser.add_argument('--lp', type=int, default=2, help = "lp norm")
+    parser.add_argument('--series', type=int, default=2, help = "taylor ce series")
+    
     args = parser.parse_args()
 
     args.input_shape = [int(item) for item in args.input_shape.split(',')]

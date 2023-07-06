@@ -3,6 +3,7 @@ marp: true
 math: mathjax
 ---
 
+## Focal Loss
 
 ![w:200px, h:400px](image.png)
 
@@ -10,4 +11,7 @@ Focal Loss adds a factor $(1- p_t)^{\gamma}$ to the standard cross entropy crite
 
 ---
 
+## MAE loss(mean absolute error)
+
+$$\begin{aligned}\mathrm{MAE}&=\frac{\sum_{i=1}^n|y_i-x_i|}n=\frac{\sum_{i=1}^n|e_i|}n\end{aligned}$$
 

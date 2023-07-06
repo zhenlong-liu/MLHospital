@@ -6,7 +6,7 @@ from runx.logx import logx
 import torch.nn.functional as F
 from defenses.membership_inference.trainer import Trainer
 import torch.nn as nn
-from loss_function import*
+from defenses.membership_inference.loss_function import*
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
@@ -35,13 +35,13 @@ torch.backends.cudnn.benchmark = False
 
 
 class TrainTargetNormalLoss(Trainer):
-    def __init__(self, model, args, train_loader, loss_type ="ce", device="cuda:0", num_class=10, epochs=100, learning_rate=0.01, momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
+    def __init__(self, model, args, train_loader, loss_type ="ce", device="cuda:0", num_classes=10, epochs=100, learning_rate=0.01, momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
 
         super().__init__()
 
         self.model = model
         self.device = device
-        self.num_class = num_class
+        self.num_classes = num_classes
         self.epochs = epochs
         self.smooth_eps = smooth_eps
         self.args = args
@@ -149,7 +149,7 @@ class TrainTargetNormalLoss(Trainer):
             "ael": AExpLoss(num_classes=10, a=2.5),
             "aul": AUELoss(num_classes=10, a=5.5, q=3),
             "phuber": PHuberCE(tau=10),
-            "taylor": TaylorCE(device=self.device, series=args.series),
+            "taylor": TaylorCE(device=self.device, series=self.args.series),
             "cores": CoresLoss(device=self.device),
             "ncemae": NCEandMAE(alpha=1, beta=1, num_classes=10),
             "ngcemae": NGCEandMAE(alpha=1, beta=1, num_classes=10),

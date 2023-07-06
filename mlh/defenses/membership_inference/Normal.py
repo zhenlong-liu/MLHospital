@@ -157,4 +157,4 @@ class TrainTargetNormal(Trainer):
 
         # torch.save(self.model.state_dict(), os.path.join(
         #     self.log_path, "%s.pth" % self.model_save_name))
-    s
+    
