@@ -19,10 +19,229 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import sys
+sys.path.append('/home/liuzhenlong/MIA/MLHospital/')
+sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
 import numpy as np
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
+from models.resnet import resnet20
+import torch.nn as nn
+import torchvision
 
+import torch.optim as optim
+from torch.optim.lr_scheduler import CosineAnnealingLR
+import torch
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+
+def get_optimizer(optimizer_name, model_parameters, learning_rate=0.1, momentum=0.9, weight_decay=1e-4):
+    """
+    获取指定优化器的实例
+
+    参数：
+        optimizer_name (str): 优化器的名称，可以是 'sgd' 或 'adam'.
+        model_parameters (iterable): 模型的参数，通常通过 model.parameters() 获得.
+        learning_rate (float): 初始学习率 (默认为 0.1).
+        momentum (float): SGD优化器的动量参数 (默认为 0.9).
+        weight_decay (float): L2正则化项的权重衰减参数 (默认为 1e-4).
+
+    返回：
+        torch.optim.Optimizer: 返回所选优化器的实例.
+    """
+    if optimizer_name.lower() == 'sgd':
+        optimizer = optim.SGD(model_parameters, lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
+    elif optimizer_name.lower() == 'adam':
+        optimizer = optim.Adam(model_parameters, lr=learning_rate, weight_decay=weight_decay)
+    else:
+        raise ValueError("'sgd' or 'adam'.")
+
+    return optimizer
+
+import torch.optim.lr_scheduler as lr_scheduler
+
+def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t_max=50):
+    """
+    Get the specified learning rate scheduler instance.
+
+    Parameters:
+        scheduler_name (str): The name of the scheduler, can be 'step' or 'cosine'.
+        optimizer (torch.optim.Optimizer): The optimizer instance.
+        decay_epochs (int): Number of epochs for each decay period, used for StepLR scheduler (default is 1).
+        decay_factor (float): The factor by which the learning rate will be reduced after each decay period,
+                             used for StepLR scheduler (default is 0.1).
+        t_max (int): The number of epochs for the cosine annealing scheduler (default is 50).
+
+    Returns:
+        torch.optim.lr_scheduler._LRScheduler: The instance of the selected scheduler.
+    
+    """
+    if isinstance(optimizer, torch.optim.Adam):
+        return DummyScheduler()
+    if scheduler_name.lower() == 'step':
+        scheduler = lr_scheduler.StepLR(optimizer, step_size=30, gamma=decay_factor)
+    elif scheduler_name.lower() == 'cosine':
+        scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=t_max)
+    else:
+        raise ValueError("Unsupported scheduler name. Please choose 'step' or 'cosine'.")
+
+    return scheduler
+
+class DummyScheduler:
+    def step(self):
+        pass
+def compute_losses(loader, net,device):
+    """Auxiliary function to compute per-sample losses"""
+
+    criterion = nn.CrossEntropyLoss(reduction="none")
+    all_losses = []
+
+    for inputs, targets in loader:
+        inputs, targets = inputs.to(device), targets.to(device)
+
+        logits = net(inputs)
+        losses = criterion(logits, targets).numpy(force=True)
+        all_losses.extend(iter(losses))
+    return np.array(all_losses)
+
+def cross_entropy(prob, label):
+    # 避免概率值为0，加上一个很小的值进行平滑处理
+    epsilon = 1e-12
+
+    # 使用np.clip确保概率值不为0或1，以避免log(0)或log(1)出现无效值
+    prob = np.clip(prob, epsilon, 1.0 - epsilon)
+
+    # 将label转换为one-hot编码
+    one_hot_label = np.zeros_like(prob)
+    one_hot_label[np.arange(len(label)), label] = 1
+
+    return -np.sum(one_hot_label * np.log(prob), axis=1)
+
+
+
+def calculate_entropy(data_loader, model):
+    entropies = []
+    model.eval()
+    with torch.no_grad():
+        for inputs, _ in data_loader:
+            outputs = model(inputs)
+            probabilities = F.softmax(outputs, dim=1)
+            
+            entropy = -(probabilities * torch.log(probabilities + 1e-9)).sum(dim=1)    
+            entropies.extend(entropy.cpu().numpy())
+            #entropies.append(entropy)
+            
+    
+    return entropies
+
+def plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device):
+    # Calculate entropies for target_train_loader and target_test_loader
+    target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
+    target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
+    
+    
+    train_entropies = calculate_entropy(target_train_loader, target_model)
+    test_entropies = calculate_entropy(target_test_loader, target_model)
+    train_mean = np.mean(train_entropies)
+    train_variance = np.var(train_entropies)
+    test_mean = np.mean(test_entropies)
+    test_variance = np.var(test_entropies)
+    print(f'Entropies: train_mean:{train_mean:.3f} train_variance:{train_variance:.3f} test_mean:{test_mean:.3f} test_variance:{test_variance:.3f}')
+    # Plot the distribution of entropies
+    plt.figure(figsize=(8, 6))
+    plt.hist(train_entropies, bins=50, alpha=0.5, label=f'Train Entropy\nMean: {train_mean:.2f}\nVariance: {train_variance:.2f}', color='blue')
+    plt.hist(test_entropies, bins=50, alpha=0.5, label=f'Test Entropy\nMean: {test_mean:.2f}\nVariance: {test_variance:.2f}', color='red')
+    plt.xlabel('Entropy') 
+    plt.ylabel('Frequency')
+    plt.title('Entropy Distribution for Target Data')
+    plt.legend()
+    plt.grid(True)
+    save_path = f'{save_path}/entropy_distribution_comparison.png'
+    # Save the plot to the specified path
+    plt.savefig(save_path)
+    plt.close()
+
+def plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device):
+    # Calculate loss for target_train_loader and target_test_loader
+    target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
+    target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
+    
+    
+    train_loss = compute_losses(target_train_loader, target_model,device)
+    test_loss = compute_losses(target_test_loader, target_model,device)
+    train_mean = np.mean(train_loss)
+    train_variance = np.var(train_loss)
+    test_mean = np.mean(test_loss)
+    test_variance = np.var(test_loss)
+    print(f'Loss: train_mean:{train_mean: .3f} train_variance:{train_variance: .3f} test_mean:{test_mean: .3f} test_variance:{test_variance: .3f}')
+    # Plot the distribution of entropies
+
+    plt.figure(figsize=(8, 6))
+    plt.hist(train_loss, bins=50, range= (0,5),alpha=0.5, label=f'Train Loss\nMean: {train_mean:.2f}\nVariance: {train_variance:.2f}', color='blue')
+    plt.hist(test_loss, bins=50,range= (0,5), alpha=0.5, label=f'Test Loss\nMean: {test_mean:.2f}\nVariance: {test_variance:.2f}', color='red')
+    plt.xlabel('Loss') 
+    plt.ylabel('Frequency')
+    plt.title('Loss Distribution for Target Data')
+    plt.legend()
+    plt.grid(True)
+    save_path = f'{save_path}/loss_distribution_comparison.png'
+    # Save the plot to the specified path
+    plt.savefig(save_path)
+    plt.close()
+    
+    
+
+
+def get_target_model(name="resnet18", num_classes=10):
+    if name == "resnet18":
+        model = torchvision.models.resnet18()
+        model.fc = nn.Sequential(nn.Linear(512, num_classes))
+        # 代码修改了ResNet-18模型的最后一层全连接层，将其替换为一个新的全连接层nn.Linear(512, 10)，
+        # 其中512是ResNet-18模型中最后一个卷积层的输出通道数，10是类别数量。这样做是为了将模型的输出调整为与任务中的类别数量相匹配。
+    elif name == "resnet20":
+        model = resnet20(num_classes =num_classes)
+    elif name == "resnet34":
+        model = torchvision.models.resnet34()
+        num_ftrs = model.fc.in_features
+        model.fc = nn.Linear(num_ftrs, num_classes)
+    elif name == "vgg11":
+        model = torchvision.models.vgg11()
+        num_ftrs = model.classifier[-1].in_features
+        model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
+    else:
+        raise ValueError("Model not implemented yet :P")
+    return model
+
+def one_hot_embedding(y, num_classes=10, dtype=torch.cuda.FloatTensor):
+    '''
+    apply one hot encoding on labels
+    :param y: class label
+    :param num_classes: number of classes
+    :param dtype: data type
+    :return:
+    '''
+    scatter_dim = len(y.size())
+    # y_tensor = y.type(torch.cuda.LongTensor).view(*y.size(), -1)
+    y_tensor = y.view(*y.size(), -1)
+    zeros = torch.zeros(*y.size(), num_classes).type(dtype)
+    return zeros.scatter(scatter_dim, y_tensor, 1)
+
+
+def CrossEntropy_soft(input, target, reduction='mean'):
+    '''
+    cross entropy loss on soft labels
+    :param input:
+    :param target:
+    :param reduction:
+    :return:
+    '''
+    logprobs = F.log_softmax(input, dim=1)
+    losses = -(target * logprobs)
+    if reduction == 'mean':
+        return losses.sum() / input.shape[0]
+    elif reduction == 'sum':
+        return losses.sum()
+    elif reduction == 'none':
+        return losses.sum(-1)
 
 def to_categorical(labels: Union[np.ndarray, List[float]], nb_classes: Optional[int] = None) -> np.ndarray:
     """
@@ -86,83 +305,3 @@ def check_and_transform_label_format(
 
 
 
-def get_loss(self, loss_type, device, train_loader, args):
-    CIFAR10_CONFIG = {
-        "ce": nn.CrossEntropyLoss(),
-        "focal": FocalLoss(gamma=0.5),
-        "mae": MAELoss(num_classes=self.num_classes),
-        "gce": GCE(self.device, k=self.num_classes),
-        "sce": SCE(alpha=0.5, beta=1.0, num_classes=self.num_classes),
-        "ldam": LDAMLoss(device=device),
-        "logit_norm": LogitNormLoss(device, self.args.temp, p=self.args.lp),
-        "normreg": NormRegLoss(device, self.args.temp, p=self.args.lp),
-        "logneg": logNegLoss(device, t=self.args.temp),
-        "logit_clip": LogitClipLoss(device, threshold=self.args.temp),
-        "cnorm": CNormLoss(device, self.args.temp),
-        "tlnorm": TLogitNormLoss(device, self.args.temp, m=10),
-        "nlnl": NLNL(device, train_loader=train_loader, num_classes=self.num_classes),
-        "nce": NCELoss(num_classes=self.num_classes),
-        "ael": AExpLoss(num_classes=10, a=2.5),
-        "aul": AUELoss(num_classes=10, a=5.5, q=3),
-        "phuber": PHuberCE(tau=10),
-        "taylor": TaylorCE(device=self.device, series=args.series),
-        "cores": CoresLoss(device=self.device),
-        "ncemae": NCEandMAE(alpha=1, beta=1, num_classes=10),
-        "ngcemae": NGCEandMAE(alpha=1, beta=1, num_classes=10),
-        "ncerce": NGCEandMAE(alpha=1, beta=1.0, num_classes=10),
-        "nceagce": NCEandAGCE(alpha=1, beta=4, a=6, q=1.5, num_classes=10),
-    }
-    CIFAR100_CONFIG = {
-        "ce": nn.CrossEntropyLoss(),
-        "focal": FocalLoss(gamma=0.5),
-        "mae": MAELoss(num_classes=self.num_classes),
-        "gce": GCE(self.device, k=self.num_classes),
-        "sce": SCE(alpha=0.5, beta=1.0, num_classes=self.num_classes),
-        "ldam": LDAMLoss(device=device),
-        "logit_clip": LogitClipLoss(device, threshold=self.args.temp),
-        "logit_norm": LogitNormLoss(device, self.args.temp, p=self.args.lp),
-        "normreg": NormRegLoss(device, self.args.temp, p=self.args.lp),
-        "tlnorm": TLogitNormLoss(device, self.args.temp, m=100),
-        "cnorm": CNormLoss(device, self.args.temp),
-        "nlnl": NLNL(device, train_loader=train_loader, num_classes=self.num_classes),
-        "nce": NCELoss(num_classes=self.num_classes),
-        "ael": AExpLoss(num_classes=100, a=2.5),
-        "aul": AUELoss(num_classes=100, a=5.5, q=3),
-        "phuber": PHuberCE(tau=30),
-        "taylor": TaylorCE(device=self.device, series=args.series),
-        "cores": CoresLoss(device=self.device),
-        "ncemae": NCEandMAE(alpha=50, beta=1, num_classes=100),
-        "ngcemae": NGCEandMAE(alpha=50, beta=1, num_classes=100),
-        "ncerce": NGCEandMAE(alpha=50, beta=1.0, num_classes=100),
-        "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=1.8, q=3.0, num_classes=100),
-    }
-    WEB_CONFIG = {
-        "ce": nn.CrossEntropyLoss(),
-        "focal": FocalLoss(gamma=0.5),
-        "mae": MAELoss(num_classes=self.num_classes),
-        "gce": GCE(self.device, k=self.num_classes),
-        "sce": SCE(alpha=0.5, beta=1.0, num_classes=self.num_classes),
-        "ldam": LDAMLoss(device=device),
-        "logit_norm": LogitNormLoss(device, self.args.temp, p=self.args.lp),
-        "logit_clip": LogitClipLoss(device, threshold=self.args.temp),
-        "normreg": NormRegLoss(device, self.args.temp, p=self.args.lp),
-        "cnorm": CNormLoss(device, self.args.temp),
-        "tlnorm": TLogitNormLoss(device, self.args.temp, m=50),
-        "nlnl": NLNL(device, train_loader=train_loader, num_classes=self.num_classes),
-        "nce": NCELoss(num_classes=self.num_classes),
-        "ael": AExpLoss(num_classes=50, a=2.5),
-        "aul": AUELoss(num_classes=50, a=5.5, q=3),
-        "phuber": PHuberCE(tau=30),
-        "taylor": TaylorCE(device=self.device, series=args.series),
-        "cores": CoresLoss(device=self.device),
-        "ncemae": NCEandMAE(alpha=50, beta=0.1, num_classes=50),
-        "ngcemae": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
-        "ncerce": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
-        "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=2.5, q=3.0, num_classes=50),
-    }
-    if "CIFAR10" in args.dataset:
-        return CIFAR10_CONFIG[loss_type]
-    elif args.dataset == "cifar100":
-        return CIFAR100_CONFIG[loss_type]
-    elif args.dataset == "webvision":
-        return WEB_CONFIG[loss_type]

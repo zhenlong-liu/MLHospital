@@ -19,10 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import os
-import sys
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/defenses')
+
+
 # from mlh.models.utils import FeatureExtractor, VerboseExecution
 
 import torch
@@ -40,9 +38,6 @@ from art.estimators.classification.pytorch import PyTorchClassifier
 from art.attacks.inference.membership_inference import LabelOnlyDecisionBoundary
 import abc
 from mlh.models.attack_model import MLP_BLACKBOX
-from mlh.defenses.membership_inference.loss_function import get_loss
-from utils import cross_entropy
-
 
 
 class FeatureExtractor(nn.Module):
@@ -92,45 +87,21 @@ class ModelParser():
         self.args = args
         self.device = self.args.device
         self.model = model.to(self.device)
-        self.criterion = get_loss(loss_type= args.loss_type, device = args.device, args= args, num_classes=args.num_class)
+
     def get_posteriors(self, dataloader):
         info = {}
         target_list = []
         posteriors_list = []
-        all_losses = []
         for btch_idx, (inputs, targets) in tqdm(enumerate(dataloader)):
             inputs, targets = inputs.to(self.device), targets.to(self.device)
             outputs = self.model(inputs)
             posteriors = F.softmax(outputs, dim=1)
-            # print(posteriors.shape) torch.Size([128, 10])
 
-            # add loss
-            #losses = self.criterion(outputs, targets)
-            #print(losses)
-            #exit()
             target_list += targets.cpu().tolist()
             posteriors_list += posteriors.detach().cpu().numpy().tolist()
-            # all_losses += losses.tolist()
-            
-            
-        
+
         return {"targets": target_list, "posteriors": posteriors_list}
 
-        #targets :1-10
-    def get_losses(self, dataloader):
-        """Auxiliary function to compute per-sample losses"""
-
-        all_losses = [] 
-        for inputs, targets in dataloader:
-            inputs, targets = inputs.to(self.device), targets.to(self.device)
-
-            logits = self.model(inputs)
-            losses = self.criterion(logits, targets).numpy(force=True)
-            all_losses.extend(iter(losses))
-        return {"loss" :np.array(all_losses).tolist()}
-            
-        
-        
     def parse_info_whitebox(self, dataloader, layers):
         info = {}
         target_list = []
@@ -183,13 +154,6 @@ class AttackDataset():
         self.shadow_test_info = self.shadow_model_parser.get_posteriors(
             shadow_test_dataloader)
 
-        # _info contains posteriors, it is prob
-
-
-
-
-
-
         # get attack dataset
         self.attack_train_dataset, self.attack_test_dataset = self.generate_attack_dataset()
 
@@ -212,8 +176,6 @@ class AttackDataset():
             raise ValueError("More implementation is needed :P")
         return mem_data, mem_label, original_label
 
-        ## mem_data posteriors prob; mem_label 0or 1 ;original_label : class label 1-10
-        
     def generate_attack_dataset(self):
         mem_data0, mem_label0, original_label0 = self.parse_info(
             self.target_train_info, label=1)
@@ -224,8 +186,6 @@ class AttackDataset():
         mem_data3, mem_label3, original_label3 = self.parse_info(
             self.shadow_test_info, label=0)
 
-        ## shadow_train_info and shadow_test_info construct the attack_train_dataset, means that using shadow model to train classification model
-        
         attack_train_dataset = torch.utils.data.TensorDataset(
             torch.from_numpy(np.array(mem_data2 + mem_data3, dtype='f')),
             torch.from_numpy(np.array(mem_label2 + mem_label3)
@@ -233,9 +193,6 @@ class AttackDataset():
             torch.from_numpy(np.array(original_label2 +
                             original_label3)).type(torch.long),
         )
-        
-        # print(attack_train_dataset[0])
-        # (tensor([2.4628e-04, 3.9297e-01, 3.7773e-04, 9.3001e-05, 2.3009e-04, 3.6489e-04, 1.2535e-04, 6.5634e-05, 1.3375e-03, 6.0419e-01]), tensor(1), tensor(9))
 
         attack_test_dataset = torch.utils.data.TensorDataset(
             torch.from_numpy(np.array(mem_data0 + mem_data1, dtype='f')),
@@ -295,17 +252,15 @@ class MembershipInferenceAttack(abc.ABC):
 class MetricBasedMIA(MembershipInferenceAttack):
     def __init__(
             self,
-            args,
             num_class,
             device,
             attack_type,
             attack_train_dataset,
             attack_test_dataset,
-            train_loader,
             batch_size=128):
-        # traget train load 
+
         super().__init__()
-        self.args = args
+
         self.num_class = num_class
         self.device = device
         self.attack_type = attack_type
@@ -316,9 +271,6 @@ class MetricBasedMIA(MembershipInferenceAttack):
         self.attack_test_loader = torch.utils.data.DataLoader(
             attack_test_dataset, batch_size=batch_size, shuffle=False)
 
-        self.loss_type = args.loss_type
-        
-        self.criterion = get_loss(loss_type =self.loss_type, device=self.device, args = self.args)
         if self.attack_type == "metric-based":
             self.metric_based_attacks()
         else:
@@ -349,14 +301,6 @@ class MetricBasedMIA(MembershipInferenceAttack):
             'modified entropy', -self.s_tr_m_entr, -self.s_te_m_entr, -self.t_tr_m_entr, -self.t_te_m_entr)
         self.print_result("modified entropy train", train_tuple3)
         self.print_result("modified entropy test", test_tuple3)
-
-        train_tuple4, test_tuple4, test_results4 = self._mem_inf_thre(
-            'cross entropy loss', -self.shadow_train_celoss, -self.shadow_test_celoss, -self.target_train_celoss,
-        -self.target_test_celoss)
-        self.print_result("cross entropy loss train", train_tuple4)
-        self.print_result("cross entropy loss test", test_tuple4)
-
-
 
     def print_result(self, name, given_tuple):
         print("%s" % name, "acc:%.3f, precision:%.3f, recall:%.3f, f1:%.3f, auc:%.3f" % given_tuple)
@@ -395,9 +339,6 @@ class MetricBasedMIA(MembershipInferenceAttack):
         # change them into numpy array
         self.s_tr_outputs, self.s_tr_labels = np.array(
             self.s_tr_outputs), np.array(self.s_tr_labels)
-        # print(self.s_tr_outputs.shape)(15000, 10)
-        # print(self.s_tr_labels.shape) (15000,)
-    
         self.s_te_outputs, self.s_te_labels = np.array(
             self.s_te_outputs), np.array(self.s_te_labels)
         self.t_tr_outputs, self.t_tr_labels = np.array(
@@ -445,14 +386,6 @@ class MetricBasedMIA(MembershipInferenceAttack):
             self.t_tr_outputs, self.t_tr_labels)
         self.t_te_m_entr = self._m_entr_comp(
             self.t_te_outputs, self.t_te_labels)
-
-        # cross entropy loss
-        
-        self.shadow_train_celoss = cross_entropy(self.s_tr_outputs, self.s_tr_labels)
-        self.shadow_test_celoss = cross_entropy(self.s_te_outputs, self.s_te_labels)
-        self.target_train_celoss =cross_entropy(self.t_tr_outputs, self.t_tr_labels)
-        self.target_test_celoss = cross_entropy(self.t_te_outputs, self.t_te_labels)
-
 
     def _log_value(self, probs, small_value=1e-30):
         return -np.log(np.maximum(probs, small_value))

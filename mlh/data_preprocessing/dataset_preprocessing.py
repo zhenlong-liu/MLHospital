@@ -63,9 +63,9 @@ def count_dataset(targetTrainloader, targetTestloader, shadowTrainloader, shadow
     print(shadow_train)
     print(shadow_test)
 
-
+"""
 def prepare_dataset(dataset, select_num=None):
-
+    
     length = len(dataset)
     each_length = length//6
     # if we specify a number, we use the number to split data
@@ -75,9 +75,53 @@ def prepare_dataset(dataset, select_num=None):
     torch.manual_seed(0)
     target_train, target_inference, target_test, shadow_train,  shadow_inference, shadow_test, _ = torch.utils.data.random_split(
         dataset, [each_length, each_length, each_length, each_length, each_length, each_length, len(dataset)-(each_length*6)])
+    
+    if select_num != None:
+        target_train, target_inference, target_test, shadow_train,  shadow_inference, shadow_test, _ = torch.utils.data.random_split(
+        dataset, select_num)
+    return target_train, target_inference, target_test, shadow_train, shadow_inference, shadow_test
+"""
+def prepare_dataset(dataset, select_num=None):
+    
+    length = len(dataset)
+    each_length = length//6
+    # if we specify a number, we use the number to split data
+    torch.manual_seed(0)
+    if select_num is None:
+        target_train, target_inference, target_test, shadow_train,  shadow_inference, shadow_test, _ = torch.utils.data.random_split(
+            dataset, [each_length, each_length, each_length, each_length, each_length, each_length, len(dataset)-(each_length*6)])
+    else:
+        target_train, target_inference, target_test, shadow_train,  shadow_inference, shadow_test = torch.utils.data.random_split(
+        dataset, select_num)
+    # print(dataset.category_label_index_dict)
+        
     return target_train, target_inference, target_test, shadow_train, shadow_inference, shadow_test
 
-    
+def prepare_dataset_ni(dataset, select_num=None):
+    # no inference
+    length = len(dataset)
+    each_length = length//4
+    # if we specify a number, we use the number to split data
+    torch.manual_seed(0)
+    if select_num is None:
+        target_train, target_test, shadow_train, shadow_test, _ = torch.utils.data.random_split(
+            dataset, [each_length, each_length, each_length, each_length, len(dataset)-(each_length*4)])
+    else:
+        target_train, target_test, shadow_train, shadow_test = torch.utils.data.random_split(
+        dataset, select_num)
+    # print(dataset.category_label_index_dict)
+        
+    return target_train, target_test, shadow_train, shadow_test
+
+def prepare_dataset_target(dataset, select_num=None):
+
+    if select_num is None:
+        select_num = [0.5, 0.5]
+    # print(dataset.category_label_index_dict)
+    torch.manual_seed(0)
+    target_train, target_test= torch.utils.data.random_split(
+        dataset, select_num)
+    return target_train, target_test
 
 
 def get_target_shadow_dataset(dataset, target_size=None, shadow_size=None):

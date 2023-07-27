@@ -25,6 +25,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from data_preprocessing.data_loader import GetDataLoader
+from data_preprocessing.data_loader_target import GetDataLoaderTarget
 from torchvision import datasets
 import torchvision.transforms as transforms
 import argparse
@@ -83,6 +84,7 @@ def parse_args():
     
     parser.add_argument('--learning_rate', type=float, default=0.01, help = "learning rate")
     
+    parser.add_argument('--divide_ratio', type=list, default=[0.5,0.5], help = "divide_ratio of dataset")
     args = parser.parse_args()
 
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
@@ -90,16 +92,6 @@ def parse_args():
 
     return args
 
-
-def get_target_model(name="resnet18", num_classes=10):
-    if name == "resnet18":
-        model = torchvision.models.resnet18()
-        model.fc = nn.Sequential(nn.Linear(512, 10))
-        # 代码修改了ResNet-18模型的最后一层全连接层，将其替换为一个新的全连接层nn.Linear(512, 10)，
-        # 其中512是ResNet-18模型中最后一个卷积层的输出通道数，10是类别数量。这样做是为了将模型的输出调整为与任务中的类别数量相匹配。
-    else:
-        raise ValueError("Model not implemented yet :P")
-    return model
 
 
 def evaluate(args, model, dataloader):
@@ -120,24 +112,19 @@ def evaluate(args, model, dataloader):
 if __name__ == "__main__":
 
     opt = parse_args()
-    s = GetDataLoader(opt)
-    target_train_loader, target_inference_loader, target_test_loader, shadow_train_loader, shadow_inference_loader, shadow_test_loader = s.get_data_supervised()
-
+    s = GetDataLoaderTarget(opt)
+    target_train_loader, target_test_loader = s.get_data_supervised(select_num =[5/6,1/6])
 
     # 选择是训练target model 还是训练shadow model
     if opt.mode == "target":
-        train_loader, inference_loader, test_loader = target_train_loader, target_inference_loader, target_test_loader
-        
+        train_loader, test_loader = target_train_loader, target_test_loader
         # train_loader is a dataloader, using next(), feature shape is [128,3,32,32], label shape [128]
-    # 
-    elif opt.mode == "shadow":
-        train_loader, inference_loader, test_loader = shadow_train_loader, shadow_inference_loader, shadow_test_loader
     else:
-        raise ValueError("opt.mode should be target or shadow")
+        raise ValueError("opt.mode should be target")
 
     target_model = get_target_model(name="resnet18", num_classes=10)
 
-    save_pth = f'{opt.log_path}/{opt.dataset}/{opt.training_type}/{opt.mode}/{opt.temp}/{opt.loss_type}'
+    save_pth = f'{opt.log_path}/{opt.dataset}/{opt.training_type}/{opt.mode}/{opt.loss_type}/{opt.temp}'
 
     if opt.training_type == "Normal":
         
@@ -170,13 +157,6 @@ if __name__ == "__main__":
             model=target_model, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
 
-    elif opt.training_type == "AdvReg":
-
-        total_evaluator = TrainTargetAdvReg(
-            model=target_model, epochs=opt.epochs, log_path=save_pth)
-        total_evaluator.train(train_loader, inference_loader, test_loader)
-        model = total_evaluator.model
-
     elif opt.training_type == "DP":
         total_evaluator = TrainTargetDP(
             model=target_model, epochs=opt.epochs, log_path=save_pth)
@@ -196,11 +176,6 @@ if __name__ == "__main__":
         total_evaluator.train(train_loader, train_loader_ordered,
                               inference_loader_ordered, test_loader, starting_index, inference_sorted)
 
-    elif opt.training_type == "PATE":
-
-        total_evaluator = TrainTargetPATE(
-            model=target_model, epochs=opt.epochs, log_path=save_pth)
-        total_evaluator.train(train_loader, inference_loader, test_loader)
 
     else:
         raise ValueError(

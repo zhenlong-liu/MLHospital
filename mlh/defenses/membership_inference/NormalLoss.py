@@ -6,11 +6,11 @@ from runx.logx import logx
 import torch.nn.functional as F
 from defenses.membership_inference.trainer import Trainer
 import torch.nn as nn
-from defenses.membership_inference.loss_function import*
+from defenses.membership_inference.loss_function import get_loss
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-
+from utils import get_optimizer, get_scheduler
 # class LabelSmoothingLoss(torch.nn.Module):
 #     """
 #     copy from:
@@ -35,26 +35,29 @@ torch.backends.cudnn.benchmark = False
 
 
 class TrainTargetNormalLoss(Trainer):
-    def __init__(self, model, args, train_loader, loss_type ="ce", device="cuda:0", num_classes=10, epochs=100, learning_rate=0.01, momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
+    def __init__(self, model, args, train_loader, loss_type ="ce", device="cuda:0", num_classes=10, epochs=100, learning_rate=0.01, 
+                momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
 
         super().__init__()
 
         self.model = model
         self.device = device
-        self.num_classes = num_classes
+        self.num_classes = args.num_class
         self.epochs = epochs
         self.smooth_eps = smooth_eps
         self.args = args
         self.loss_type = loss_type
         self.model = self.model.to(self.device)
         self.train_loader = train_loader
-        self.optimizer = torch.optim.SGD(
-            self.model.parameters(), learning_rate, momentum, weight_decay)
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            self.optimizer, T_max=self.epochs)
+        self.learning_rate = args.learning_rate
+        self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, weight_decay)
+        #self.optimizer = torch.optim.SGD( self.model.parameters(), self.learning_rate, momentum, weight_decay)
+        
+        self.scheduler = get_scheduler(scheduler_name = args.scheduler, optimizer =self.optimizer, t_max=self.epochs)
+        #self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
 
-        self.criterion = self.get_loss(loss_type =self.loss_type, device=self.device, train_loader=self.train_loader, args = self.args)
-
+        self.criterion = get_loss(loss_type =self.loss_type, device=self.device, args = self.args, num_classes= self.num_classes)
+        
         # self.log_path = "%smodel_%s_bs_%s_dataset_%s/%s/label_smoothing_%.1f" % (self.opt.model_save_path, self.opt.model,
         # #                                                                              self.opt.batch_size, self.opt.dataset, self.opt.mode, self.opt.smooth_eps)
         # self.model_save_name = 'model_%s_label_smoothing_%.1f' % (
@@ -110,6 +113,7 @@ class TrainTargetNormalLoss(Trainer):
         for e in range(1, self.epochs+1):
             batch_n = 0
             self.model.train()
+            loss_num =0
             for img, label in train_loader:
                 self.model.zero_grad()
                 batch_n += 1
@@ -118,95 +122,17 @@ class TrainTargetNormalLoss(Trainer):
                 # print("img", img.shape)
                 logits = self.model(img)
                 # 其形状是torch.Size([128, 10])
+                
                 loss = self.criterion(logits, label)
                 
                 loss.backward()
+                loss_num = loss.item()
                 self.optimizer.step()
     
             train_acc = self.eval(train_loader)
             test_acc = self.eval(test_loader)
-            logx.msg('Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Total Time: %.3fs' % (
-                e, len(train_loader.dataset), train_acc, test_acc, time.time() - t_start))
+            
+            logx.msg('Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
+                e, len(train_loader.dataset), train_acc, test_acc, loss_num, time.time() - t_start))
             self.scheduler.step()
-            
-            
-    def get_loss(self, loss_type, device, train_loader, args):
-        CIFAR10_CONFIG = {
-            "ce": nn.CrossEntropyLoss(),
-            "focal": FocalLoss(gamma=0.5),
-            "mae": MAELoss(num_classes=self.num_classes),
-            "gce": GCE(self.device, k=self.num_classes),
-            "sce": SCE(alpha=0.5, beta=1.0, num_classes=self.num_classes),
-            "ldam": LDAMLoss(device=device),
-            "logit_norm": LogitNormLoss(device, self.args.temp, p=self.args.lp),
-            "normreg": NormRegLoss(device, self.args.temp, p=self.args.lp),
-            "logneg": logNegLoss(device, t=self.args.temp),
-            "logit_clip": LogitClipLoss(device, threshold=self.args.temp),
-            "cnorm": CNormLoss(device, self.args.temp),
-            "tlnorm": TLogitNormLoss(device, self.args.temp, m=10),
-            "nlnl": NLNL(device, train_loader=train_loader, num_classes=self.num_classes),
-            "nce": NCELoss(num_classes=self.num_classes),
-            "ael": AExpLoss(num_classes=10, a=2.5),
-            "aul": AUELoss(num_classes=10, a=5.5, q=3),
-            "phuber": PHuberCE(tau=10),
-            "taylor": TaylorCE(device=self.device, series=self.args.series),
-            "cores": CoresLoss(device=self.device),
-            "ncemae": NCEandMAE(alpha=1, beta=1, num_classes=10),
-            "ngcemae": NGCEandMAE(alpha=1, beta=1, num_classes=10),
-            "ncerce": NGCEandMAE(alpha=1, beta=1.0, num_classes=10),
-            "nceagce": NCEandAGCE(alpha=1, beta=4, a=6, q=1.5, num_classes=10),
-        }
-        CIFAR100_CONFIG = {
-            "ce": nn.CrossEntropyLoss(),
-            "focal": FocalLoss(gamma=0.5),
-            "mae": MAELoss(num_classes=self.num_classes),
-            "gce": GCE(self.device, k=self.num_classes),
-            "sce": SCE(alpha=0.5, beta=1.0, num_classes=self.num_classes),
-            "ldam": LDAMLoss(device=device),
-            "logit_clip": LogitClipLoss(device, threshold=self.args.temp),
-            "logit_norm": LogitNormLoss(device, self.args.temp, p=self.args.lp),
-            "normreg": NormRegLoss(device, self.args.temp, p=self.args.lp),
-            "tlnorm": TLogitNormLoss(device, self.args.temp, m=100),
-            "cnorm": CNormLoss(device, self.args.temp),
-            "nlnl": NLNL(device, train_loader=train_loader, num_classes=self.num_classes),
-            "nce": NCELoss(num_classes=self.num_classes),
-            "ael": AExpLoss(num_classes=100, a=2.5),
-            "aul": AUELoss(num_classes=100, a=5.5, q=3),
-            "phuber": PHuberCE(tau=30),
-            "taylor": TaylorCE(device=self.device, series=args.series),
-            "cores": CoresLoss(device=self.device),
-            "ncemae": NCEandMAE(alpha=50, beta=1, num_classes=100),
-            "ngcemae": NGCEandMAE(alpha=50, beta=1, num_classes=100),
-            "ncerce": NGCEandMAE(alpha=50, beta=1.0, num_classes=100),
-            "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=1.8, q=3.0, num_classes=100),
-        }
-        WEB_CONFIG = {
-            "ce": nn.CrossEntropyLoss(),
-            "focal": FocalLoss(gamma=0.5),
-            "mae": MAELoss(num_classes=self.num_classes),
-            "gce": GCE(self.device, k=self.num_classes),
-            "sce": SCE(alpha=0.5, beta=1.0, num_classes=self.num_classes),
-            "ldam": LDAMLoss(device=device),
-            "logit_norm": LogitNormLoss(device, self.args.temp, p=self.args.lp),
-            "logit_clip": LogitClipLoss(device, threshold=self.args.temp),
-            "normreg": NormRegLoss(device, self.args.temp, p=self.args.lp),
-            "cnorm": CNormLoss(device, self.args.temp),
-            "tlnorm": TLogitNormLoss(device, self.args.temp, m=50),
-            "nlnl": NLNL(device, train_loader=train_loader, num_classes=self.num_classes),
-            "nce": NCELoss(num_classes=self.num_classes),
-            "ael": AExpLoss(num_classes=50, a=2.5),
-            "aul": AUELoss(num_classes=50, a=5.5, q=3),
-            "phuber": PHuberCE(tau=30),
-            "taylor": TaylorCE(device=self.device, series=args.series),
-            "cores": CoresLoss(device=self.device),
-            "ncemae": NCEandMAE(alpha=50, beta=0.1, num_classes=50),
-            "ngcemae": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
-            "ncerce": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
-            "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=2.5, q=3.0, num_classes=50),
-        }
-        if "CIFAR10" in args.dataset:
-            return CIFAR10_CONFIG[loss_type]
-        elif args.dataset == "cifar100":
-            return CIFAR100_CONFIG[loss_type]
-        elif args.dataset == "webvision":
-            return WEB_CONFIG[loss_type]   
+    

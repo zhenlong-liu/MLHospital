@@ -24,7 +24,7 @@ import torchvision.transforms as transforms
 import torch
 import numpy as np
 from io import RawIOBase
-from data_preprocessing.dataset_preprocessing import prepare_dataset, cut_dataset, prepare_inference_dataset, prepare_dataset_target
+from data_preprocessing.dataset_preprocessing import prepare_dataset, cut_dataset, prepare_dataset_ni, prepare_inference_dataset, prepare_dataset_target
 from torchvision import datasets
 from PIL import Image
 from tqdm import tqdm
@@ -33,7 +33,7 @@ from data_preprocessing import configs
 torch.manual_seed(0)
 
 
-class GetDataLoader(object):
+class GetDataLoaderTarget(object):
     def __init__(self, args):
         self.args = args
         self.data_path = args.data_path
@@ -48,9 +48,9 @@ class GetDataLoader(object):
                                         transform=train_transform,
                                         download=True)
                 test_dataset = _loader(root=self.data_path,
-                                    train=False,
-                                    transform=test_transform,
-                                    download=True)
+                                       train=False,
+                                       transform=test_transform,
+                                       download=True)
             else:
                 train_dataset = _loader(root=self.data_path,
                                         train=True,
@@ -58,10 +58,10 @@ class GetDataLoader(object):
                                         transform=train_transform,
                                         download=True)
                 test_dataset = _loader(root=self.data_path,
-                                    train=False,
-                                    split="byclass",
-                                    transform=test_transform,
-                                    download=True)
+                                       train=False,
+                                       split="byclass",
+                                       transform=test_transform,
+                                       download=True)
             dataset = train_dataset + test_dataset
 
         elif dataset in configs.SUPPORTED_IMAGE_DATASETS_ATTRIBUTE_INFERENCE:
@@ -84,11 +84,13 @@ class GetDataLoader(object):
     def get_data_transform(self, dataset, use_transform="simple"):
         transform_list = [transforms.Resize(
             (self.input_shape[0], self.input_shape[0])), ]
-
+        # 初始时，它只包含一个 transforms.Resize 操作，用于调整图像大小至 (self.input_shape[0], self.input_shape[0])
+        
         if use_transform == "simple":
             transform_list += [transforms.RandomCrop(
                 32, padding=4), transforms.RandomHorizontalFlip(), ]
-
+        # transforms.RandomCrop(32, padding=4)：随机裁剪图像为大小为 32x32 的区域，padding=4 表示在图像周围填充 4 个像素。
+        # transforms.RandomHorizontalFlip()：随机水平翻转图像
             print("add simple data augmentation!")
             ## 是在此处做的print
         transform_list.append(transforms.ToTensor())
@@ -99,7 +101,7 @@ class GetDataLoader(object):
 
         transform_ = transforms.Compose(transform_list)
         return transform_
-
+        # 得到的 transform 对象可以应用于数据加载器中，对图像进行预处理。
     # def get_data_transform(self, dataset):
     #     train_transform_list = [transforms.Resize(
     #         (self.input_shape[0], self.input_shape[0])), ]
@@ -145,31 +147,52 @@ class GetDataLoader(object):
             self.args.dataset, train_transform, test_transform)
         return dataset
 
-    def get_inference_dataset(self, train_transform, test_transform):
-        dataset = self.parse_dataset(
-            self.args.inference_dataset, train_transform, test_transform)
-        return dataset
+
 
     def get_data_supervised(self, batch_size=128, num_workers=2, select_num=None):
+        # self.args.dataset 默认为CIFAR10
+        train_transform = self.get_data_transform(self.args.dataset)
+        test_transform = self.get_data_transform(self.args.dataset)
+        
+        dataset = self.get_dataset(train_transform, test_transform)
+
+        target_train, target_test = prepare_dataset_target(
+            dataset, select_num=select_num)
+
+        print("Preparing dataloader!")
+        print("dataset: ", len(dataset))
+        print("target_train: %d  \t target_test: %s" %
+            (len(target_train), len(target_test)))
+
+        target_train_loader = torch.utils.data.DataLoader(
+            target_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+        
+        target_test_loader = torch.utils.data.DataLoader(
+            target_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+        
+
+        return target_train_loader, target_test_loader
+    
+    
+    def get_data_supervised_ni(self, batch_size=128, num_workers=2, select_num=None):
+        # 没有inference
         # self.args.dataset 默认为CIFAR10
         train_transform = self.get_data_transform(self.args.dataset)
         test_transform = self.get_data_transform(self.args.dataset)
 
         dataset = self.get_dataset(train_transform, test_transform)
 
-        target_train, target_inference, target_test, shadow_train, shadow_inference, shadow_test = prepare_dataset(
+        target_train, target_test, shadow_train, shadow_test = prepare_dataset_ni(
             dataset, select_num=select_num)
 
         print("Preparing dataloader!")
         print("dataset: ", len(dataset))
-        print("target_train: %d \t target_inference: %s \t target_test: %s" %
-            (len(target_train), len(target_inference), len(target_test)))
+        print("target_train: %d \t target_test: %s" %
+            (len(target_train), len(target_test)))
 
         target_train_loader = torch.utils.data.DataLoader(
             target_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
         
-        target_inference_loader = torch.utils.data.DataLoader(
-            target_inference, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
         
         target_test_loader = torch.utils.data.DataLoader(
             target_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
@@ -177,14 +200,12 @@ class GetDataLoader(object):
         shadow_train_loader = torch.utils.data.DataLoader(
             shadow_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
         
-        shadow_inference_loader = torch.utils.data.DataLoader(
-            shadow_inference, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-        
         shadow_test_loader = torch.utils.data.DataLoader(
             shadow_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
 
-        return target_train_loader, target_inference_loader, target_test_loader, shadow_train_loader, shadow_inference_loader, shadow_test_loader
+        return target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader
 
+    
     def get_ordered_dataset(self, target_dataset):
         """
         Inspired by https://stackoverflow.com/questions/66695251/define-manually-sorted-mnist-dataset-with-batch-size-1-in-pytorch
@@ -239,13 +260,6 @@ class GetDataLoader(object):
         return target_train_sorted_loader, target_inference_sorted_loader, shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_target_inference, start_index_shadow_inference, target_inference_sorted, shadow_inference_sorted
 
 
-
-
-class GetDataLoarderTarget(GetDataLoader):
-    def __init__(self,args):
-        super(GetDataLoader, self).__init__()
-        
-    
 
 
 

@@ -1,3 +1,4 @@
+from functools import partial
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
@@ -5,6 +6,161 @@ import numpy as np
 import math
 from torch.autograd.function import Function
 from torch.autograd import Variable
+from utils import CrossEntropy_soft, one_hot_embedding
+
+def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, reduction = "mean"):
+    CIFAR10_CONFIG = {
+        "ereg": EntropyRegularizedLoss(alpha = 0.1,reduction = reduction),
+        "ce": nn.CrossEntropyLoss(reduction = reduction),
+        "ce_ls": nn.CrossEntropyLoss(label_smoothing= 0.1, reduction = reduction),
+        "focal": FocalLoss(gamma=args.temp, reduction = reduction),
+        "mae": MAELoss(num_classes=num_classes, reduction = reduction),
+        "gce": GCE(device, k=num_classes,q=0.2, reduction = reduction),
+        "sce": SCE(alpha=0.5, beta=1.0, num_classes=num_classes, reduction = reduction),
+        "ldam": LDAMLoss(device=device),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp, reduction = reduction),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "logneg": logNegLoss(device, t=args.temp),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp, reduction = reduction),
+        "cnorm": CNormLoss(device, args.temp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=10),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes, reduction = reduction),
+        "ael": AExpLoss(num_classes=10, a=2.5),
+        "aul": AUELoss(num_classes=10, a=5.5, q=3),
+        "phuber": PHuberCE(tau=10),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=1, beta=1, num_classes=10),
+        "ngcemae": NGCEandMAE(alpha=1, beta=1, num_classes=10),
+        "ncerce": NGCEandMAE(alpha=1, beta=1.0, num_classes=10),
+        "nceagce": NCEandAGCE(alpha=1, beta=4, a=6, q=1.5, num_classes=10),
+        "flood": FloodLoss(device=device, t = 0.1, reduction = reduction),
+        "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction) 
+    }
+    CIFAR100_CONFIG = {
+        "ce": nn.CrossEntropyLoss(),
+        "focal": FocalLoss(gamma=0.5),
+        "mae": MAELoss(num_classes=num_classes),
+        "gce": GCE(device, k=num_classes),
+        "sce": SCE(alpha=0.5, beta=1.0, num_classes=num_classes),
+        "ldam": LDAMLoss(device=device),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=100),
+        "cnorm": CNormLoss(device, args.temp),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes),
+        "ael": AExpLoss(num_classes=100, a=2.5),
+        "aul": AUELoss(num_classes=100, a=5.5, q=3),
+        "phuber": PHuberCE(tau=30),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=50, beta=1, num_classes=100),
+        "ngcemae": NGCEandMAE(alpha=50, beta=1, num_classes=100),
+        "ncerce": NGCEandMAE(alpha=50, beta=1.0, num_classes=100),
+        "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=1.8, q=3.0, num_classes=100),
+    }
+    WEB_CONFIG = {
+        "ce": nn.CrossEntropyLoss(),
+        "focal": FocalLoss(gamma=0.5),
+        "mae": MAELoss(num_classes=num_classes),
+        "gce": GCE(device, k=num_classes),
+        "sce": SCE(alpha=0.5, beta=1.0, num_classes=num_classes),
+        "ldam": LDAMLoss(device=device),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "cnorm": CNormLoss(device,args.temp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=50),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes),
+        "ael": AExpLoss(num_classes=50, a=2.5),
+        "aul": AUELoss(num_classes=50, a=5.5, q=3),
+        "phuber": PHuberCE(tau=30),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=50, beta=0.1, num_classes=50),
+        "ngcemae": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
+        "ncerce": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
+        "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=2.5, q=3.0, num_classes=50),
+    }
+    if "CIFAR10" in args.dataset:
+        return CIFAR10_CONFIG[loss_type]
+    elif args.dataset.str.lower() == "cifar100":
+        return CIFAR100_CONFIG[loss_type]
+    elif args.dataset == "webvision":
+        return WEB_CONFIG[loss_type]   
+    
+
+class RelaxLoss(nn.Module):
+    def __init__(self, alpha, epochs, num_classes):
+        super(RelaxLoss, self).__init__()
+        self.alpha = alpha
+        self.epochs = epochs
+        self.softmax =nn.Softmax(dim=1)
+        self.crossentropy_soft = partial(CrossEntropy_soft, reduction='none')
+        self.num_classes = num_classes
+    def forward(self, logits, label):
+        loss_ce_full = nn.CrossEntropyLoss(reduction='none')(logits, label)
+        loss_ce = torch.mean(loss_ce_full)
+        if self.epochs %2 ==0:
+            loss = (loss_ce - self.alpha).abs()
+        else: 
+            if loss_ce > self.alpha:  # normal gradient descent
+                loss = loss_ce
+            else:
+                pred = torch.argmax(logits, dim=1)
+                correct = torch.eq(pred, label).float()
+                confidence_target = self.softmax(logits)[torch.arange(label.size(0)), label]
+                confidence_target = torch.clamp(confidence_target, min=0., max=1)
+                confidence_else = (1.0 - confidence_target) / (self.num_classes - 1)
+                onehot = one_hot_embedding(label, num_classes=self.num_classes)
+                soft_targets = onehot * confidence_target.unsqueeze(-1).repeat(1, self.num_classes) \
+                                + (1 - onehot) * confidence_else.unsqueeze(-1).repeat(1, self.num_classes)
+                loss = (1 - correct) * self.crossentropy_soft(logits, soft_targets) - 1. * loss_ce_full
+                loss = torch.mean(loss)
+
+        return loss
+
+
+
+
+class EntropyRegularizedLoss(nn.Module):
+    def __init__(self, alpha, reduction='mean'):
+        """
+        初始化熵正则化损失函数
+        :param alpha: 熵正则化的权重系数 (float)
+        :param reduction: 损失的减少方式，可选值为 'mean', 'sum', 或 'none'
+        """
+        super(EntropyRegularizedLoss, self).__init__()
+        self.alpha = alpha
+        self.reduction = reduction
+
+    def forward(self, outputs, targets):
+        """
+        前向传播计算带熵正则化的损失
+        :param outputs: 模型的预测输出 (tensor)
+        :param targets: 真实标签 (tensor)
+        :return: 带熵正则化的总损失 (tensor)
+        """
+        # 计算交叉熵损失
+        cross_entropy_loss = F.cross_entropy(outputs, targets, reduction=self.reduction)
+
+        # 计算输出概率分布的熵
+        prob_dist = F.softmax(outputs, dim=1)
+        entropy = -torch.sum(prob_dist * torch.log(prob_dist + 1e-9), dim=1)
+
+        if self.reduction == 'mean':
+            entropy = entropy.mean()
+        elif self.reduction == 'sum':
+            entropy = entropy.sum()
+
+        # 计算带熵正则化的总损失
+        return cross_entropy_loss + self.alpha * entropy
+
+
 
 class _ECELoss(nn.Module):
     """
@@ -70,6 +226,9 @@ class LDAMLoss(nn.Module):
 
         output = torch.where(index, x_m, x)
         return F.cross_entropy(self.s * output, target)
+
+
+
 
 
 class RingLoss(nn.Module):
@@ -309,17 +468,37 @@ class CenterlossFunction(Function):
 
 class LogitNormLoss(nn.Module):
 
-    def __init__(self, device, t=1.0, p=2):
+    def __init__(self, device, t=1.0, p=2, reduction = "mean"):
         super(LogitNormLoss, self).__init__()
         self.device = device
         self.t = t
         self.p = p
-
+        self.reduction = reduction
     def forward(self, x, target):
         norms = torch.norm(x, p=self.p, dim=-1, keepdim=True) + 1e-7
         logit_norm = torch.div(x, norms) / self.t
-        return F.cross_entropy(logit_norm, target)
+        return F.cross_entropy(logit_norm, target, reduction = self.reduction)
 
+
+
+class FloodingLoss(nn.Module):
+    def __init__(self, device, b=0.1, reduction='mean'):
+        super(FloodingLoss, self).__init__()
+        self.device = device
+        self.b = b
+        self.reduction = reduction
+
+    def forward(self, x, target):
+        ce_loss = F.cross_entropy(x, target)
+
+        if self.reduction == 'mean':
+            return (ce_loss - self.b).abs().mean() + self.b
+        elif self.reduction == 'sum':
+            return (ce_loss - self.b).abs().sum() + self.b
+        elif self.reduction == 'none':
+            return (ce_loss - self.b).abs() + self.b
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
 
 class NormRegLoss(nn.Module):
 
@@ -408,16 +587,24 @@ class logNegLoss(nn.Module):
         return torch.mean(loss)
 
 class FloodLoss(nn.Module):
-
-    def __init__(self, device, t=0.01):
+    def __init__(self, device, t=0.01, reduction='mean'):
         super(FloodLoss, self).__init__()
         self.device = device
         self.t = t
+        self.reduction = reduction
 
     def forward(self, x, target):
         losses = F.cross_entropy(x, target, reduction="none")
-        losses = (losses - self.t).abs()+self.t
-        return losses.mean()
+        losses = (losses - self.t).abs() + self.t
+
+        if self.reduction == 'mean':
+            return losses.mean()
+        elif self.reduction == 'sum':
+            return losses.sum()
+        elif self.reduction == 'none':
+            return losses
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
 
 class DoubleSoftLoss(nn.Module):
 
@@ -431,18 +618,50 @@ class DoubleSoftLoss(nn.Module):
         return F.cross_entropy(logit_norm/self.t, target)
 
 
-class LogitClipLoss(nn.Module):
 
-    def __init__(self, device, threshold=1.0):
+class LogitClipLoss(nn.Module):
+    def __init__(self, device, threshold=1.0, reduction='mean'):
         super(LogitClipLoss, self).__init__()
         self.device = device
         self.min = -threshold
         self.max = threshold
+        self.reduction = reduction
 
     def forward(self, x, target):
         x = torch.clamp(x, self.min, self.max)
-        return F.cross_entropy(x, target)
 
+        if self.reduction == 'mean':
+            return F.cross_entropy(x, target, reduction='mean')
+        elif self.reduction == 'sum':
+            return F.cross_entropy(x, target, reduction='sum')
+        elif self.reduction == 'none':
+            return F.cross_entropy(x, target, reduction='none')
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
+
+class LogitClipingLoss(nn.Module):
+    def __init__(self, device, tau=1.0, p=2, reduction='mean'):
+        super(LogitClipingLoss, self).__init__()
+        self.tau = tau
+        self.delta = tau
+        self.device = device
+        self.p = p
+        self.reduction = reduction
+
+    def forward(self, x, target):
+        # [N, C]
+        norms = torch.norm(x, p=self.p, dim=-1, keepdim=True) + 1e-7  # [N,]      
+        identify = (norms >= self.tau)
+        logit_clip = self.delta * torch.div(x, norms) * identify + x * (~identify)
+
+        if self.reduction == 'mean':
+            return F.cross_entropy(logit_clip, target, reduction='mean')
+        elif self.reduction == 'sum':
+            return F.cross_entropy(logit_clip, target, reduction='sum')
+        elif self.reduction == 'none':
+            return F.cross_entropy(logit_clip, target, reduction='none')
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
 
 class LogitTempLoss(nn.Module):
 
@@ -492,21 +711,28 @@ class SquaredLoss(nn.Module):
         self.k * label_one_hot * x
         return F.binary_cross_entropy(x * torch.sigmoid(x), target)
 
-def focal_loss(input_values, gamma):
+
+def focal_loss(input_values, gamma, reduction="none"):
     """Computes the focal loss"""
     p = torch.exp(-input_values)
     loss = (1 - p) ** gamma * input_values
-    return loss.mean()
 
-
+    if reduction == "none":
+        return loss
+    elif reduction == "mean":
+        return loss.mean()
+    elif reduction == "sum":
+        return loss.sum()
+    else:
+        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
 class FocalLoss(nn.Module):
-    def __init__(self, gamma=0.):
+    def __init__(self, gamma=0.,reduction='mean'):
         super(FocalLoss, self).__init__()
         assert gamma >= 0
         self.gamma = gamma
-
+        self.reduction = reduction
     def forward(self, input, target):
-        return focal_loss(F.cross_entropy(input, target, reduction='none'), self.gamma)
+        return focal_loss(F.cross_entropy(input, target, reduction="none"), self.gamma, reduction = self.reduction)
 
 class PHuberCE(nn.Module):
     def __init__(self, tau=10):
@@ -531,41 +757,50 @@ class PHuberCE(nn.Module):
 
         return torch.mean(loss)
 
-def loss_sce(y, labels_one_hot, alpha, beta):
 
+
+def loss_sce(y, labels_one_hot, alpha, beta, reduction='mean'):
     pred = F.softmax(y, dim=1)
-
     pred = torch.clamp(pred, min=1e-7, max=1.0)
     label_one_hot = torch.clamp(labels_one_hot, min=1e-4, max=1.0)
+    
+    ce = (-1 * torch.sum(label_one_hot * torch.log(pred), dim=1))
+    rce = (-1 * torch.sum(pred * torch.log(label_one_hot), dim=1))
 
-    ce = (-1 * torch.sum(label_one_hot * torch.log(pred), dim=1)).mean()
-    rce = (-1 * torch.sum(pred * torch.log(label_one_hot), dim=1)).mean()
-    loss = alpha * ce + beta * rce
+    if reduction == 'mean':
+        ce = ce.mean()
+        rce = rce.mean()
+    elif reduction == 'sum':
+        ce = ce.sum()
+        rce = rce.sum()
+    elif reduction == 'none':
+        pass
+    else:
+        raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
 
-    return loss
+    return alpha * ce + beta * rce
 
 class SCE(nn.Module):
-    def __init__(self, alpha=0.5, beta=1.0, num_classes=10):
+    def __init__(self, alpha=0.5, beta=1.0, num_classes=10, reduction='mean'):
         super(SCE, self).__init__()
         self.alpha = alpha
         self.beta = beta
         self.num_classes = num_classes
+        self.reduction = reduction
 
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         labels_one_hot = torch.zeros(target.shape[0], self.num_classes).to(input.device).scatter_(1,
-                                                                                                 target.unsqueeze(
-                                                                                                     1), 1)
-        loss = loss_sce(input, labels_one_hot, self.alpha, self.beta)
-        return loss
+                                                                                            target.unsqueeze(1), 1)
 
-
+        return loss_sce(input, labels_one_hot, self.alpha, self.beta, reduction=self.reduction)
 
 class GCE(nn.Module):
-    def __init__(self, device, q=0.7, k=10):
+    def __init__(self, device, q=0.2, k=10, reduction='mean'):
         super(GCE, self).__init__()
         self.q = q
         self.k = k
         self.device = device
+        self.reduction = reduction
 
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         soft_max = nn.Softmax(dim=1)
@@ -574,8 +809,15 @@ class GCE(nn.Module):
         sm_out = torch.pow((sm_outputs * label_one_hot).sum(dim=1), self.q)
         target = torch.ones_like(target)
         loss_vec = (target - sm_out) / self.q
-        average_loss = loss_vec.mean()
-        return average_loss
+
+        if self.reduction == 'mean':
+            return loss_vec.mean()
+        elif self.reduction == 'sum':
+            return loss_vec.sum()
+        elif self.reduction == 'none':
+            return loss_vec
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
 
 class AGCELoss(nn.Module):
     def __init__(self, num_classes=10, a=1, q=2, eps=1e-7, scale=1.):
@@ -690,22 +932,32 @@ class NLNL(nn.Module):
         return loss
 
 class NCELoss(nn.Module):
-    def __init__(self, num_classes, scale=1.0):
+    def __init__(self, num_classes, scale=1.0, reduction='mean'):
         super(NCELoss, self).__init__()
         self.num_classes = num_classes
         self.scale = scale
+        self.reduction = reduction
 
     def forward(self, pred, labels):
         pred = F.log_softmax(pred, dim=1)
         label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
         loss = -1 * torch.sum(label_one_hot * pred, dim=1) / (-pred.sum(dim=1))
-        return self.scale * loss.mean()
+
+        if self.reduction == 'mean':
+            return self.scale * loss.mean()
+        elif self.reduction == 'sum':
+            return self.scale * loss.sum()
+        elif self.reduction == 'none':
+            return self.scale * loss
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
 
 class RCELoss(nn.Module):
-    def __init__(self, num_classes=10, scale=1.0):
+    def __init__(self, num_classes=10, scale=1.0, reduction='mean'):
         super(RCELoss, self).__init__()
         self.num_classes = num_classes
         self.scale = scale
+        self.reduction = reduction
 
     def forward(self, pred, labels):
         pred = F.softmax(pred, dim=1)
@@ -713,7 +965,16 @@ class RCELoss(nn.Module):
         label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
         label_one_hot = torch.clamp(label_one_hot, min=1e-4, max=1.0)
         loss = (-1 * torch.sum(pred * torch.log(label_one_hot), dim=1))
-        return self.scale * loss.mean()
+
+        if self.reduction == 'mean':
+            return self.scale * loss.mean()
+        elif self.reduction == 'sum':
+            return self.scale * loss.sum()
+        elif self.reduction == 'none':
+            return self.scale * loss
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
+    
 class NCEandRCE(nn.Module):
     def __init__(self, alpha=1., beta=1., num_classes=10):
         super(NCEandRCE, self).__init__()
@@ -734,17 +995,31 @@ class NCEandAGCE(torch.nn.Module):
     def forward(self, pred, labels):
         return self.nce(pred, labels) + self.agce(pred, labels)
 
+
+
 class MAELoss(nn.Module):
-    def __init__(self, num_classes=10, scale=2.0):
+    def __init__(self, num_classes=10, scale=2.0, reduction='mean'):
         super(MAELoss, self).__init__()
         self.num_classes = num_classes
         self.scale = scale
+        self.reduction = reduction
 
     def forward(self, pred, labels):
         pred = F.softmax(pred, dim=1)
         label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
         loss = 1. - torch.sum(label_one_hot * pred, dim=1)
-        return self.scale * loss.mean()
+
+        if self.reduction == 'mean':
+            return self.scale * loss.mean()
+        elif self.reduction == 'sum':
+            return self.scale * loss.sum()
+        elif self.reduction == 'none':
+            return self.scale * loss
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
+
+
+
 
 class NCEandMAE(nn.Module):
     def __init__(self, alpha=1., beta=1., num_classes=10):

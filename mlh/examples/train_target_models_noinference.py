@@ -2,10 +2,12 @@ import os
 import sys
 sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
 sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/defenses')
+from defenses.membership_inference.NormalRelaxLoss import TrainTargetNormalRelaxLoss
+
 
 import torchvision
 import utils
-from utils import get_loss
+from defenses.membership_inference.loss_function import get_loss
 from defenses.membership_inference.AdvReg import TrainTargetAdvReg
 from defenses.membership_inference.DPSGD import TrainTargetDP
 from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothing
@@ -20,11 +22,14 @@ from defenses.membership_inference.logit_norm import LogitNormLoss
 from defenses.membership_inference.LogitClip import TrainTargetLogitClip
 
 from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
+
+from models.resnet import resnet20
 from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from data_preprocessing.data_loader import GetDataLoader
+from data_preprocessing.data_loader_target import GetDataLoaderTarget
 from torchvision import datasets
 import torchvision.transforms as transforms
 import argparse
@@ -33,7 +38,7 @@ import torch.optim as optim
 torch.manual_seed(0)
 np.random.seed(0)
 torch.set_num_threads(1)
-
+from utils import get_target_model
 
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
@@ -60,7 +65,7 @@ def parse_args():
                         help='specify the attack task, mia or ol')
     parser.add_argument('--dataset', type=str, default='CIFAR10',
                         help='dataset')
-    parser.add_argument('--num-class', type=int, default=10,
+    parser.add_argument('--num_class', type=int, default=10,
                         help='number of classes')
     parser.add_argument('--inference-dataset', type=str, default='CIFAR10',
                         help='if yes, load pretrained the attack model to inference')
@@ -83,6 +88,10 @@ def parse_args():
     
     parser.add_argument('--learning_rate', type=float, default=0.01, help = "learning rate")
     
+    parser.add_argument('--optimizer', type=str, default="sgd", help = "sgd or adam")
+    
+    parser.add_argument('--scheduler', type=str, default="cosine", help = "cosine or step")
+    
     args = parser.parse_args()
 
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
@@ -91,15 +100,6 @@ def parse_args():
     return args
 
 
-def get_target_model(name="resnet18", num_classes=10):
-    if name == "resnet18":
-        model = torchvision.models.resnet18()
-        model.fc = nn.Sequential(nn.Linear(512, 10))
-        # 代码修改了ResNet-18模型的最后一层全连接层，将其替换为一个新的全连接层nn.Linear(512, 10)，
-        # 其中512是ResNet-18模型中最后一个卷积层的输出通道数，10是类别数量。这样做是为了将模型的输出调整为与任务中的类别数量相匹配。
-    else:
-        raise ValueError("Model not implemented yet :P")
-    return model
 
 
 def evaluate(args, model, dataloader):
@@ -118,26 +118,28 @@ def evaluate(args, model, dataloader):
 
 
 if __name__ == "__main__":
-
     opt = parse_args()
-    s = GetDataLoader(opt)
-    target_train_loader, target_inference_loader, target_test_loader, shadow_train_loader, shadow_inference_loader, shadow_test_loader = s.get_data_supervised()
+    s = GetDataLoaderTarget(opt)
+    
+    #split_num = [0.25,0,0.25,0.25,0,0.25]
+    target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni()
 
-
+  
+  
     # 选择是训练target model 还是训练shadow model
     if opt.mode == "target":
-        train_loader, inference_loader, test_loader = target_train_loader, target_inference_loader, target_test_loader
+        train_loader, test_loader = target_train_loader, target_test_loader
         
         # train_loader is a dataloader, using next(), feature shape is [128,3,32,32], label shape [128]
     # 
     elif opt.mode == "shadow":
-        train_loader, inference_loader, test_loader = shadow_train_loader, shadow_inference_loader, shadow_test_loader
+        train_loader, test_loader = shadow_train_loader, shadow_test_loader
     else:
         raise ValueError("opt.mode should be target or shadow")
 
-    target_model = get_target_model(name="resnet18", num_classes=10)
+    target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
 
-    save_pth = f'{opt.log_path}/{opt.dataset}/{opt.training_type}/{opt.mode}/{opt.temp}/{opt.loss_type}'
+    save_pth = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}/{opt.mode}/{opt.loss_type}/epochs{opt.epochs}/{opt.temp}'
 
     if opt.training_type == "Normal":
         
@@ -145,12 +147,11 @@ if __name__ == "__main__":
             model=target_model, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
         
-    elif opt.training_type == "TrainTargetLogitNorm":
+    elif opt.training_type == "NormalRelaxLoss":
         
-        total_evaluator = TrainTargetNormal(
-            model=target_model, epochs=opt.epochs, log_path=save_pth)
-        total_evaluator.criterion = LogitNormLoss(opt.device,opt.temp)
-        total_evaluator.train(train_loader, test_loader)
+        total_evaluator = TrainTargetNormalRelaxLoss(
+            model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, epochs=opt.epochs, log_path=save_pth)
+        total_evaluator.train(train_loader, test_loader)    
         
     elif opt.training_type == "LogitClip":
         
@@ -161,7 +162,7 @@ if __name__ == "__main__":
     elif opt.training_type == "NormalLoss":
         
         total_evaluator = TrainTargetNormalLoss(
-            model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, epochs=opt.epochs, log_path=save_pth)
+            model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, num_classes= opt.num_class, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
 
     elif opt.training_type == "LabelSmoothing":

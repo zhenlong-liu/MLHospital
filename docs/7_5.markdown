@@ -15,3 +15,49 @@ Focal Loss adds a factor $(1- p_t)^{\gamma}$ to the standard cross entropy crite
 
 $$\begin{aligned}\mathrm{MAE}&=\frac{\sum_{i=1}^n|y_i-x_i|}n=\frac{\sum_{i=1}^n|e_i|}n\end{aligned}$$
 
+$$\mathcal{L}_{MAE}(f(x),e_j)=||e_j-f(x)||_1=2-2f_j(x)$$
+
+## GCE loss (Generalized Cross Entropy)
+$$\mathcal{L}_q(f(\boldsymbol{x}),\boldsymbol{e}_j)=\frac{(1-f_j(\boldsymbol{x})^q)}q$$
+
+It can be seen as a generalization of MAE and CCE.
+
+
+
+---
+
+## SCE(Symmetric Cross Entropy)
+
+$$SCE=CE+RCE=H(q,p)+H(p,q)$$
+
+$$\ell_{sl}=\alpha\ell_{ce}+\beta\ell_{rce}$$
+
+To solve the issue that zero values inside the logarithm, define $\log 0 = A$ ( where $A < 0$ is some constant.
+
+---
+## Normalized Cross Entropy (NCE) loss
+
+$$NCE=\frac{-\sum_{k=1}^K\boldsymbol{q}(k|\boldsymbol{x})\log\boldsymbol{p}(k|\boldsymbol{x})}{-\sum_{j=1}^K\sum_{k=1}^K\boldsymbol{q}(y=j|\boldsymbol{x})\log\boldsymbol{p}(k|\boldsymbol{x})}$$
+
+## PHuber-CE (partially Huberised softmax cross-entropy loss)
+
+$$\tilde{\ell}_\theta(x,y)=\begin{cases}-\tau\cdot p_\theta(x,y)+\log\tau+1,&\text{if }p_\theta(x,y)\leq\frac{1}{\tau}\\-\log p_\theta(x,y),&\text{otherwise.}\end{cases}$$
+
+---
+
+
+| Loss Type   | Target Train Acc(%) | Target Test Acc(%) | Attack Acc(%) | Attack Precision | Attack Recall | Attack F1 | Attack AUC |
+|-------------|---------------------|-----------------------|-----------------|-------------------|----------------|------------|-------------|
+| nce          | 58.33                      | 52.97                         | 49.96               | 0.5                     | 0.571             | 0.533        | 0.498       |
+| mae         | 71.31                      | 61.71                         | 50.275             | 0.503                 | 0.493             | 0.498        | 0.507       |
+| gce          | 87.75                      | 66.45                         | 56.775             | 0.547                 | 0.793             | 0.647        | 0.581       |
+| logitclip | 91.99                      | 64.69                         | 57.495             | 0.552                 | 0.794             | 0.651        | 0.594       |
+| sce          | 93.36                      | 70.89                         | 57.845             | 0.551                 | 0.852             | 0.669        | 0.601       |
+| focal         | 93.79                      | 61.06                         | 59.86               | 0.576                 | 0.751             | 0.652        | 0.628       |
+| phuber      | 95.64                      | 67.9                           | 60.795             | 0.576                 | 0.822             | 0.677        | 0.635       |
+| LogitNorm | 97.85                      | 62.91                         | 63.625             | 0.68                   | 0.904             | 0.697        | 0.637       |
+| flood         | 93.79                      | 61.06                         | 60.94               | 0.589                 | 0.726             | 0.65          | 0.642       |
+| Normal      | 99.01                      | 68.05                         | 64.285             | 0.6                     | 0.854             | 0.705        | 0.676       |
+
+---
+

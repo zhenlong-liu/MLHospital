@@ -164,3 +164,12 @@ scripts/
 datasets/
 save/
 .DS_Store
+
+*.log
+
+*save*
+*.out
+*.csv
+.vscode
+docs
+*.ipynb
