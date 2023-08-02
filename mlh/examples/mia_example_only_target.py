@@ -18,12 +18,16 @@ import torchvision.transforms as transforms
 import argparse
 import numpy as np
 import torch.optim as optim
-torch.manual_seed(0)
-np.random.seed(0)
+
 torch.set_num_threads(1)
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+
+torch.manual_seed(0)
+np.random.seed(0)
+torch.cuda.manual_seed(0)#让显卡产生的随机数一致
+torch.cuda.manual_seed_all(0)#多卡模式下，让所有显卡生成的随机数一致？这个待验证
 
 
 
@@ -72,6 +76,9 @@ def parse_args():
     parser.add_argument('--optimizer', type=str, default="sgd", help = "sgd or adam")
     
     parser.add_argument('--schedular', type=str, default="cosine", help = "cosine or step")
+    
+    parser.add_argument('--seed', type=int, default=0, help='seed')
+    
     args = parser.parse_args()
 
     
@@ -105,6 +112,13 @@ if __name__ == "__main__":
     s = GetDataLoaderTarget(args)
     device = args.device
     
+    seed = args.seed
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
+    torch.cuda.manual_seed_all(seed)    
+    
+    
     target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
 
     target_model = get_target_model(name= args.model, num_classes=args.num_class)
@@ -114,18 +128,18 @@ if __name__ == "__main__":
 
     # load target/shadow model to conduct the attacks
     target_model.load_state_dict(torch.load(
-        f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/{temp_save}/{args.model}.pth'))
+        f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}/{args.model}.pth'))
     target_model = target_model.to(args.device)
 
     shadow_model.load_state_dict(torch.load(
-        f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/shadow/{args.loss_type}/{temp_save}/{args.model}.pth'))
+        f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/shadow/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}/{args.model}.pth'))
     shadow_model = shadow_model.to(args.device)
     
     # generate attack dataset
     # or "black-box, black-box-sorted", "black-box-top3", "metric-based", and "label-only"
     attack_type = args.attack_type
 
-    save_path = f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/{temp_save}'
+    save_path = f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}'
     
     
     plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)

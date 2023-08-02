@@ -131,8 +131,9 @@ class TrainTargetNormalLoss(Trainer):
     
             train_acc = self.eval(train_loader)
             test_acc = self.eval(test_loader)
+            logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
+                self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, loss_num, time.time() - t_start))
+
             
-            logx.msg('Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
-                e, len(train_loader.dataset), train_acc, test_acc, loss_num, time.time() - t_start))
             self.scheduler.step()
     

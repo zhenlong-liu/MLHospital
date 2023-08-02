@@ -35,8 +35,11 @@ import torchvision.transforms as transforms
 import argparse
 import numpy as np
 import torch.optim as optim
-torch.manual_seed(0)
-np.random.seed(0)
+
+# `torch.set_num_threads(1)` is setting the number of OpenMP threads used for parallelizing CPU
+# operations to 1. This means that only one thread will be used for CPU operations, which can be
+# useful in cases where parallelization may cause issues or when you want to limit the number of
+# threads used for performance reasons.
 torch.set_num_threads(1)
 from utils import get_target_model
 
@@ -92,6 +95,8 @@ def parse_args():
     
     parser.add_argument('--scheduler', type=str, default="cosine", help = "cosine or step")
     
+    parser.add_argument('--seed', type=int, default=0, help='seed')
+    
     args = parser.parse_args()
 
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
@@ -121,11 +126,17 @@ if __name__ == "__main__":
     opt = parse_args()
     s = GetDataLoaderTarget(opt)
     
+    seed = opt.seed
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
+    torch.cuda.manual_seed_all(seed)    
+    
     #split_num = [0.25,0,0.25,0.25,0,0.25]
     target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni()
 
-  
-  
+
+
     # 选择是训练target model 还是训练shadow model
     if opt.mode == "target":
         train_loader, test_loader = target_train_loader, target_test_loader
@@ -136,10 +147,11 @@ if __name__ == "__main__":
         train_loader, test_loader = shadow_train_loader, shadow_test_loader
     else:
         raise ValueError("opt.mode should be target or shadow")
-
+    
+    temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
     target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
 
-    save_pth = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}/{opt.mode}/{opt.loss_type}/epochs{opt.epochs}/{opt.temp}'
+    save_pth = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}/{opt.mode}/{opt.loss_type}/epochs{opt.epochs}/seed{seed}/{temp_save}'
 
     if opt.training_type == "Normal":
         
@@ -152,12 +164,6 @@ if __name__ == "__main__":
         total_evaluator = TrainTargetNormalRelaxLoss(
             model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)    
-        
-    elif opt.training_type == "LogitClip":
-        
-        total_evaluator = TrainTargetLogitClip(
-            model=target_model, epochs=opt.epochs, log_path=save_pth, tau = opt.tau)
-        total_evaluator.train(train_loader, test_loader)
         
     elif opt.training_type == "NormalLoss":
         

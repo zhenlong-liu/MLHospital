@@ -10,13 +10,15 @@ from utils import CrossEntropy_soft, one_hot_embedding
 
 def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, reduction = "mean"):
     CIFAR10_CONFIG = {
-        "ereg": EntropyRegularizedLoss(alpha = 0.1,reduction = reduction),
+        "smape" : SMAPELoss(num_classes=num_classes, scale = 5*args.temp, reduction = reduction),
+        "logitclip_o": LogitClip(device, temp =args.temp, reduction = reduction),
+        "ereg": EntropyRegularizedLoss(alpha = 0.1*args.temp,reduction = reduction),
         "ce": nn.CrossEntropyLoss(reduction = reduction),
-        "ce_ls": nn.CrossEntropyLoss(label_smoothing= 0.1, reduction = reduction),
+        "ce_ls": nn.CrossEntropyLoss(label_smoothing= 0.1*args.temp, reduction = reduction),
         "focal": FocalLoss(gamma=args.temp, reduction = reduction),
         "mae": MAELoss(num_classes=num_classes, reduction = reduction),
         "gce": GCE(device, k=num_classes,q=0.2, reduction = reduction),
-        "sce": SCE(alpha=0.5, beta=1.0, num_classes=num_classes, reduction = reduction),
+        "sce": SCE(alpha=0.5, beta=args.temp, num_classes=num_classes, reduction = reduction),
         "ldam": LDAMLoss(device=device),
         "logit_norm": LogitNormLoss(device, args.temp, p=args.lp, reduction = reduction),
         "normreg": NormRegLoss(device, args.temp, p=args.lp),
@@ -92,7 +94,10 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         return CIFAR100_CONFIG[loss_type]
     elif args.dataset == "webvision":
         return WEB_CONFIG[loss_type]   
-    
+
+
+
+
 
 class RelaxLoss(nn.Module):
     def __init__(self, alpha, epochs, num_classes):
@@ -158,7 +163,7 @@ class EntropyRegularizedLoss(nn.Module):
             entropy = entropy.sum()
 
         # 计算带熵正则化的总损失
-        return cross_entropy_loss + self.alpha * entropy
+        return cross_entropy_loss - self.alpha * entropy
 
 
 
@@ -639,6 +644,30 @@ class LogitClipLoss(nn.Module):
         else:
             raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
 
+
+class LogitClip(nn.Module):
+    def __init__(self, device, temp=1.0, lp=2, reduction='mean'):
+        super(LogitClip, self).__init__()
+        self.lp = lp
+        self.threshold = temp
+        self.reduction =reduction
+    def forward(self, x, target):
+        norms = torch.norm(x, p=self.lp, dim=-1, keepdim=True) + 1e-7
+        logits_norm = torch.div(x, norms) * self.threshold
+        clip = (norms > self.threshold).expand(-1, x.shape[-1])
+        logits_final = torch.where(clip, logits_norm, x)
+        
+        
+        if self.reduction == 'mean':
+            return F.cross_entropy(logits_final, target, reduction='mean')
+        elif self.reduction == 'sum':
+            return F.cross_entropy(logits_final, target, reduction='sum')
+        elif self.reduction == 'none':
+            return F.cross_entropy(logits_final, target, reduction='none')
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
+
+
 class LogitClipingLoss(nn.Module):
     def __init__(self, device, tau=1.0, p=2, reduction='mean'):
         super(LogitClipingLoss, self).__init__()
@@ -662,6 +691,7 @@ class LogitClipingLoss(nn.Module):
             return F.cross_entropy(logit_clip, target, reduction='none')
         else:
             raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
+
 
 class LogitTempLoss(nn.Module):
 
@@ -795,20 +825,20 @@ class SCE(nn.Module):
         return loss_sce(input, labels_one_hot, self.alpha, self.beta, reduction=self.reduction)
 
 class GCE(nn.Module):
-    def __init__(self, device, q=0.2, k=10, reduction='mean'):
+    def __init__(self, device, q=0.2, k=10, alpha=1, reduction='mean',):
         super(GCE, self).__init__()
         self.q = q
         self.k = k
         self.device = device
         self.reduction = reduction
-
+        self.alpha = alpha
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         soft_max = nn.Softmax(dim=1)
         sm_outputs = soft_max(input)
         label_one_hot = nn.functional.one_hot(target, self.k).float().to(self.device)
         sm_out = torch.pow((sm_outputs * label_one_hot).sum(dim=1), self.q)
         target = torch.ones_like(target)
-        loss_vec = (target - sm_out) / self.q
+        loss_vec = self.alpha * (target - sm_out) / self.q
 
         if self.reduction == 'mean':
             return loss_vec.mean()
@@ -994,6 +1024,31 @@ class NCEandAGCE(torch.nn.Module):
 
     def forward(self, pred, labels):
         return self.nce(pred, labels) + self.agce(pred, labels)
+ 
+
+class SMAPELoss(nn.Module):
+    def __init__(self, num_classes=10, scale=2, reduction='mean'):
+        super(SMAPELoss, self).__init__()
+        self.num_classes = num_classes
+        self.scale = scale
+        self.reduction = reduction
+
+    def forward(self, pred, labels):
+        pred = F.softmax(pred, dim=1)
+        label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
+        pt = torch.sum(label_one_hot * pred, dim=1)
+        pt = torch.clamp(pt, min=1e-3, max=1.0)
+        loss = self.scale*(1. - pt)+ (1-pt)/pt
+        
+        if self.reduction == 'mean':
+            return self.scale * loss.mean()
+        elif self.reduction == 'sum':
+            return self.scale * loss.sum()
+        elif self.reduction == 'none':
+            return self.scale * loss
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
+
 
 
 
@@ -1007,7 +1062,7 @@ class MAELoss(nn.Module):
     def forward(self, pred, labels):
         pred = F.softmax(pred, dim=1)
         label_one_hot = F.one_hot(labels, self.num_classes).float().to(pred.device)
-        loss = 1. - torch.sum(label_one_hot * pred, dim=1)
+        loss = self.scale*(1. - torch.sum(label_one_hot * pred, dim=1))
 
         if self.reduction == 'mean':
             return self.scale * loss.mean()

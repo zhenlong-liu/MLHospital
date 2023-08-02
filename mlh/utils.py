@@ -81,6 +81,9 @@ def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t
         scheduler = lr_scheduler.StepLR(optimizer, step_size=30, gamma=decay_factor)
     elif scheduler_name.lower() == 'cosine':
         scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=t_max)
+    elif scheduler_name.lower() == "multi_step":
+        decay_epochs = [150, 225]
+        scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
     else:
         raise ValueError("Unsupported scheduler name. Please choose 'step' or 'cosine'.")
 
@@ -124,6 +127,8 @@ def calculate_entropy(data_loader, model):
     with torch.no_grad():
         for inputs, _ in data_loader:
             outputs = model(inputs)
+            
+            
             probabilities = F.softmax(outputs, dim=1)
             
             entropy = -(probabilities * torch.log(probabilities + 1e-9)).sum(dim=1)    
@@ -145,7 +150,7 @@ def plot_entropy_distribution_together(target_train_loader, target_test_loader, 
     train_variance = np.var(train_entropies)
     test_mean = np.mean(test_entropies)
     test_variance = np.var(test_entropies)
-    print(f'Entropies: train_mean:{train_mean:.3f} train_variance:{train_variance:.3f} test_mean:{test_mean:.3f} test_variance:{test_variance:.3f}')
+    print(f'Entropies: train_mean:{train_mean: .3f} train_variance:{train_variance: .3f} test_mean:{test_mean: .3f} test_variance:{test_variance: .3f}')
     # Plot the distribution of entropies
     plt.figure(figsize=(8, 6))
     plt.hist(train_entropies, bins=50, alpha=0.5, label=f'Train Entropy\nMean: {train_mean:.2f}\nVariance: {train_variance:.2f}', color='blue')
