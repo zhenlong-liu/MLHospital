@@ -1,7 +1,9 @@
 import os
 import sys
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/defenses')
+sys.path.append("..")
+sys.path.append("../..")
+from utility.main_parse import add_argument_parameter
+
 from defenses.membership_inference.NormalRelaxLoss import TrainTargetNormalRelaxLoss
 
 
@@ -41,7 +43,7 @@ import torch.optim as optim
 # useful in cases where parallelization may cause issues or when you want to limit the number of
 # threads used for performance reasons.
 torch.set_num_threads(1)
-from utils import get_target_model
+from utils import get_target_model, generate_save_path
 
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
@@ -76,26 +78,12 @@ def parse_args():
                         help='data_path')
     parser.add_argument('--input-shape', type=str, default="32,32,3",
                         help='comma delimited input shape input')
-    parser.add_argument('--log_path', type=str,
-                        default='./save', help='data_path')
     
-    parser.add_argument('--temp', type=float, default=1,
-                        help='temperature')
-    # 默认储存到save里
-    parser.add_argument('--tau', type=float, default=1, help = "logitclip tau")
     
-    parser.add_argument('--loss_type', type=str, default="ce", help = "Loss function")
+    add_argument_parameter(parser)
     
-    parser.add_argument('--lp', type=int, default=2, help = "lp norm")
-    parser.add_argument('--series', type=int, default=2, help = "taylor ce series")
     
-    parser.add_argument('--learning_rate', type=float, default=0.01, help = "learning rate")
     
-    parser.add_argument('--optimizer', type=str, default="sgd", help = "sgd or adam")
-    
-    parser.add_argument('--scheduler', type=str, default="cosine", help = "cosine or step")
-    
-    parser.add_argument('--seed', type=int, default=0, help='seed')
     
     args = parser.parse_args()
 
@@ -125,7 +113,7 @@ def evaluate(args, model, dataloader):
 if __name__ == "__main__":
     opt = parse_args()
     s = GetDataLoaderTarget(opt)
-    
+    print(s)
     seed = opt.seed
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -136,7 +124,7 @@ if __name__ == "__main__":
     target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni()
 
 
-
+    
     # 选择是训练target model 还是训练shadow model
     if opt.mode == "target":
         train_loader, test_loader = target_train_loader, target_test_loader
@@ -151,7 +139,8 @@ if __name__ == "__main__":
     temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
     target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
 
-    save_pth = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}/{opt.mode}/{opt.loss_type}/epochs{opt.epochs}/seed{seed}/{temp_save}'
+    save_pth = generate_save_path(opt)
+    #save_pth = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}/{opt.mode}/{opt.loss_type}/epochs{opt.epochs}/seed{seed}/{temp_save}'
 
     if opt.training_type == "Normal":
         

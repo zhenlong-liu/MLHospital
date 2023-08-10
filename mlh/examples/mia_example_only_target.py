@@ -1,19 +1,23 @@
 import torchvision
-
 import sys
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/')
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
-from mlh.defenses.membership_inference.loss_function import get_loss
-from mlh.attacks.membership_inference.attacks import AttackDataset, BlackBoxMIA, MetricBasedMIA, LabelOnlyMIA
+sys.path.append("..")
+sys.path.append("../..")
+sys.path.append("../../..")
+from mlh.utility.main_parse import add_argument_parameter
+
+#sys.path.append('/home/liuzhenlong/MIA/MLHospital/')
+#sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
+from defenses.membership_inference.loss_function import get_loss
+from attacks.membership_inference.attacks import AttackDataset, BlackBoxMIA, MetricBasedMIA, LabelOnlyMIA
 from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from mlh.data_preprocessing.data_loader import GetDataLoader
-from mlh.data_preprocessing.data_loader_target import GetDataLoaderTarget
+from data_preprocessing.data_loader import GetDataLoader
+from data_preprocessing.data_loader_target import GetDataLoaderTarget
 from torchvision import datasets
 
-from utils import get_target_model, plot_celoss_distribution_together, plot_entropy_distribution_together
+from utils import get_target_model, plot_celoss_distribution_together, plot_entropy_distribution_together, generate_save_path_1, generate_save_path_2, generate_save_path
 import torchvision.transforms as transforms
 import argparse
 import numpy as np
@@ -63,26 +67,11 @@ def parse_args():
                         help='data_path')
     parser.add_argument('--input-shape', type=str, default="32,32,3",
                         help='comma delimited input shape input')
-    parser.add_argument('--log_path', type=str,
-                        default='./save', help='')
-
-    parser.add_argument('--temp', type=float, default=1,
-                        help='temperature')
-    parser.add_argument('--loss_type', type=str, default="ce", help = "Loss function")
     
-    parser.add_argument('--lp', type=int, default=2, help = "lp norm")
-    parser.add_argument('--series', type=int, default=2, help = "taylor ce series")
     
-    parser.add_argument('--optimizer', type=str, default="sgd", help = "sgd or adam")
-    
-    parser.add_argument('--schedular', type=str, default="cosine", help = "cosine or step")
-    
-    parser.add_argument('--seed', type=int, default=0, help='seed')
+    add_argument_parameter(parser)
     
     args = parser.parse_args()
-
-    
-    
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
     args.device = 'cuda:%d' % args.gpu if torch.cuda.is_available() else 'cpu'
 
@@ -128,19 +117,19 @@ if __name__ == "__main__":
 
     # load target/shadow model to conduct the attacks
     target_model.load_state_dict(torch.load(
-        f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}/{args.model}.pth'))
+        f'{generate_save_path(args, mode = "target")}/{args.model}.pth'))
     target_model = target_model.to(args.device)
 
     shadow_model.load_state_dict(torch.load(
-        f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/shadow/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}/{args.model}.pth'))
+        f'{generate_save_path(args, mode = "shadow")}/{args.model}.pth'))
     shadow_model = shadow_model.to(args.device)
     
     # generate attack dataset
     # or "black-box, black-box-sorted", "black-box-top3", "metric-based", and "label-only"
     attack_type = args.attack_type
 
-    save_path = f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}'
-    
+    # save_path = f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}'
+    save_path = generate_save_path(args, mode = "target")
     
     plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
     

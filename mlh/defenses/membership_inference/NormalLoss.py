@@ -2,6 +2,10 @@ import torch
 import numpy as np
 import os
 import time
+import sys
+sys.path.append("..")
+sys.path.append("../..")
+from utility.main_parse import save_namespace_to_yaml
 from runx.logx import logx
 import torch.nn.functional as F
 from defenses.membership_inference.trainer import Trainer
@@ -10,7 +14,7 @@ from defenses.membership_inference.loss_function import get_loss
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-from utils import get_optimizer, get_scheduler
+from utils import get_optimizer, get_scheduler, get_init_args, dict_str
 # class LabelSmoothingLoss(torch.nn.Module):
 #     """
 #     copy from:
@@ -39,7 +43,7 @@ class TrainTargetNormalLoss(Trainer):
                 momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
 
         super().__init__()
-
+        
         self.model = model
         self.device = device
         self.num_classes = args.num_class
@@ -50,6 +54,7 @@ class TrainTargetNormalLoss(Trainer):
         self.model = self.model.to(self.device)
         self.train_loader = train_loader
         self.learning_rate = args.learning_rate
+       
         self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, weight_decay)
         #self.optimizer = torch.optim.SGD( self.model.parameters(), self.learning_rate, momentum, weight_decay)
         
@@ -70,6 +75,11 @@ class TrainTargetNormalLoss(Trainer):
         logx.initialize(logdir=self.log_path,
                         coolname=False, tensorboard=False)
 
+        logx.msg(f"optimizer:{args.optimizer}, learning rate:{args.learning_rate}, scheduler:{args.scheduler}, epoches:{epochs}")
+
+        
+        save_namespace_to_yaml(args, f'{self.log_path}/config.yaml')
+        save_namespace_to_yaml(dict_str(get_init_args(self.criterion)), f'{self.log_path}/loss_config.yaml')
     # 需要通过装饰器 @staticmethod 来进行修饰， 静态方法既不需要传递类对象也不需要传递实例对象（形参没有self/cls ） 。
 
     @staticmethod
@@ -107,6 +117,7 @@ class TrainTargetNormalLoss(Trainer):
         if not os.path.exists(self.log_path):
             os.makedirs(self.log_path)
 
+        
         # torch.save(self.model.state_dict(), os.path.join(
         #     self.log_path, '%s_0.pth' % (self.model_save_name)))
 

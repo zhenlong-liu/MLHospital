@@ -1,3 +1,7 @@
+import sys
+sys.path.append("..")
+sys.path.append("../..")
+sys.path.append("../../..")
 from functools import partial
 import torch.nn as nn
 import torch
@@ -12,12 +16,12 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
     CIFAR10_CONFIG = {
         "smape" : SMAPELoss(num_classes=num_classes, scale = 5*args.temp, reduction = reduction),
         "logitclip_o": LogitClip(device, temp =args.temp, reduction = reduction),
-        "ereg": EntropyRegularizedLoss(alpha = 0.1*args.temp,reduction = reduction),
+        "ereg": EntropyRegularizedLoss(alpha = 0.1*args.temp, reduction = reduction),
         "ce": nn.CrossEntropyLoss(reduction = reduction),
         "ce_ls": nn.CrossEntropyLoss(label_smoothing= 0.1*args.temp, reduction = reduction),
         "focal": FocalLoss(gamma=args.temp, reduction = reduction),
         "mae": MAELoss(num_classes=num_classes, reduction = reduction),
-        "gce": GCE(device, k=num_classes,q=0.2, reduction = reduction),
+        "gce": GCE(device, k=num_classes, alpha = args.alpha, q=args.temp, reduction = reduction),
         "sce": SCE(alpha=0.5, beta=args.temp, num_classes=num_classes, reduction = reduction),
         "ldam": LDAMLoss(device=device),
         "logit_norm": LogitNormLoss(device, args.temp, p=args.lp, reduction = reduction),
@@ -42,10 +46,12 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
     }
     CIFAR100_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
+        "ce_ls": nn.CrossEntropyLoss(label_smoothing= 0.1*args.temp, reduction = reduction),
+        "ereg": EntropyRegularizedLoss(alpha = 0.1*args.temp, reduction = reduction),
         "focal": FocalLoss(gamma=0.5),
         "mae": MAELoss(num_classes=num_classes),
-        "gce": GCE(device, k=num_classes),
-        "sce": SCE(alpha=0.5, beta=1.0, num_classes=num_classes),
+        "gce": GCE(device, alpha = args.alpha, q=args.temp,k=num_classes),
+        "sce": SCE(alpha=args.alpha, beta=args.temp, num_classes=100),
         "ldam": LDAMLoss(device=device),
         "logit_clip": LogitClipLoss(device, threshold=args.temp),
         "logit_norm": LogitNormLoss(device, args.temp, p=args.lp),
@@ -59,10 +65,11 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "phuber": PHuberCE(tau=30),
         "taylor": TaylorCE(device=device, series=args.series),
         "cores": CoresLoss(device=device),
-        "ncemae": NCEandMAE(alpha=50, beta=1, num_classes=100),
-        "ngcemae": NGCEandMAE(alpha=50, beta=1, num_classes=100),
+        "ncemae": NCEandMAE(alpha=50*args.alpha, beta=1*args.temp, num_classes=100),
+        "ngcemae": NGCEandMAE(alpha=50*args.alpha, beta=1*args.temp, num_classes=100),
         "ncerce": NGCEandMAE(alpha=50, beta=1.0, num_classes=100),
-        "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=1.8, q=3.0, num_classes=100),
+        "nceagce": NCEandAGCE(alpha=50*args.alpha, beta=0.1*args.temp, a=1.8, q=3.0, num_classes=100),
+        "flood": FloodLoss(device=device, t = 0.1*args.temp, reduction = reduction),
     }
     WEB_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -88,15 +95,51 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "ncerce": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
         "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=2.5, q=3.0, num_classes=50),
     }
-    if "CIFAR10" in args.dataset:
+    
+    FashionMNIST = {
+        "smape" : SMAPELoss(num_classes=num_classes, scale = 5*args.temp, reduction = reduction),
+        "logitclip_o": LogitClip(device, temp =args.temp, reduction = reduction),
+        "ereg": EntropyRegularizedLoss(alpha = 0.1*args.temp, reduction = reduction),
+        "ce": nn.CrossEntropyLoss(reduction = reduction),
+        "ce_ls": nn.CrossEntropyLoss(label_smoothing= 0.1*args.temp, reduction = reduction),
+        "focal": FocalLoss(gamma=args.temp, reduction = reduction),
+        "mae": MAELoss(num_classes=num_classes, reduction = reduction),
+        "gce": GCE(device, k=num_classes, alpha = args.alpha, q=0.7, reduction = reduction),
+        "sce": SCE(alpha=0.5, beta=args.temp, num_classes=num_classes, reduction = reduction),
+        "ldam": LDAMLoss(device=device),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp, reduction = reduction),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "logneg": logNegLoss(device, t=args.temp),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp, reduction = reduction),
+        "cnorm": CNormLoss(device, args.temp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=10),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes, reduction = reduction),
+        "ael": AExpLoss(num_classes=10, a=2.5),
+        "aul": AUELoss(num_classes=10, a=5.5, q=3),
+        "phuber": PHuberCE(tau=10),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=1, beta=1, num_classes=10),
+        "ngcemae": NGCEandMAE(alpha=1, beta=1, num_classes=10),
+        "ncerce": NGCEandMAE(alpha=1, beta=1.0, num_classes=10),
+        "nceagce": NCEandAGCE(alpha=1, beta=4, a=6, q=1.5, num_classes=10),
+        "flood": FloodLoss(device=device, t = 0.1, reduction = reduction),
+        "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction) 
+    }
+    if args.dataset.lower() == "cifar10":
         return CIFAR10_CONFIG[loss_type]
-    elif args.dataset.str.lower() == "cifar100":
+    elif args.dataset.lower() == "cifar100":
         return CIFAR100_CONFIG[loss_type]
-    elif args.dataset == "webvision":
-        return WEB_CONFIG[loss_type]   
+    elif args.dataset.lower() == "fashionmnist":
+        return FashionMNIST[loss_type]
+    elif args.dataset.lower() == "webvision":
+        return WEB_CONFIG[loss_type]
+    else:
+        raise ValueError("Dataset not implemented yet :P")
 
 
-
+    
 
 
 class RelaxLoss(nn.Module):

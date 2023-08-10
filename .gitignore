@@ -175,3 +175,5 @@ docs
 *.ipynb
 *.xlsx
 nohup.out
+
+mlh.egg-info

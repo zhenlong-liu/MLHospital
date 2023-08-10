@@ -1,8 +1,9 @@
 import os
 import sys
+sys.path.append("..")
 sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
 sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/defenses')
-
+sys.path.insert(0,'/home/liuzhenlong/MIA/MLHospital/mlh/')
 import torchvision
 import utils
 from utils import get_loss

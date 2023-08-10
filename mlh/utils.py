@@ -20,8 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import sys
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/')
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
 import numpy as np
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
 from models.resnet import resnet20
@@ -33,6 +31,53 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+import argparse
+
+
+
+def dict_str(input_dict):
+    for key, value in input_dict.items():
+        input_dict[key] = str(value)
+    return input_dict
+def get_init_args(obj):
+    init_args = {}
+    for attr_name in dir(obj):
+        if not callable(getattr(obj, attr_name)) and not attr_name.startswith("__"):
+            init_args[attr_name] = getattr(obj, attr_name)
+    return init_args
+
+
+def generate_save_path_1(opt):
+    if isinstance(opt, dict):
+        opt = argparse.Namespace(**opt)
+    save_path1 = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}'
+    return save_path1    
+
+def generate_save_path_2(opt):
+    if isinstance(opt, dict):
+        opt = argparse.Namespace(**opt)
+    #temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
+    temp_save= standard_float(opt.temp)
+    alpha_save = standard_float(opt.alpha)
+    #alpha_save = str(opt.alpha).rstrip('0').rstrip('.') if '.' in str(opt.alpha) else str(opt.alpha)
+    save_path2 =  f"{opt.loss_type}/epochs{opt.epochs}/seed{opt.seed}/{temp_save}/{alpha_save}"
+    return save_path2
+        
+def standard_float(hyper_parameter):
+    return str(hyper_parameter).rstrip('0').rstrip('.') if '.' in str(hyper_parameter) else str(hyper_parameter)
+    
+
+
+def generate_save_path(opt, mode = None):
+    if isinstance(opt, dict):
+        opt = argparse.Namespace(**opt)
+    if mode == None:
+        save_pth = f'{generate_save_path_1(opt)}/{opt.mode}/{generate_save_path_2(opt)}'
+    else:
+        save_pth = f'{generate_save_path_1(opt)}/{mode}/{generate_save_path_2(opt)}'
+    return save_pth
+
+
 
 def get_optimizer(optimizer_name, model_parameters, learning_rate=0.1, momentum=0.9, weight_decay=1e-4):
     """
@@ -83,6 +128,9 @@ def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t
         scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=t_max)
     elif scheduler_name.lower() == "multi_step":
         decay_epochs = [150, 225]
+        scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
+    elif scheduler_name.lower() == "multi_step2":
+        decay_epochs = [40, 80]
         scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
     else:
         raise ValueError("Unsupported scheduler name. Please choose 'step' or 'cosine'.")
@@ -212,6 +260,14 @@ def get_target_model(name="resnet18", num_classes=10):
         model = torchvision.models.vgg11()
         num_ftrs = model.classifier[-1].in_features
         model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
+    elif name == "wide_resnet50":
+        model = torch.hub.load('pytorch/vision:v0.10.0', 'wide_resnet50_2', weights=None)
+        num_ftrs = model.fc.in_features
+        model.fc = nn.Linear(num_ftrs, num_classes)
+    elif name == "densenet121":
+        model = torch.hub.load('pytorch/vision:v0.10.0', 'densenet121',weights=None)
+        num_ftrs = model.classifier.in_features
+        model.classifier = nn.Linear(num_ftrs, num_classes)
     else:
         raise ValueError("Model not implemented yet :P")
     return model

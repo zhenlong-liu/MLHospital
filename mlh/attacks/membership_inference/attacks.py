@@ -21,8 +21,9 @@
 # SOFTWARE.
 import os
 import sys
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/defenses')
+sys.path.append('..')
+sys.path.append('../..')
+
 # from mlh.models.utils import FeatureExtractor, VerboseExecution
 
 import torch

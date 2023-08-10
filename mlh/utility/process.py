@@ -93,35 +93,41 @@ def extract_mia_metrics(log_file):
 
 def process_files(root_dir, output_excel):
     # sourcery skip: dict-assign-update-to-union
+    output_folder = os.path.dirname(output_excel)
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
     data = []
     for subdir, dirs, files in os.walk(root_dir):
         if 'logging.log' in files:
             for file in files:
                 if file == 'logging.log':
                     log_file_path = os.path.join(subdir, file)
-                    print(log_file_path)
+                    # print(log_file_path)
                     epoch, train_acc, test_acc = extract_last_line_logging_info(log_file_path)
                     if epoch is not None:
                         target_dir = get_grandparent_directory_name(subdir, n=3)
-                        hyper = os.path.basename(subdir)
-                        
+                        alpha = os.path.basename(subdir)
+                        beta = get_grandparent_directory_name(subdir, n=1)
                         mia_metrics_file = os.path.join(subdir, 'mia_metric-based.log')
-                        if not os.path.exists(mia_metrics_file):
-                            continue
-                        mia_metrics = extract_mia_metrics(mia_metrics_file)
-                        distribution =  extract_metrics(mia_metrics_file)
-                        if mia_metrics:
-                            row_data = {
-                                'Loss type': target_dir,
-                                'Epochs': epoch,
-                                'Hyper parameter': hyper,
-                                'Train Acc': train_acc,
-                                'Test Acc': test_acc
-                            }
-                            #`row_data.update(mia_metrics)` is a method that updates the `row_data` dictionary with the key-value pairs from the `mia_metrics` dictionary.
+                        
+                        row_data = {
+                            'Loss type': target_dir,
+                            'Epochs': epoch,
+                            'alpha' : alpha,
+                            'beta': beta,
+                            'Train Acc': train_acc,
+                            'Test Acc': test_acc
+                        }
+                        
+                        if os.path.exists(mia_metrics_file):
+                            mia_metrics = extract_mia_metrics(mia_metrics_file)
+                            distribution =  extract_metrics(mia_metrics_file)
                             row_data.update(mia_metrics)
                             row_data.update(distribution)
-                            data.append(row_data)
+                        
+                            #`row_data.update(mia_metrics)` is a method that updates the `row_data` dictionary with the key-value pairs from the `mia_metrics` dictionary.
+                            
+                        data.append(row_data)
                 
 
     if data:
