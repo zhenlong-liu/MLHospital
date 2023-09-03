@@ -5,7 +5,8 @@ import time
 import sys
 sys.path.append("..")
 sys.path.append("../..")
-from utility.main_parse import save_namespace_to_yaml
+from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
+# class LabelSmoothingLoss(torch.nn.Module):
 from runx.logx import logx
 import torch.nn.functional as F
 from defenses.membership_inference.trainer import Trainer
@@ -13,9 +14,8 @@ import torch.nn as nn
 from defenses.membership_inference.loss_function import get_loss
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
-
+from tqdm import tqdm
 from utils import get_optimizer, get_scheduler, get_init_args, dict_str
-# class LabelSmoothingLoss(torch.nn.Module):
 #     """
 #     copy from:
 #     https://github.com/pytorch/pytorch/issues/7455
@@ -125,7 +125,7 @@ class TrainTargetNormalLoss(Trainer):
             batch_n = 0
             self.model.train()
             loss_num =0
-            for img, label in train_loader:
+            for img, label in tqdm(train_loader):
                 self.model.zero_grad()
                 batch_n += 1
 
@@ -139,12 +139,16 @@ class TrainTargetNormalLoss(Trainer):
                 loss.backward()
                 loss_num = loss.item()
                 self.optimizer.step()
-    
+
+            if self.args.dataset.lower() == 'imagenet' and e<self.epochs:
+                self.scheduler.step()
+                continue
             train_acc = self.eval(train_loader)
             test_acc = self.eval(test_loader)
             logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
                 self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, loss_num, time.time() - t_start))
-
-            
             self.scheduler.step()
-    
+            if e == self.epochs:
+                log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
+                            "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}
+                save_dict_to_yaml(log_dict, f'{self.log_path}/train_log.yaml)') 

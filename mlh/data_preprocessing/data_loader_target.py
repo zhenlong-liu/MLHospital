@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import os
 import torchvision.transforms as transforms
 import torch
 import numpy as np
@@ -29,7 +29,7 @@ from torchvision import datasets
 from PIL import Image
 from tqdm import tqdm
 from data_preprocessing import configs
-
+import torchvision
 torch.manual_seed(0)
 
 
@@ -38,8 +38,24 @@ class GetDataLoaderTarget(object):
         self.args = args
         self.data_path = args.data_path
         self.input_shape = args.input_shape
+        self.batch_size = args.batch_size
     def parse_dataset(self, dataset, train_transform, test_transform):
 
+        if dataset.lower() == "imagenet":
+            self.data_path = '/data/dataset/imagenet/images/'
+            train_dataset = torchvision.datasets.ImageFolder(root=self.data_path + 'train', transform=train_transform)
+            test_dataset = torchvision.datasets.ImageFolder(root=self.data_path + 'val', transform=test_transform)
+            dataset = train_dataset + test_dataset
+            
+            return dataset
+        
+        if dataset.lower() == "tinyimagenet":
+            self.data_path = f'{self.data_path}/data_tinyimagenet/tiny-imagenet-200/'
+            image_datasets = {x: datasets.ImageFolder(os.path.join(self.data_path, x), transform=train_transform) 
+                  for x in ['train', 'val','test']}
+            dataset =  image_datasets['train'] + image_datasets['val'] +image_datasets['test']
+            return dataset
+        
         if dataset in configs.SUPPORTED_IMAGE_DATASETS: # 定义了几个支持的数据集
             _loader = getattr(datasets, dataset)
             if dataset != "EMNIST":
@@ -82,6 +98,18 @@ class GetDataLoaderTarget(object):
         return dataset
 
     def get_data_transform(self, dataset, use_transform="simple"):
+        
+        if dataset.lower() in ["imagenet", "tinyimagenet"]:
+            transform_list = [transforms.Resize(256),transforms.CenterCrop(224)]
+            if use_transform == "simple":
+                transform_list += [transforms.RandomHorizontalFlip()]
+                print("add simple data augmentation!")
+            transform_list+= [transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])]
+            transform_ = transforms.Compose(transform_list)
+            return transform_
+        
+        
+        
         transform_list = [transforms.Resize(
             (self.input_shape[0], self.input_shape[0])), ]
         # 初始时，它只包含一个 transforms.Resize 操作，用于调整图像大小至 (self.input_shape[0], self.input_shape[0])
@@ -149,8 +177,10 @@ class GetDataLoaderTarget(object):
 
 
 
-    def get_data_supervised(self, batch_size=128, num_workers=2, select_num=None):
+    def get_data_supervised(self, num_workers=2, select_num=None):
         # self.args.dataset 默认为CIFAR10
+        batch_size = self.batch_size
+        
         train_transform = self.get_data_transform(self.args.dataset)
         test_transform = self.get_data_transform(self.args.dataset)
         

@@ -25,6 +25,7 @@ SUPPORTED_IMAGE_DATASETS = set(["CIFAR10",
                                 "MNIST",
                                 "EMNIST",
                                 "FashionMNIST"
+                                #"Imagenet"
                                 ])
 
 SUPPORTED_IMAGE_DATASETS_ATTRIBUTE_INFERENCE = set(["CelebA",

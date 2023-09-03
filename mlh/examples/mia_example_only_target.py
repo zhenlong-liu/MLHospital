@@ -28,20 +28,21 @@ import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
+"""
 torch.manual_seed(0)
 np.random.seed(0)
 torch.cuda.manual_seed(0)#让显卡产生的随机数一致
 torch.cuda.manual_seed_all(0)#多卡模式下，让所有显卡生成的随机数一致？这个待验证
-
+"""
 
 
 
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
 
-    parser.add_argument('--batch-size', type=int, default=512,
+    parser.add_argument('--batch_size', type=int, default=512,
                         help='batch_size')
-    parser.add_argument('--num-workers', type=int, default=10,
+    parser.add_argument('--num_workers', type=int, default=10,
                         help='num of workers to use')
 
     parser.add_argument('--epochs', type=int, default=100,
@@ -63,7 +64,7 @@ def parse_args():
                         help='if yes, load pretrained attack model to inference')
     parser.add_argument('--attack_type', type=str, default='black-box',
                         help='attack type: "black-box", "black-box-sorted", "black-box-top3", "metric-based", and "label-only"')
-    parser.add_argument('--data-path', type=str, default='../datasets/',
+    parser.add_argument('--data_path', type=str, default='../datasets/',
                         help='data_path')
     parser.add_argument('--input-shape', type=str, default="32,32,3",
                         help='comma delimited input shape input')
@@ -119,11 +120,11 @@ if __name__ == "__main__":
     target_model.load_state_dict(torch.load(
         f'{generate_save_path(args, mode = "target")}/{args.model}.pth'))
     target_model = target_model.to(args.device)
-
+    target_model.eval()
     shadow_model.load_state_dict(torch.load(
         f'{generate_save_path(args, mode = "shadow")}/{args.model}.pth'))
     shadow_model = shadow_model.to(args.device)
-    
+    shadow_model.eval()
     # generate attack dataset
     # or "black-box, black-box-sorted", "black-box-top3", "metric-based", and "label-only"
     attack_type = args.attack_type

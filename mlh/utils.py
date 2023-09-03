@@ -28,11 +28,12 @@ import torchvision
 
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
-import torch
+import torch, gc
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import argparse
-
+sys.path.append("..")
+sys.path.append("../..")
 
 
 def dict_str(input_dict):
@@ -132,8 +133,11 @@ def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t
     elif scheduler_name.lower() == "multi_step2":
         decay_epochs = [40, 80]
         scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
+    elif scheduler_name.lower() == "multi_step_imagenet":
+        decay_epochs = [30, 60]
+        scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
     else:
-        raise ValueError("Unsupported scheduler name. Please choose 'step' or 'cosine'.")
+        raise ValueError("Unsupported scheduler name.")
 
     return scheduler
 
@@ -145,13 +149,14 @@ def compute_losses(loader, net,device):
 
     criterion = nn.CrossEntropyLoss(reduction="none")
     all_losses = []
+    net.eval()
+    with torch.no_grad():
+        for inputs, targets in loader:
+            inputs, targets = inputs.to(device), targets.to(device)
 
-    for inputs, targets in loader:
-        inputs, targets = inputs.to(device), targets.to(device)
-
-        logits = net(inputs)
-        losses = criterion(logits, targets).numpy(force=True)
-        all_losses.extend(iter(losses))
+            logits = net(inputs)
+            losses = criterion(logits, targets).numpy(force=True)
+            all_losses.extend(iter(losses))
     return np.array(all_losses)
 
 def cross_entropy(prob, label):
@@ -169,11 +174,12 @@ def cross_entropy(prob, label):
 
 
 
-def calculate_entropy(data_loader, model):
+def calculate_entropy(data_loader, model, device):
     entropies = []
     model.eval()
     with torch.no_grad():
         for inputs, _ in data_loader:
+            inputs = inputs.to(device)
             outputs = model(inputs)
             
             
@@ -188,12 +194,12 @@ def calculate_entropy(data_loader, model):
 
 def plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device):
     # Calculate entropies for target_train_loader and target_test_loader
-    target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
-    target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
+    #target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
+    #target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
     
     
-    train_entropies = calculate_entropy(target_train_loader, target_model)
-    test_entropies = calculate_entropy(target_test_loader, target_model)
+    train_entropies = calculate_entropy(target_train_loader, target_model, device)
+    test_entropies = calculate_entropy(target_test_loader, target_model, device)
     train_mean = np.mean(train_entropies)
     train_variance = np.var(train_entropies)
     test_mean = np.mean(test_entropies)
@@ -201,8 +207,8 @@ def plot_entropy_distribution_together(target_train_loader, target_test_loader, 
     print(f'Entropies: train_mean:{train_mean: .3f} train_variance:{train_variance: .3f} test_mean:{test_mean: .3f} test_variance:{test_variance: .3f}')
     # Plot the distribution of entropies
     plt.figure(figsize=(8, 6))
-    plt.hist(train_entropies, bins=50, alpha=0.5, label=f'Train Entropy\nMean: {train_mean:.2f}\nVariance: {train_variance:.2f}', color='blue')
-    plt.hist(test_entropies, bins=50, alpha=0.5, label=f'Test Entropy\nMean: {test_mean:.2f}\nVariance: {test_variance:.2f}', color='red')
+    plt.hist(train_entropies, bins=50, alpha=0.5,range= (0,5), label=f'Train Entropy\nMean: {train_mean:.2f}\nVariance: {train_variance:.2f}', color='blue')
+    plt.hist(test_entropies, bins=50, alpha=0.5,range= (0,5), label=f'Test Entropy\nMean: {test_mean:.2f}\nVariance: {test_variance:.2f}', color='red')
     plt.xlabel('Entropy') 
     plt.ylabel('Frequency')
     plt.title('Entropy Distribution for Target Data')
@@ -212,15 +218,16 @@ def plot_entropy_distribution_together(target_train_loader, target_test_loader, 
     # Save the plot to the specified path
     plt.savefig(save_path)
     plt.close()
-
+    gc.collect()
+    torch.cuda.empty_cache()
 def plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device):
     # Calculate loss for target_train_loader and target_test_loader
-    target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
-    target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
+    #target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
+    #target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
     
     
-    train_loss = compute_losses(target_train_loader, target_model,device)
-    test_loss = compute_losses(target_test_loader, target_model,device)
+    train_loss = compute_losses(target_train_loader, target_model, device)
+    test_loss = compute_losses(target_test_loader, target_model, device)
     train_mean = np.mean(train_loss)
     train_variance = np.var(train_loss)
     test_mean = np.mean(test_loss)
@@ -240,7 +247,8 @@ def plot_celoss_distribution_together(target_train_loader, target_test_loader, t
     # Save the plot to the specified path
     plt.savefig(save_path)
     plt.close()
-    
+    gc.collect()
+    torch.cuda.empty_cache()
     
 
 
@@ -248,14 +256,16 @@ def get_target_model(name="resnet18", num_classes=10):
     if name == "resnet18":
         model = torchvision.models.resnet18()
         model.fc = nn.Sequential(nn.Linear(512, num_classes))
-        # 代码修改了ResNet-18模型的最后一层全连接层，将其替换为一个新的全连接层nn.Linear(512, 10)，
-        # 其中512是ResNet-18模型中最后一个卷积层的输出通道数，10是类别数量。这样做是为了将模型的输出调整为与任务中的类别数量相匹配。
     elif name == "resnet20":
         model = resnet20(num_classes =num_classes)
     elif name == "resnet34":
         model = torchvision.models.resnet34()
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
+    elif name == "resnet50":
+        model = torchvision.models.resnet50()
+        num_ftrs = model.fc.in_features
+        model.fc = nn.Linear(num_ftrs, num_classes)    
     elif name == "vgg11":
         model = torchvision.models.vgg11()
         num_ftrs = model.classifier[-1].in_features
@@ -271,6 +281,45 @@ def get_target_model(name="resnet18", num_classes=10):
     else:
         raise ValueError("Model not implemented yet :P")
     return model
+
+import torch.nn as nn
+
+def add_dropout_to_last_fc_layer(model, dropout_prob=0.5):
+    """
+    在模型的最后一个全连接层上添加Dropout。
+
+    Args:
+        model (nn.Module): 要添加Dropout的神经网络模型。
+        dropout_prob (float): Dropout的概率。
+
+    Returns:
+        nn.Module: 添加了Dropout的模型。
+    """
+    # 查找模型中的最后一个全连接层
+    last_fc_layer = None
+    for layer in reversed(model.children()):
+        if isinstance(layer, nn.Linear):
+            last_fc_layer = layer
+            break
+
+    # 如果找到最后一个全连接层，则在其之前添加Dropout
+    if last_fc_layer:
+        new_layers = [
+            nn.Dropout(p=dropout_prob),
+            last_fc_layer
+        ]
+        last_fc_layer_index = list(model.children()).index(last_fc_layer)
+        updated_model = nn.Sequential(
+            *list(model.children())[:last_fc_layer_index],
+            *new_layers,
+            *list(model.children())[last_fc_layer_index + 1:]
+        )
+        return updated_model
+    else:
+        print("No fully connected layer found in the model.")
+        return model
+
+
 
 def one_hot_embedding(y, num_classes=10, dtype=torch.cuda.FloatTensor):
     '''

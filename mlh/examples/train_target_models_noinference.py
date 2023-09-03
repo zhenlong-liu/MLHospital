@@ -43,14 +43,14 @@ import torch.optim as optim
 # useful in cases where parallelization may cause issues or when you want to limit the number of
 # threads used for performance reasons.
 torch.set_num_threads(1)
-from utils import get_target_model, generate_save_path
+from utils import add_dropout_to_last_fc_layer, get_target_model, generate_save_path
 
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
 
-    parser.add_argument('--batch-size', type=int, default=512,
+    parser.add_argument('--batch_size', type=int, default=512,
                         help='batch_size')
-    parser.add_argument('--num-workers', type=int, default=10,
+    parser.add_argument('--num_workers', type=int, default=10,
                         help='num of workers to use')
 
     parser.add_argument('--training_type', type=str, default="Normal",
@@ -74,9 +74,9 @@ def parse_args():
                         help='number of classes')
     parser.add_argument('--inference-dataset', type=str, default='CIFAR10',
                         help='if yes, load pretrained the attack model to inference')
-    parser.add_argument('--data-path', type=str, default='../datasets/',
+    parser.add_argument('--data_path', type=str, default='../datasets/',
                         help='data_path')
-    parser.add_argument('--input-shape', type=str, default="32,32,3",
+    parser.add_argument('--input_shape', type=str, default="32,32,3",
                         help='comma delimited input shape input')
     
     
@@ -113,7 +113,6 @@ def evaluate(args, model, dataloader):
 if __name__ == "__main__":
     opt = parse_args()
     s = GetDataLoaderTarget(opt)
-    print(s)
     seed = opt.seed
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -121,7 +120,7 @@ if __name__ == "__main__":
     torch.cuda.manual_seed_all(seed)    
     
     #split_num = [0.25,0,0.25,0.25,0,0.25]
-    target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni()
+    target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =opt.batch_size, num_workers =opt.num_workers)
 
 
     
@@ -160,6 +159,15 @@ if __name__ == "__main__":
             model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, num_classes= opt.num_class, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
 
+    elif opt.training_type == "Dropout":
+        target_model  = add_dropout_to_last_fc_layer(target_model, opt.beta)
+        total_evaluator = TrainTargetNormalLoss(
+            model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, num_classes= opt.num_class, epochs=opt.epochs, log_path=save_pth)
+        total_evaluator.train(train_loader, test_loader)
+    
+    
+    
+    
     elif opt.training_type == "LabelSmoothing":
 
         total_evaluator = TrainTargetLabelSmoothing(
@@ -175,7 +183,7 @@ if __name__ == "__main__":
 
     elif opt.training_type == "DP":
         total_evaluator = TrainTargetDP(
-            model=target_model, epochs=opt.epochs, log_path=save_pth)
+            model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
 
     elif opt.training_type == "MixupMMD":

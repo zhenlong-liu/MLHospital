@@ -27,6 +27,9 @@ def add_argument_parameter(parser):
     
     parser.add_argument('--alpha', type=float, default=1, help='adjust parameter')
     
+    parser.add_argument('--noise_scale', type=float, default=100, help='noise scale for DPSGD')
+    parser.add_argument('--beta', type=float, default=0, help='Dropout rate')
+    
     
 def save_namespace_to_yaml(namespace, output_path):
     """
@@ -75,3 +78,18 @@ def save_namespace_to_yaml(namespace, output_path):
         yaml.dump(config_data, yaml_file, default_flow_style=False)
 
     print(f"Configuration saved to {output_yaml}")
+    
+def save_dict_to_yaml(dict, output_path):
+    # output_yaml = f'{output_path}/train_log.yaml'
+    
+    output_yaml = output_path
+    # Create the output directory if it doesn't exist
+    output_folder = os.path.dirname(output_yaml)
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    # Save the configuration dictionary to a YAML file
+    with open(output_yaml, 'w') as yaml_file:
+        yaml.dump(dict, yaml_file, default_flow_style=False)
+
+    print(f"Training log saved to {output_yaml}")

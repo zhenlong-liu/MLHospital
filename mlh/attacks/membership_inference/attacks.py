@@ -99,20 +99,21 @@ class ModelParser():
         target_list = []
         posteriors_list = []
         all_losses = []
-        for btch_idx, (inputs, targets) in tqdm(enumerate(dataloader)):
-            inputs, targets = inputs.to(self.device), targets.to(self.device)
-            outputs = self.model(inputs)
-            posteriors = F.softmax(outputs, dim=1)
-            # print(posteriors.shape) torch.Size([128, 10])
+        with torch.no_grad():
+            for btch_idx, (inputs, targets) in tqdm(enumerate(dataloader)):
+                inputs, targets = inputs.to(self.device), targets.to(self.device)
+                outputs = self.model(inputs)
+                posteriors = F.softmax(outputs, dim=1)
+                # print(posteriors.shape) torch.Size([128, 10])
 
-            # add loss
-            #losses = self.criterion(outputs, targets)
-            #print(losses)
-            #exit()
-            target_list += targets.cpu().tolist()
-            posteriors_list += posteriors.detach().cpu().numpy().tolist()
-            # all_losses += losses.tolist()
-            
+                # add loss
+                #losses = self.criterion(outputs, targets)
+                #print(losses)
+                #exit()
+                target_list += targets.cpu().tolist()
+                posteriors_list += posteriors.detach().cpu().numpy().tolist()
+                # all_losses += losses.tolist()
+        torch.cuda.empty_cache()    
             
         
         return {"targets": target_list, "posteriors": posteriors_list}
