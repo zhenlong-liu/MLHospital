@@ -11,7 +11,7 @@ def run_command(cmd):
 
 if __name__ == "__main__":
     # lossfunction =["ce","flood","focal","gce","sce","ereg","mae","nceagce","ncemae","ncerce","ngcemae"]
-    lossfunction =["ce","ce_ls", "gce"]
+    lossfunction =["gce", "sce","ce_ls"]
     params_loss = {
     'python': "../train_target_models_noinference.py",
     'log_path': '../save0',
@@ -32,23 +32,23 @@ if __name__ == "__main__":
 }
 
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         
         
         for loss in lossfunction:
             params_loss['loss_type'] = loss
-            cmd1, cmd2 = generate_cmd_hup(params_loss, 2, 3)  # 请确保已定义generate_cmd函数和相关参数
-            futures.append(executor.submit(run_command, cmd1))
-            futures.append(executor.submit(run_command, cmd2))
+            cmd1, cmd2 = generate_cmd_hup(params_loss, 2, 1)  # 请确保已定义generate_cmd函数和相关参数
+            futures.append(executor1.submit(run_command, cmd1))
+            futures.append(executor2.submit(run_command, cmd2))
         # 等待所有任务完成
         concurrent.futures.wait(futures)
         
-        
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        futures = []     
         for loss in lossfunction:
             params_loss['loss_type'] = loss
-            cmd3 =generate_mia_command(params_loss, nohup = False, mia = "../mia_example_only_target.py")
-            print(cmd3)
+            cmd3 =generate_mia_command(params_loss, nohup = False, mia = "../mia_example_only_target.py", gpu=1)
             futures.append(executor.submit(run_command, cmd3))
         
         concurrent.futures.wait(futures)

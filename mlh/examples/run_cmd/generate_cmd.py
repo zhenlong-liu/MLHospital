@@ -21,19 +21,24 @@ def generate_train_command(params, mode, gpu):
     return args_command.strip()
 
 
+
+
 def generate_train_command_2(params, mode, gpu):
     # 初始化一个空字符串，用于存储生成的args命令
     args_command = ""
 
     # 遍历字典中的每个键值对
     for key, value in params.items():
-        args_command += f"{key} {value} " if key == "python" else f"--{key} {value} "
+        if key == "python":
+            args_command += f"{key} {value} "
+        
+        elif value == None:
+            args_command += f"--{key} "
+        else: args_command +=f"--{key} {value} "
     args_command += f"--mode {mode} "
     args_command += f"--gpu {gpu} "
     # 返回生成的args命令，去除末尾的多余空格
     return args_command.strip()
-
-
 
 def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type ='metric-based', nohup = True, gpu =0):
     # 初始化一个空字符串，用于存储生成的args命令

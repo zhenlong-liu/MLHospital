@@ -42,7 +42,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "ncerce": NGCEandMAE(alpha=1, beta=1.0, num_classes=10),
         "nceagce": NCEandAGCE(alpha=1, beta=4, a=6, q=1.5, num_classes=10),
         "flood": FloodLoss(device=device, t = 0.1, reduction = reduction),
-        "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction) 
+        "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction),
+        "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 )
     }
     CIFAR100_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -50,8 +51,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "ereg": EntropyRegularizedLoss(alpha = 0.1*args.temp, reduction = reduction),
         "focal": FocalLoss(gamma=0.5),
         "mae": MAELoss(num_classes=num_classes),
-        "gce": GCE(device, alpha = args.alpha, q=args.temp,k=num_classes),
-        "sce": SCE(alpha=args.alpha, beta=args.temp, num_classes=100),
+        "gce": GCE(device, alpha = 0.1, q=0.2,k=num_classes),
+        "sce": SCE(alpha=0.1, beta=0.1, num_classes=100),
         "ldam": LDAMLoss(device=device),
         "logit_clip": LogitClipLoss(device, threshold=args.temp),
         "logit_norm": LogitNormLoss(device, args.temp, p=args.lp),
@@ -70,6 +71,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "ncerce": NGCEandMAE(alpha=50, beta=1.0, num_classes=100),
         "nceagce": NCEandAGCE(alpha=50*args.alpha, beta=0.1*args.temp, a=1.8, q=3.0, num_classes=100),
         "flood": FloodLoss(device=device, t = 0.1*args.temp, reduction = reduction),
+        "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 )
     }
     Imagenet_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -181,7 +183,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "ncerce": NGCEandMAE(alpha=1, beta=1.0, num_classes=10),
         "nceagce": NCEandAGCE(alpha=1, beta=4, a=6, q=1.5, num_classes=10),
         "flood": FloodLoss(device=device, t = 0.1, reduction = reduction),
-        "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction) 
+        "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction),
+        "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 )
     }
     if args.dataset.lower() == "cifar10":
         return CIFAR10_CONFIG[loss_type]
@@ -199,7 +202,197 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         raise ValueError("Dataset not implemented yet :P")
 
 
+def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10, reduction = "mean"):
+    CIFAR10_CONFIG = {
+        "smape" : SMAPELoss(num_classes=num_classes, scale = args.temp, reduction = reduction),
+        "logitclip_o": LogitClip(device, temp =args.temp, reduction = reduction),
+        "ereg": EntropyRegularizedLoss(alpha = args.temp, reduction = reduction),
+        "ce": nn.CrossEntropyLoss(reduction = reduction),
+        "ce_ls": nn.CrossEntropyLoss(label_smoothing= args.temp, reduction = reduction),
+        "focal": FocalLoss(gamma=args.temp, reduction = reduction),
+        "mae": MAELoss(num_classes=num_classes, reduction = reduction),
+        "gce": GCE(device, k=num_classes, alpha = args.alpha, q=args.temp, reduction = reduction),
+        "sce": SCE(alpha=args.alpha, beta=args.temp, num_classes=num_classes, reduction = reduction),
+        "ldam": LDAMLoss(device=device),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp, reduction = reduction),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "logneg": logNegLoss(device, t=args.temp),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp, reduction = reduction),
+        "cnorm": CNormLoss(device, args.temp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=10),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes, reduction = reduction),
+        "ael": AExpLoss(num_classes=num_classes, a=args.alpha),
+        "aul": AUELoss(num_classes=num_classes, a=args.alpha, q=3),
+        "phuber": PHuberCE(tau=10),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=10),
+        "ngcemae": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=10),
+        "ncerce": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=10),
+        "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=6, q=1.5, num_classes=10),
+        "flood": FloodLoss(device=device, t = args.temp, reduction = reduction),
+        "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction),
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+    }
+    CIFAR100_CONFIG = {
+        "ce": nn.CrossEntropyLoss(),
+        "ce_ls": nn.CrossEntropyLoss(label_smoothing= args.temp, reduction = reduction),
+        "ereg": EntropyRegularizedLoss(alpha = args.alpha, reduction = reduction),
+        "focal": FocalLoss(gamma=args.alpha),
+        "mae": MAELoss(num_classes=num_classes),
+        "gce": GCE(device, alpha = args.alpha, q=args.temp, k=num_classes),
+        "sce": SCE(alpha=args.alpha, beta=args.temp, num_classes=100),
+        "ldam": LDAMLoss(device=device),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=100),
+        "cnorm": CNormLoss(device, args.temp),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes),
+        "ael": AExpLoss(num_classes=100, a=2.5),
+        "aul": AUELoss(num_classes=100, a=5.5, q=3),
+        "phuber": PHuberCE(tau=30),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=100),
+        "ngcemae": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=100),
+        "ncerce": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=100),
+        "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=1.8, q=3.0, num_classes=100),
+        "flood": FloodLoss(device=device, t = args.temp, reduction = reduction),
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+    }
+    Imagenet_CONFIG = {
+        "ce": nn.CrossEntropyLoss(),
+        "ce_ls": nn.CrossEntropyLoss(label_smoothing= args.temp, reduction = reduction),
+        "ereg": EntropyRegularizedLoss(alpha = args.alpha, reduction = reduction),
+        "focal": FocalLoss(gamma=0.5),
+        "mae": MAELoss(num_classes=num_classes),
+        "gce": GCE(device, alpha = args.alpha, q=0.1,k=num_classes),
+        "sce": SCE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "ldam": LDAMLoss(device=device),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=num_classes),
+        "cnorm": CNormLoss(device, args.temp),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes),
+        "ael": AExpLoss(num_classes=num_classes, a=2.5),
+        "aul": AUELoss(num_classes=num_classes, a=5.5, q=3),
+        "phuber": PHuberCE(tau=30),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "ngcemae": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "ncerce": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=1.8, q=3.0, num_classes=num_classes),
+        "flood": FloodLoss(device=device, t = args.temp, reduction = reduction),
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+    }  
     
+    TinyImagenet_CONFIG = {
+        "ce": nn.CrossEntropyLoss(),
+        "ce_ls": nn.CrossEntropyLoss(label_smoothing= args.temp, reduction = reduction),
+        "ereg": EntropyRegularizedLoss(alpha = args.alpha, reduction = reduction),
+        "focal": FocalLoss(gamma=0.5),
+        "mae": MAELoss(num_classes=num_classes),
+        "gce": GCE(device, alpha = args.alpha, q=0.1,k=num_classes),
+        "sce": SCE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "ldam": LDAMLoss(device=device),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=num_classes),
+        "cnorm": CNormLoss(device, args.temp),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes),
+        "ael": AExpLoss(num_classes=num_classes, a=2.5),
+        "aul": AUELoss(num_classes=num_classes, a=5.5, q=3),
+        "phuber": PHuberCE(tau=30),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "ngcemae": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "ncerce": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=1.8, q=3.0, num_classes=num_classes),
+        "flood": FloodLoss(device=device, t = args.temp, reduction = reduction),
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+    }  
+    
+    WEB_CONFIG = {
+        "ce": nn.CrossEntropyLoss(),
+        "focal": FocalLoss(gamma=0.5),
+        "mae": MAELoss(num_classes=num_classes),
+        "gce": GCE(device, k=num_classes),
+        "sce": SCE(alpha=0.5, beta=1.0, num_classes=num_classes),
+        "ldam": LDAMLoss(device=device),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "cnorm": CNormLoss(device,args.temp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=50),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes),
+        "ael": AExpLoss(num_classes=50, a=2.5),
+        "aul": AUELoss(num_classes=50, a=5.5, q=3),
+        "phuber": PHuberCE(tau=30),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=50),
+        "ngcemae": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=50),
+        "ncerce": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=50),
+        "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=2.5, q=3.0, num_classes=50),
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+    }
+
+    FashionMNIST = {
+        "smape" : SMAPELoss(num_classes=num_classes, scale = args.temp, reduction = reduction),
+        "logitclip_o": LogitClip(device, temp =args.temp, reduction = reduction),
+        "ereg": EntropyRegularizedLoss(alpha = args.temp, reduction = reduction),
+        "ce": nn.CrossEntropyLoss(reduction = reduction),
+        "ce_ls": nn.CrossEntropyLoss(label_smoothing= args.temp, reduction = reduction),
+        "focal": FocalLoss(gamma=args.temp, reduction = reduction),
+        "mae": MAELoss(num_classes=num_classes, reduction = reduction),
+        "gce": GCE(device, k=num_classes, alpha = args.alpha, q=args.temp, reduction = reduction),
+        "sce": SCE(alpha=args.alpha, beta=args.temp, num_classes=num_classes, reduction = reduction),
+        "ldam": LDAMLoss(device=device),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp, reduction = reduction),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "logneg": logNegLoss(device, t=args.temp),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp, reduction = reduction),
+        "cnorm": CNormLoss(device, args.temp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=10),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes, reduction = reduction),
+        "ael": AExpLoss(num_classes=num_classes, a=2.5),
+        "aul": AUELoss(num_classes=num_classes, a=5.5, q=3),
+        "phuber": PHuberCE(tau=10),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "ngcemae": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "ncerce": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
+        "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=6, q=1.5, num_classes=num_classes),
+        "flood": FloodLoss(device=device, t = args.temp, reduction = reduction),
+        "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction),
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+    }
+    if args.dataset.lower() == "cifar10":
+        return CIFAR10_CONFIG[loss_type]
+    elif args.dataset.lower() == "cifar100":
+        return CIFAR100_CONFIG[loss_type]
+    elif args.dataset.lower() == "fashionmnist":
+        return FashionMNIST[loss_type]
+    elif args.dataset.lower() == "webvision":
+        return WEB_CONFIG[loss_type]
+    elif args.dataset.lower() == "imagenet":
+        return Imagenet_CONFIG[loss_type]
+    elif args.dataset.lower() == "tinyimagenet":
+        return TinyImagenet_CONFIG[loss_type]
+    else:
+        raise ValueError("Dataset not implemented yet :P")  
 
 
 class RelaxLoss(nn.Module):
@@ -229,7 +422,6 @@ class RelaxLoss(nn.Module):
                                 + (1 - onehot) * confidence_else.unsqueeze(-1).repeat(1, self.num_classes)
                 loss = (1 - correct) * self.crossentropy_soft(logits, soft_targets) - 1. * loss_ce_full
                 loss = torch.mean(loss)
-
         return loss
 
 
@@ -845,7 +1037,7 @@ class SquaredLoss(nn.Module):
         return F.binary_cross_entropy(x * torch.sigmoid(x), target)
 
 
-def focal_loss(input_values, gamma, reduction="none"):
+def focal_loss(input_values, gamma, reduction="mean"):
     """Computes the focal loss"""
     p = torch.exp(-input_values)
     loss = (1 - p) ** gamma * input_values
@@ -858,6 +1050,7 @@ def focal_loss(input_values, gamma, reduction="none"):
         return loss.sum()
     else:
         raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+    
 class FocalLoss(nn.Module):
     def __init__(self, gamma=0.,reduction='mean'):
         super(FocalLoss, self).__init__()
@@ -890,7 +1083,53 @@ class PHuberCE(nn.Module):
 
         return torch.mean(loss)
 
+def ce_concave_exp_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
+    """Computes the focal loss"""
+    p = torch.exp(-input_values)
+    
+    loss = alpha * input_values - beta *torch.exp(gamma*p)
 
+    if reduction == "none":
+        return loss
+    elif reduction == "mean":
+        return loss.mean()
+    elif reduction == "sum":
+        return loss.sum()
+    else:
+        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+class ConcaveExpLoss(nn.Module):
+    def __init__(self, alpha = 1, beta = 1, gamma=1.0,reduction='mean'):
+        super(ConcaveExpLoss, self).__init__()
+        assert gamma >= 0
+        self.gamma = gamma
+        self.alpha = alpha
+        self.beta = beta
+        self.reduction = reduction
+    def forward(self, input, target):
+        return ce_concave_exp_loss(F.cross_entropy(input, target, reduction="none"), self.alpha, self.beta, self.gamma, reduction = self.reduction)
+
+
+
+def loss_ce_concave(y, labels_one_hot, alpha, beta, p = 1.0, reduction='mean'):
+    pred = F.softmax(y, dim=1)
+    pred = torch.clamp(pred, min=1e-7, max=1.0)
+    label_one_hot = torch.clamp(labels_one_hot, min=1e-4, max=1.0)
+    
+    ce = (-1 * torch.sum(label_one_hot * torch.log(pred), dim=1))
+    rce = (-1 * torch.sum(pred * torch.log(label_one_hot), dim=1))
+
+    if reduction == 'mean':
+        ce = ce.mean()
+        rce = rce.mean()
+    elif reduction == 'sum':
+        ce = ce.sum()
+        rce = rce.sum()
+    elif reduction == 'none':
+        pass
+    else:
+        raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
+
+    return alpha * ce + beta * rce**p
 
 def loss_sce(y, labels_one_hot, alpha, beta, reduction='mean'):
     pred = F.softmax(y, dim=1)
@@ -913,6 +1152,21 @@ def loss_sce(y, labels_one_hot, alpha, beta, reduction='mean'):
 
     return alpha * ce + beta * rce
 
+class ConcaveCE(nn.Module):
+    def __init__(self, alpha=0.5, beta=1.0, p =1, num_classes=10, reduction='mean'):
+        super(SCE, self).__init__()
+        self.alpha = alpha
+        self.beta = beta
+        self.num_classes = num_classes
+        self.reduction = reduction
+        self.p = p
+    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        labels_one_hot = torch.zeros(target.shape[0], self.num_classes).to(input.device).scatter_(1,
+                                                                                            target.unsqueeze(1), 1)
+
+        return loss_ce_concave(input, labels_one_hot, self.alpha, self.beta, p= self.p, reduction=self.reduction)
+    
+    
 class SCE(nn.Module):
     def __init__(self, alpha=0.5, beta=1.0, num_classes=10, reduction='mean'):
         super(SCE, self).__init__()
@@ -920,7 +1174,7 @@ class SCE(nn.Module):
         self.beta = beta
         self.num_classes = num_classes
         self.reduction = reduction
-
+    
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         labels_one_hot = torch.zeros(target.shape[0], self.num_classes).to(input.device).scatter_(1,
                                                                                             target.unsqueeze(1), 1)

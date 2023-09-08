@@ -12,51 +12,64 @@ if __name__ == "__main__":
     # lossfunction =["ce","flood","focal","gce","sce","ereg"]
 
     
-    params_temp = {
+    params = {
     'python': "../train_target_models_noinference.py",
     "dataset": "CIFAR100",
     "num_class": 100,
     'log_path': '../save_adj',
     'training_type': 'NormalLoss',
-    'loss_type': 'sce',
-    'learning_rate': 0.1,
+    'loss_type': 'concave_exp',
+    'learning_rate': 0.01,
     'epochs': 150,
-    "model": "densenet121",
+    "model": "densenet121",  # resnet18 # densenet121 # 
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
     #'scheduler' : 'multi_step2',
     "temp" : 1,
+    'batch_size' : 128,
+    "num_workers" : 10,
+    "loss_adjust" : None
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     # ss = [0.1,1,10,100] # beta nce
-    ss = [0.02,0.05,0.1,0.2,0.4] # sce
+    # ss = [0.02,0.05,0.1,0.2,0.4] # sce
     # ss =  [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8] # gce
-    aa = [0.02, 0.1, 0.5, 1, 3, 6, 10] # sce
+    #aa = [0.02, 0.1, 0.5, 1, 3, 6, 10] # sce
     # aa =  [0.002, 0.02, 0.2, 1] # nce mae
     # aa = [0.01,0.05,0.1,0.5,1] # gce
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    aa = [0.1 , 0.5, 1, 5, 10]  # concave
+    tt = [0.1 , 0.5, 1, 5, 10] # concave
+    #aa = [1]  # concave
+    # tt = [1] # concave
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
-        
-        for temp in ss:
+        for temp in tt:
             for alpha in aa:
-                params_temp["temp"] = temp
-                params_temp["alpha"] = alpha
-                cmd1, cmd2 = generate_cmd_hup(params_temp,5,5)
-                futures.append(executor.submit(run_command, cmd1))
-                futures.append(executor.submit(run_command, cmd2))
+                params["temp"] = temp
+                params["alpha"] = alpha
+                cmd1, cmd2 = generate_cmd_hup(params,1,2)
+                
+                
+                futures.append(executor1.submit(run_command, cmd1))
+                futures.append(executor2.submit(run_command, cmd2))
 
         # 等待所有任务完成
         concurrent.futures.wait(futures)
         
-        for temp in ss:
+        for temp in tt:
             for alpha in aa:
-                params_temp["temp"] = temp
-                params_temp["alpha"] = alpha
-                cmd3 =generate_mia_command(params_temp, mia ="../mia_example_only_target.py",nohup = False,gpu =1)
-                futures.append(executor.submit(run_command, cmd3))
+                params["alpha"] = alpha
+                params["temp"] = temp
+                cmd3 =generate_mia_command(params, gpu = 1,  nohup = False, mia = "../mia_example_only_target.py")
+                cmd4 = generate_mia_command(params, attack_type= "black-box",gpu = 5,  nohup = False, mia = "../mia_example_only_target.py")
+            # print(cmd3)
+                futures.append(executor1.submit(run_command, cmd3))
+                futures.append(executor2.submit(run_command, cmd4))
 
         concurrent.futures.wait(futures)
-
-
-# python run_bash_parameters.py  
+        # tmux kill-session -t 0
+        # tmux new -s <session-name>
+        # conda activate mlh
+        # cd mlh/examples/run_cmd
+        # python run_bash_parameters.py

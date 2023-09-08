@@ -1,11 +1,12 @@
 import os
 import sys
+
 sys.path.append("..")
 sys.path.append("../..")
 from utility.main_parse import add_argument_parameter
 
 from defenses.membership_inference.NormalRelaxLoss import TrainTargetNormalRelaxLoss
-
+from mlh.defenses.membership_inference.Mixup_no_inf import TrainTargetMixup
 
 import torchvision
 import utils
@@ -43,7 +44,7 @@ import torch.optim as optim
 # useful in cases where parallelization may cause issues or when you want to limit the number of
 # threads used for performance reasons.
 torch.set_num_threads(1)
-from utils import add_dropout_to_last_fc_layer, get_target_model, generate_save_path
+from utils import add_new_last_layer, get_dropout_fc_layers, get_target_model, generate_save_path
 
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
@@ -92,7 +93,7 @@ def parse_args():
 
     return args
 
-
+    
 
 
 def evaluate(args, model, dataloader):
@@ -160,7 +161,9 @@ if __name__ == "__main__":
         total_evaluator.train(train_loader, test_loader)
 
     elif opt.training_type == "Dropout":
-        target_model  = add_dropout_to_last_fc_layer(target_model, opt.beta)
+        new_last_layer = get_dropout_fc_layers(target_model, rate = opt.alpha)
+        add_new_last_layer(target_model, new_last_layer)
+        
         total_evaluator = TrainTargetNormalLoss(
             model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, num_classes= opt.num_class, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
@@ -186,6 +189,13 @@ if __name__ == "__main__":
             model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
 
+    elif opt.training_type == "Mixup":
+        total_evaluator = TrainTargetMixup(
+            model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, num_classes= opt.num_class, epochs=opt.epochs, log_path=save_pth)
+        total_evaluator.train(train_loader, test_loader)
+    
+    
+    
     elif opt.training_type == "MixupMMD":
 
         target_train_sorted_loader, target_inference_sorted_loader, shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_target_inference, start_index_shadow_inference, target_inference_sorted, shadow_inference_sorted = s.get_sorted_data_mixup_mmd()

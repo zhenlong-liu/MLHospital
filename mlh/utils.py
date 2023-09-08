@@ -252,10 +252,11 @@ def plot_celoss_distribution_together(target_train_loader, target_test_loader, t
     
 
 
-def get_target_model(name="resnet18", num_classes=10):
+def get_target_model(name="resnet18", num_classes=10, dropout =None):
     if name == "resnet18":
         model = torchvision.models.resnet18()
-        model.fc = nn.Sequential(nn.Linear(512, num_classes))
+        num_ftrs = model.fc.in_features
+        model.fc = nn.Sequential(nn.Linear(num_ftrs, num_classes))
     elif name == "resnet20":
         model = resnet20(num_classes =num_classes)
     elif name == "resnet34":
@@ -284,40 +285,30 @@ def get_target_model(name="resnet18", num_classes=10):
 
 import torch.nn as nn
 
-def add_dropout_to_last_fc_layer(model, dropout_prob=0.5):
-    """
-    在模型的最后一个全连接层上添加Dropout。
+def get_dropout_fc_layers(model, rate = 0.5):
+    last_layer =list(model.children())[-1]
+    if isinstance(last_layer, nn.Sequential):
+        last_layer = last_layer[-1]
+    dropout_layer = nn.Dropout(p=rate)
+    new_last_layer = nn.Sequential(dropout_layer,last_layer) 
+    return new_last_layer
 
-    Args:
-        model (nn.Module): 要添加Dropout的神经网络模型。
-        dropout_prob (float): Dropout的概率。
 
-    Returns:
-        nn.Module: 添加了Dropout的模型。
-    """
-    # 查找模型中的最后一个全连接层
-    last_fc_layer = None
-    for layer in reversed(model.children()):
-        if isinstance(layer, nn.Linear):
-            last_fc_layer = layer
-            break
-
-    # 如果找到最后一个全连接层，则在其之前添加Dropout
-    if last_fc_layer:
-        new_layers = [
-            nn.Dropout(p=dropout_prob),
-            last_fc_layer
-        ]
-        last_fc_layer_index = list(model.children()).index(last_fc_layer)
-        updated_model = nn.Sequential(
-            *list(model.children())[:last_fc_layer_index],
-            *new_layers,
-            *list(model.children())[last_fc_layer_index + 1:]
-        )
-        return updated_model
+def add_new_last_layer(model, new_last_layer):
+    if hasattr(model, 'fc'):
+        if isinstance(model.fc, nn.Sequential):
+            model.fc[-1] =new_last_layer
+        
+        else: model.fc = new_last_layer
+    elif hasattr(model, 'classifier'):
+        if isinstance(model.classifier, nn.Sequential):
+            model.classifier[-1] =new_last_layer
+        else: model.classifier = new_last_layer
     else:
-        print("No fully connected layer found in the model.")
-        return model
+        raise AttributeError("模型没有 'fc' 或 'classifier' 属性")
+
+
+
 
 
 

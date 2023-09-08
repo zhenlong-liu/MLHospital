@@ -1,6 +1,7 @@
 import re
 import os
 import pandas as pd
+import yaml
 # extract train mean train variance
 def extract_metrics(log_file):
     with open(log_file, 'r') as file:
@@ -91,7 +92,7 @@ def extract_mia_metrics(log_file):
 
     return test_data
 
-def process_files(root_dir, output_excel):
+def process_files(root_dir, output_excel, var= None):
     # sourcery skip: dict-assign-update-to-union
     output_folder = os.path.dirname(output_excel)
     if not os.path.exists(output_folder):
@@ -133,8 +134,16 @@ def process_files(root_dir, output_excel):
     if data:
         df = pd.DataFrame(data)
         df = df.round(3)
+        if var != None:
+            df = df[var]
         df.to_excel(output_excel, index=False, float_format='%.3f') 
-        
+
+
+def load_yaml_to_dict(yaml_path):
+    with open(yaml_path, 'r') as yaml_file:
+        yaml_data = yaml.safe_load(yaml_file)
+    return yaml_data
+
 def df_files(root_dir):
     # sourcery skip: dict-assign-update-to-union
     data = []
@@ -143,6 +152,7 @@ def df_files(root_dir):
             for file in files:
                 if file == 'logging.log':
                     log_file_path = os.path.join(subdir, file)
+                    args_path = os.path.join(subdir, 'config.yaml')
                     # print(log_file_path)
                     epoch, train_acc, test_acc = extract_last_line_logging_info(log_file_path)
                     if epoch is not None:

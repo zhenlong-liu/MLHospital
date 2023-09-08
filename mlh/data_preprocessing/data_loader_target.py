@@ -266,11 +266,12 @@ class GetDataLoaderTarget(object):
 
         target_train, target_inference, target_test, shadow_train, shadow_inference, shadow_test = prepare_dataset(
             dataset, select_num=None)
-
+            # sort by label
         target_train_sorted = self.get_ordered_dataset(target_train)
-        target_inference_sorted = self.get_ordered_dataset(target_inference)
+        target_inference_sorted = self.get_ordered_dataset(target_inference) # dataset
         shadow_train_sorted = self.get_ordered_dataset(shadow_train)
         shadow_inference_sorted = self.get_ordered_dataset(shadow_inference)
+
 
         start_index_target_inference = self.get_label_index(
             target_inference_sorted)
@@ -288,7 +289,7 @@ class GetDataLoaderTarget(object):
             shadow_inference_sorted, batch_size=self.args.batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True)
 
         return target_train_sorted_loader, target_inference_sorted_loader, shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_target_inference, start_index_shadow_inference, target_inference_sorted, shadow_inference_sorted
-
+# target_train_sorted_loader  target_inference_sorted_loader start_index_target_inference target_inference_sorted
 
 
 

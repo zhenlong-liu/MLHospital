@@ -17,7 +17,7 @@ from data_preprocessing.data_loader import GetDataLoader
 from data_preprocessing.data_loader_target import GetDataLoaderTarget
 from torchvision import datasets
 
-from utils import get_target_model, plot_celoss_distribution_together, plot_entropy_distribution_together, generate_save_path_1, generate_save_path_2, generate_save_path
+from utils import add_new_last_layer, get_dropout_fc_layers, get_target_model, plot_celoss_distribution_together, plot_entropy_distribution_together, generate_save_path_1, generate_save_path_2, generate_save_path
 import torchvision.transforms as transforms
 import argparse
 import numpy as np
@@ -114,6 +114,12 @@ if __name__ == "__main__":
     target_model = get_target_model(name= args.model, num_classes=args.num_class)
     shadow_model = get_target_model(name= args.model, num_classes=args.num_class)
 
+    if args.training_type == "Dropout":
+        new_last_layer = get_dropout_fc_layers(target_model, rate = args.alpha)
+        add_new_last_layer(target_model, new_last_layer)
+        add_new_last_layer(shadow_model, new_last_layer)
+    
+    
     temp_save = str(args.temp).rstrip('0').rstrip('.') if '.' in str(args.temp) else str(args.temp)
 
     # load target/shadow model to conduct the attacks
@@ -174,4 +180,5 @@ if __name__ == "__main__":
                 attack_train_dataset=attack_dataset.attack_train_dataset,
                 attack_test_dataset=attack_dataset.attack_test_dataset,
                 train_loader = target_train_loader,
+                save_path = save_path,
                 batch_size=128)

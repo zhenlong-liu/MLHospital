@@ -11,7 +11,7 @@ from runx.logx import logx
 import torch.nn.functional as F
 from defenses.membership_inference.trainer import Trainer
 import torch.nn as nn
-from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from defenses.membership_inference.loss_function import get_loss
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 from tqdm import tqdm
@@ -36,11 +36,30 @@ from utils import get_optimizer, get_scheduler, get_init_args, dict_str
 #             true_dist.fill_(self.smoothing / (self.cls - 1))
 #             true_dist.scatter_(1, target.data.unsqueeze(1), self.confidence)
 #         return torch.mean(torch.sum(-true_dist * pred, dim=self.dim))
+def mixup_data(x, y, device="cuda:0", alpha=1.0, use_cuda=True):
+    '''Compute the mixup data. Return mixed inputs, pairs of targets, and lambda'''
+    if alpha > 0.:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1.
+    batch_size = x.size()[0]
+    if use_cuda:
+        index = torch.randperm(batch_size).cuda().to(device)
+        
+    else:
+        index = torch.randperm(batch_size)
+    
+    mixed_x = lam * x + (1 - lam) * x[index, :]  
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
 
 
-class TrainTargetNormalLoss(Trainer):
+def mixup_criterion(y_a, y_b, lam):
+    return lambda criterion, pred: lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
+class TrainTargetMixup(Trainer):
     def __init__(self, model, args, train_loader, loss_type ="ce", device="cuda:0", num_classes=10, epochs=100, learning_rate=0.01, 
-                momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
+                momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./", mixup =1):
 
         super().__init__()
         
@@ -54,15 +73,15 @@ class TrainTargetNormalLoss(Trainer):
         self.model = self.model.to(self.device)
         self.train_loader = train_loader
         self.learning_rate = args.learning_rate
-       
+        self.mixup = mixup
+        self.mixup_alpha = args.alpha
         self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, weight_decay)
         #self.optimizer = torch.optim.SGD( self.model.parameters(), self.learning_rate, momentum, weight_decay)
         
         self.scheduler = get_scheduler(scheduler_name = args.scheduler, optimizer =self.optimizer, t_max=self.epochs)
         #self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
-        if args.loss_adjust:
-            self.criterion = get_loss_adj(loss_type =self.loss_type, device=self.device, args = self.args, num_classes= self.num_classes)
-        else: self.criterion = get_loss(loss_type =self.loss_type, device=self.device, args = self.args, num_classes= self.num_classes)
+
+        self.criterion = get_loss(loss_type =self.loss_type, device=self.device, args = self.args, num_classes= self.num_classes)
         
         # self.log_path = "%smodel_%s_bs_%s_dataset_%s/%s/label_smoothing_%.1f" % (self.opt.model_save_path, self.opt.model,
         # #                                                                              self.opt.batch_size, self.opt.dataset, self.opt.mode, self.opt.smooth_eps)
@@ -126,21 +145,30 @@ class TrainTargetNormalLoss(Trainer):
             batch_n = 0
             self.model.train()
             loss_num =0
-            
-            for img, label in tqdm(train_loader):
+            for img, label in tqdm(train_loader, desc="train mixup"):
                 self.model.zero_grad()
-                batch_n += 1
-
                 img, label = img.to(self.device), label.to(self.device)
-                # print("img", img.shape)
-                logits = self.model(img)
-                # 其形状是torch.Size([128, 10])
-                
-                loss = self.criterion(logits, label)
-                
-                loss.backward()
-                loss_num = loss.item()
-                self.optimizer.step()
+                batch_n += 1
+                if (self.mixup):
+                    
+                        inputs, targets_a, targets_b, lam = mixup_data(
+                            img, label, self.device, self.mixup_alpha)
+                        #inputs, targets_a, targets_b = inputs.to(self.device), targets_a.to(
+                         #   self.device), targets_b.to(self.device)
+                        outputs = self.model(inputs)
+                        loss_func = mixup_criterion(targets_a, targets_b, lam)
+                        loss = loss_func(self.criterion, outputs)
+                        loss.backward()
+                        loss_num = loss.item()
+                        self.optimizer.step()
+                    
+                else:        
+                    img, label = img.to(self.device), label.to(self.device)
+                    # print("img", img.shape)
+                    logits = self.model(img)
+                    loss = self.criterion(logits, label)
+                    loss.backward()
+                    self.optimizer.step()
 
             """
             if self.args.dataset.lower() == 'imagenet' and e<self.epochs:

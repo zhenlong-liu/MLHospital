@@ -51,7 +51,7 @@ class TrainTargetDP(Trainer):
         
         
         self.noise_scale = args.alpha
-        self.grad_norm = grad_norm
+        self.grad_norm = args.temp
         self.delta = delta
         self.model = ModuleValidator.fix(self.model)
         self.model = self.model.to(self.device)
@@ -143,7 +143,7 @@ class TrainTargetDP(Trainer):
             optimizer=self.optimizer,
             data_loader=train_loader,
             noise_multiplier=self.noise_scale,
-            max_grad_norm=1.0,
+            max_grad_norm=self.grad_norm,
         )
         
         """
@@ -152,7 +152,7 @@ class TrainTargetDP(Trainer):
             module=self.model,
             optimizer=self.optimizer,
             data_loader=train_loader,
-            epochs=self.epochs,
+            epochs=self.epochs, 
             target_epsilon=self.noise_scale,
             target_delta=self.delta,
             max_grad_norm=self.grad_norm,
@@ -210,4 +210,4 @@ class TrainTargetDP(Trainer):
             if e == self.epochs:
                 log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
                             "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}
-                save_dict_to_yaml(log_dict, f'{self.log_path}/train_log.yaml)')
+                save_dict_to_yaml(log_dict, f'{self.log_path}/train_log.yaml')
