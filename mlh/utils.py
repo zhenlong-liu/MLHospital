@@ -60,8 +60,9 @@ def generate_save_path_2(opt):
     #temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
     temp_save= standard_float(opt.temp)
     alpha_save = standard_float(opt.alpha)
+    gamma_save = standard_float(opt.tau)
     #alpha_save = str(opt.alpha).rstrip('0').rstrip('.') if '.' in str(opt.alpha) else str(opt.alpha)
-    save_path2 =  f"{opt.loss_type}/epochs{opt.epochs}/seed{opt.seed}/{temp_save}/{alpha_save}"
+    save_path2 =  f"{opt.loss_type}/epochs{opt.epochs}/seed{opt.seed}/{temp_save}/{alpha_save}/{gamma_save}"
     return save_path2
         
 def standard_float(hyper_parameter):

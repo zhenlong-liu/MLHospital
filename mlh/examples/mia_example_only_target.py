@@ -108,7 +108,6 @@ if __name__ == "__main__":
     torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
     torch.cuda.manual_seed_all(seed)    
     
-    
     target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
 
     target_model = get_target_model(name= args.model, num_classes=args.num_class)
@@ -170,8 +169,10 @@ if __name__ == "__main__":
                 attack_type=attack_type,
                 attack_train_dataset=attack_dataset.attack_train_dataset,
                 attack_test_dataset=attack_dataset.attack_test_dataset,
+                save_path = save_path,
                 batch_size=128)
         elif "metric-based" in attack_type:
+
             attack_model = MetricBasedMIA(
                 args = args,
                 num_class=args.num_class,

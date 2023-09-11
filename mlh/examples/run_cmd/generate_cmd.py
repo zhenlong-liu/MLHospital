@@ -41,6 +41,29 @@ def generate_train_command_2(params, mode, gpu):
     return args_command.strip()
 
 def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type ='metric-based', nohup = True, gpu =0):
+    if nohup:
+        args_command = "nohup"
+    else: args_command = ""
+    for key, value in params.items():
+        if key == "python":
+            args_command += f"{key} {mia} "
+        
+        elif value == None:
+            args_command += f"--{key} "
+        else: args_command +=f"--{key} {value} "
+        
+    args_command += f"--attack_type {attack_type} "
+    args_command += f"--gpu {gpu} "
+    
+    save_pth = generate_save_path(params, 'target')
+    args_command += f"> {save_pth}/mia_{attack_type}.log"
+    return args_command.strip()
+
+
+
+
+"""
+def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type ='metric-based', nohup = True, gpu =0):
     # 初始化一个空字符串，用于存储生成的args命令
     log_path = params.get('log_path', './save')
     
@@ -57,6 +80,7 @@ def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type 
     data_path = params.get('data_path','../datasets/')
     batch_size = params.get('batch_size',128)
     num_workers = params.get('num_workers',2)
+    
     # 遍历字典中的每个键值对
     # save_pth = f'{log_path}/{dataset}/{model}/{training_type}/target/{loss_type}/epochs{epochs}/seed{seed}/{temp_save}'
     save_pth = generate_save_path(params, 'target')
@@ -74,7 +98,7 @@ def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type 
 
     # 返回生成的args命令，去除末尾的多余空格
     return args_command.strip()
-
+"""
 
 
 def generate_cmd(params, gpu0 =0, gpu1 =1):

@@ -139,6 +139,51 @@ def process_files(root_dir, output_excel, var= None):
         df.to_excel(output_excel, index=False, float_format='%.3f') 
 
 
+
+
+def process_files_yaml(root_dir, output_excel, var= None):
+    # sourcery skip: dict-assign-update-to-union
+    output_folder = os.path.dirname(output_excel)
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    data = []
+    for subdir, dirs, files in os.walk(root_dir):
+        if 'logging.log' in files:
+            for file in files:
+                if file == 'config.yaml':
+                    log_file_path = os.path.join(subdir, file)
+                    with open(log_file_path, 'r') as f:
+                        data_config = yaml.safe_load(f)
+                    log_file_path_train_log = os.path.join(subdir, "train_log.yaml")
+                    with open(log_file_path_train_log, 'r') as f:
+                        data_train_log = yaml.safe_load(f)
+                    # print(log_file_path)
+                    
+                    data_config.update(data_train_log)
+                    
+                    
+                    
+                    mia_metrics_file = os.path.join(subdir, 'mia_metric-based.log')
+                    if os.path.exists(mia_metrics_file):
+                        mia_metrics = extract_mia_metrics(mia_metrics_file)
+                        distribution =  extract_metrics(mia_metrics_file)
+                        data_config.update(mia_metrics)
+                        data_config.update(distribution)
+                    
+                        #`row_data.update(mia_metrics)` is a method that updates the `row_data` dictionary with the key-value pairs from the `mia_metrics` dictionary.
+                        
+                    data.append(data_config)
+                
+    
+    if data:
+        df = pd.DataFrame(data)
+        df = df.round(3)
+        # return(df)
+        if var != None:
+            df = df[var]
+        df.to_excel(output_excel, index=False, float_format='%.3f') 
+
+
 def load_yaml_to_dict(yaml_path):
     with open(yaml_path, 'r') as yaml_file:
         yaml_data = yaml.safe_load(yaml_file)

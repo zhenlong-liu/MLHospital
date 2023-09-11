@@ -329,7 +329,17 @@ class MetricBasedMIA(MembershipInferenceAttack):
             self.metric_based_attacks()
         else:
             raise ValueError("Not implemented yet")
-
+        
+    def tuple_to_dict(self, name_list, dict):
+        new_dict = {}
+        ss = len(name_list)
+        for key, value_tuple in dict.items():
+            for i in range(ss):
+                new_key = key+name_list[i]  
+                new_dict[new_key] = float(value_tuple[i])
+            
+        return new_dict
+    
     def metric_based_attacks(self):
         """
         a little bit redundant since we make the data into torch dataset,
@@ -362,6 +372,9 @@ class MetricBasedMIA(MembershipInferenceAttack):
         self.print_result("cross entropy loss train", train_tuple4)
         self.print_result("cross entropy loss test", test_tuple4)
 
+       
+        
+        
         mia_dict = {"correct train": train_tuple0, 
                     "correct test" : test_tuple0,
                     "confidence train" : train_tuple1, 
@@ -373,13 +386,23 @@ class MetricBasedMIA(MembershipInferenceAttack):
                     "cross entropy loss train": train_tuple4,
                     "cross entropy loss test": test_tuple4,
                     }
-        save_namespace_to_yaml(mia_dict, f"{self.save_path}/mia_metric_based.yaml")
+        name_list = [" acc", " precision" , " recall", " f1", " auc"]
+        aa = self.tuple_to_dict(name_list, mia_dict)
+        #print(aa)
+        #print(aa["confidence test acc"])
+        
+        #print(type(aa["confidence test acc"]))
+        #exit()
+        save_dict_to_yaml(self.tuple_to_dict(name_list, mia_dict), f"{self.save_path}/mia_metric_based.yaml")
         
         #mia_dict
 
     def print_result(self, name, given_tuple):
         print("%s" % name, "acc:%.3f, precision:%.3f, recall:%.3f, f1:%.3f, auc:%.3f" % given_tuple)
 
+    
+    
+    
     def parse_data_metric_based_attacks(self):
         # shadow model
         # For train set of shadow medel, we query shadow model, then obtain the outputs, that is **s_tr_outputs**
@@ -722,7 +745,11 @@ class BlackBoxMIA(MembershipInferenceAttack):
                            "black-box recall" : train_recall, "black-box train_f1" : train_f1, "black-box train_auc" :train_auc , 
                            "black-box test_acc" : test_acc , "black-box test_precision" : test_precision,  
                            "black-box test_recall" : test_recall, "black-box test_f1" :test_f1 ,"black-box test_auc" :test_auc}
-                save_dict_to_yaml(mia_bb_dict, f'{self.save_path}/mia_black_box.yaml')
+                new_dict = {}
+                for key, value_tuple in mia_bb_dict.items():
+                    new_dict[key] = float(value_tuple)
+                
+                save_dict_to_yaml(new_dict, f'{self.save_path}/mia_black_box.yaml')
             
         return train_tuple, test_tuple, test_results
 

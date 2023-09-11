@@ -43,7 +43,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "nceagce": NCEandAGCE(alpha=1, beta=4, a=6, q=1.5, num_classes=10),
         "flood": FloodLoss(device=device, t = 0.1, reduction = reduction),
         "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction),
-        "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 )
+        "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 ) ,
+        "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1)
     }
     CIFAR100_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -71,7 +72,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "ncerce": NGCEandMAE(alpha=50, beta=1.0, num_classes=100),
         "nceagce": NCEandAGCE(alpha=50*args.alpha, beta=0.1*args.temp, a=1.8, q=3.0, num_classes=100),
         "flood": FloodLoss(device=device, t = 0.1*args.temp, reduction = reduction),
-        "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 )
+        "concave_exp": ConcaveExpLoss(alpha= 0.1, beta =0.1 ),
+        "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
     }
     Imagenet_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -99,6 +101,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "ncerce": NGCEandMAE(alpha=50, beta=1.0, num_classes=100),
         "nceagce": NCEandAGCE(alpha=50*args.alpha, beta=0.1*args.temp, a=1.8, q=3.0, num_classes=100),
         "flood": FloodLoss(device=device, t = 0.1*args.temp, reduction = reduction),
+        "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
     }
     
     TinyImagenet_CONFIG = {
@@ -127,6 +130,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "ncerce": NGCEandMAE(alpha=50, beta=1.0, num_classes=100),
         "nceagce": NCEandAGCE(alpha=50*args.alpha, beta=0.1*args.temp, a=1.8, q=3.0, num_classes=100),
         "flood": FloodLoss(device=device, t = 0.1*args.temp, reduction = reduction),
+        "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
     }
     
     WEB_CONFIG = {
@@ -152,6 +156,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "ngcemae": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
         "ncerce": NGCEandMAE(alpha=50, beta=0.1, num_classes=50),
         "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=2.5, q=3.0, num_classes=50),
+        "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
     }
     
     FashionMNIST = {
@@ -184,7 +189,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "nceagce": NCEandAGCE(alpha=1, beta=4, a=6, q=1.5, num_classes=10),
         "flood": FloodLoss(device=device, t = 0.1, reduction = reduction),
         "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction),
-        "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 )
+        "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 ),
+        "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
     }
     if args.dataset.lower() == "cifar10":
         return CIFAR10_CONFIG[loss_type]
@@ -233,7 +239,8 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=6, q=1.5, num_classes=10),
         "flood": FloodLoss(device=device, t = args.temp, reduction = reduction),
         "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction),
-        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
+        "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
     }
     CIFAR100_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -261,7 +268,8 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "ncerce": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=100),
         "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=1.8, q=3.0, num_classes=100),
         "flood": FloodLoss(device=device, t = args.temp, reduction = reduction),
-        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
+        "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau), 
     }
     Imagenet_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -289,7 +297,8 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "ncerce": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
         "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=1.8, q=3.0, num_classes=num_classes),
         "flood": FloodLoss(device=device, t = args.temp, reduction = reduction),
-        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
+        "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
     }  
     
     TinyImagenet_CONFIG = {
@@ -318,7 +327,8 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "ncerce": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
         "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=1.8, q=3.0, num_classes=num_classes),
         "flood": FloodLoss(device=device, t = args.temp, reduction = reduction),
-        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
+        "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
     }  
     
     WEB_CONFIG = {
@@ -344,7 +354,8 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "ngcemae": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=50),
         "ncerce": NGCEandMAE(alpha=args.alpha, beta=args.temp, num_classes=50),
         "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=2.5, q=3.0, num_classes=50),
-        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
+        "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
     }
 
     FashionMNIST = {
@@ -377,7 +388,8 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "nceagce": NCEandAGCE(alpha=args.alpha, beta=args.temp, a=6, q=1.5, num_classes=num_classes),
         "flood": FloodLoss(device=device, t = args.temp, reduction = reduction),
         "logit_cliping": LogitClipingLoss(device=device, tau= args.temp, p=args.lp, reduction = reduction),
-        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau)
+        "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
+        "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.tau),
     }
     if args.dataset.lower() == "cifar10":
         return CIFAR10_CONFIG[loss_type]
@@ -1083,6 +1095,23 @@ class PHuberCE(nn.Module):
 
         return torch.mean(loss)
 
+def ce_concave_log_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
+    """Computes the focal loss"""
+    p = torch.exp(-input_values)
+    #gamma = torch.clamp(gamma , min=1e-7)
+    loss = alpha * input_values - beta *torch.log(1-p+gamma)
+
+    if reduction == "none":
+        return loss
+    elif reduction == "mean":
+        return loss.mean()
+    elif reduction == "sum":
+        return loss.sum()
+    else:
+        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+
+
+
 def ce_concave_exp_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
     """Computes the focal loss"""
     p = torch.exp(-input_values)
@@ -1100,13 +1129,25 @@ def ce_concave_exp_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
 class ConcaveExpLoss(nn.Module):
     def __init__(self, alpha = 1, beta = 1, gamma=1.0,reduction='mean'):
         super(ConcaveExpLoss, self).__init__()
-        assert gamma >= 0
+        assert gamma >= 1e-7
         self.gamma = gamma
         self.alpha = alpha
         self.beta = beta
         self.reduction = reduction
     def forward(self, input, target):
         return ce_concave_exp_loss(F.cross_entropy(input, target, reduction="none"), self.alpha, self.beta, self.gamma, reduction = self.reduction)
+
+class ConcaveLogLoss(nn.Module):
+    def __init__(self, alpha = 1, beta = 1, gamma=1.0,reduction='mean'):
+        super(ConcaveLogLoss, self).__init__()
+        assert gamma >= 0
+        self.gamma = gamma
+        self.alpha = alpha
+        self.beta = beta
+        self.reduction = reduction
+    def forward(self, input, target):
+        return ce_concave_log_loss(F.cross_entropy(input, target, reduction="none"), self.alpha, self.beta, self.gamma, reduction = self.reduction)
+
 
 
 
