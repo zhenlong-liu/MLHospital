@@ -18,7 +18,7 @@ if __name__ == "__main__":
     "num_class": 100,
     'log_path': '../save_p3', # '../save_p2'
     'training_type': 'NormalLoss',
-    'loss_type': 'concave_log', # concave_log  concave_exp
+    'loss_type': 'concave_exp', # concave_log  concave_exp
     'learning_rate': 0.1,
     'epochs': 150, # 100
     "model": "densenet121",  # resnet18 # densenet121 # 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
                     params["alpha"] = alpha
                     params["temp"] = temp
                     params["tau"] = gamma
-                    cmd1, cmd2 = generate_cmd_hup(params,1,2)
+                    cmd1, cmd2 = generate_cmd_hup(params,0,4)
                     
                     
                     futures.append(executor1.submit(run_command, cmd1))
@@ -87,8 +87,8 @@ if __name__ == "__main__":
                     params["alpha"] = alpha
                     params["temp"] = temp
                     params["tau"] = gamma
-                    cmd3 =generate_mia_command(params, gpu = 2,  nohup = False, mia = "../mia_example_only_target.py")
-                    cmd4 = generate_mia_command(params, attack_type= "black-box",gpu = 1,  nohup = False, mia = "../mia_example_only_target.py")
+                    cmd3 =generate_mia_command(params, gpu = 0,  nohup = False, mia = "../mia_example_only_target.py")
+                    cmd4 = generate_mia_command(params, attack_type= "black-box",gpu = 4,  nohup = False, mia = "../mia_example_only_target.py")
                     
                     futures.append(executor1.submit(run_command, cmd3))
                     futures.append(executor2.submit(run_command, cmd4))
@@ -98,4 +98,4 @@ if __name__ == "__main__":
         # tmux new -s <session-name>
         # conda activate mlh
         # cd mlh/examples/run_cmd
-        # python run_bash_parameters.py
+        # python run_bash_parameters0911.py
