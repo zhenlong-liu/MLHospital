@@ -23,7 +23,7 @@ if __name__ == "__main__":
     'epochs': 150, # 100
     "model": "densenet121",  # resnet18 # densenet121 # 
     'optimizer' : "sgd",
-    'seed' : 0,
+    'seed' : 1,
     "alpha" : 1,
     "tau" : 1,
     #'scheduler' : 'multi_step2',
@@ -49,16 +49,18 @@ if __name__ == "__main__":
     #tt = [6, 8 , 9, 20 , 50] # concave
     #aa = [0.01, 0.02, 0.05, 0.1, 0.5] #concave_exp 
     #tt = [0.01, 0.02, 0.05, 0.1, 0.5] #concave_exp
-    aa = [0.05, 0.1] #concave_exp 
-    tt = [0.005, 0.01,0.02 ,0.05]
+    #aa = [0.05, 0.1] #concave_exp 
+    #tt = [0.005, 0.01,0.02 ,0.05]
     #aa = [0.01, 0.05, 0.1, 1] #concave_log
     
-    # tt = [0.01, 0.05, 0.1, 1, 10] #concave_log
+    aa = [0.05]  # concave
+    tt = [0.01, 0.02, 0.05] # concave
+    gg = [0.1, 0.2, 0.5, 0.6, 0.8, 1,3,10] # concave
     
     
     # aa = [0.1]  # concave
     # tt = [0.1] # concave
-    gg = [0.5,1,3] # concave
+    # gg = [0.5,1,3] # concave
     
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
@@ -69,7 +71,7 @@ if __name__ == "__main__":
                     params["alpha"] = alpha
                     params["temp"] = temp
                     params["tau"] = gamma
-                    cmd1, cmd2 = generate_cmd_hup(params,1,2)
+                    cmd1, cmd2 = generate_cmd_hup(params,2,3)
                     
                     
                     futures.append(executor1.submit(run_command, cmd1))
@@ -88,7 +90,7 @@ if __name__ == "__main__":
                     params["temp"] = temp
                     params["tau"] = gamma
                     cmd3 =generate_mia_command(params, gpu = 2,  nohup = False, mia = "../mia_example_only_target.py")
-                    cmd4 = generate_mia_command(params, attack_type= "black-box",gpu = 1,  nohup = False, mia = "../mia_example_only_target.py")
+                    cmd4 = generate_mia_command(params, attack_type= "black-box",gpu = 3,  nohup = False, mia = "../mia_example_only_target.py")
                     
                     futures.append(executor1.submit(run_command, cmd3))
                     futures.append(executor2.submit(run_command, cmd4))
@@ -98,4 +100,4 @@ if __name__ == "__main__":
         # tmux new -s <session-name>
         # conda activate mlh
         # cd mlh/examples/run_cmd
-        # python run_bash_parameters.py
+        # python run_bash_parameters0911.py

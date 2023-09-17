@@ -106,7 +106,7 @@ if __name__ == "__main__":
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
-    torch.cuda.manual_seed_all(seed)    
+    torch.cuda.manual_seed_all(seed)
     
     target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
 
