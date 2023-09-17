@@ -14,14 +14,14 @@ if __name__ == "__main__":
     
     params = {
     'python': "../train_target_models_noinference.py",
-    "dataset": "CIFAR100",
-    "num_class": 100,
-    'log_path': '../save_p3', # '../save_p2'
+    "dataset": "CIFAR10",
+    "num_class": 10,
+    'log_path': '../save_t2', # '../save_p2'
     'training_type': 'NormalLoss',
     'loss_type': 'concave_log', # concave_log  concave_exp
-    'learning_rate': 0.1,
+    'learning_rate': 0.01,
     'epochs': 150, # 100
-    "model": "densenet121",  # resnet18 # densenet121 # 
+    "model": "resnet18",  # resnet18 # densenet121 # 
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
@@ -55,16 +55,19 @@ if __name__ == "__main__":
     #gg = [0.5,1,3] # concave
     
     #aa = [0.01, 0.05, 0.1, 1] #concave_log
-    # tt = [0.01, 0.05, 0.1, 1, 10] #concave_log
+    tt = [0.01, 0.05, 0.1, 1, 5,10] #concave_log
+    
+    #aa = [0.5, 0.8,1, 3, 5] #concave_exp 
+    #aa = [0.01 , 0.5, 0.8,1, 3, 5] #
+    #tt = [1] #concave_exp
+    # gg = [0.5,1,1.5,2,5] # concave_exp
+    aa = [1]  # concave
+    #tt = [0.1] # concave
+    gg = [0.2,0.4,0.8,1,1.6,3,6,10]
+    #gg =[1]
     
     
-    aa = [0.05]  # concave
-    tt = [0.1] # concave
-    gg = [0.5]
-    
-    
-    
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor2:
         futures = []
         for temp in tt:
             for alpha in aa:
@@ -72,7 +75,7 @@ if __name__ == "__main__":
                     params["alpha"] = alpha
                     params["temp"] = temp
                     params["tau"] = gamma
-                    cmd1, cmd2 = generate_cmd_hup(params,0,1)
+                    cmd1, cmd2 = generate_cmd_hup(params, 0, 1)
                     
                     
                     futures.append(executor1.submit(run_command, cmd1))
@@ -98,7 +101,7 @@ if __name__ == "__main__":
 
         concurrent.futures.wait(futures)
         # tmux kill-session -t 0
-        # tmux new -s <session-name>
+        # tmux new -s 2
         # conda activate ml-hospital
         # cd mlh/examples/run_cmd
         # python run_bash_parameters0911_copy.py
