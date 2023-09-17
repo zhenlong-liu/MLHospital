@@ -52,7 +52,7 @@ def generate_save_path_1(opt):
     if isinstance(opt, dict):
         opt = argparse.Namespace(**opt)
     save_path1 = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}'
-    return save_path1    
+    return save_path1
 
 def generate_save_path_2(opt):
     if isinstance(opt, dict):
@@ -60,9 +60,10 @@ def generate_save_path_2(opt):
     #temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
     temp_save= standard_float(opt.temp)
     alpha_save = standard_float(opt.alpha)
-    gamma_save = standard_float(opt.tau)
+    gamma_save = standard_float(opt.gamma)
+    tau_save = standard_float(opt.tau)
     #alpha_save = str(opt.alpha).rstrip('0').rstrip('.') if '.' in str(opt.alpha) else str(opt.alpha)
-    save_path2 =  f"{opt.loss_type}/epochs{opt.epochs}/seed{opt.seed}/{temp_save}/{alpha_save}/{gamma_save}"
+    save_path2 =  f"{opt.loss_type}/epochs{opt.epochs}/seed{opt.seed}/{temp_save}/{alpha_save}/{gamma_save}/{tau_save}"
     return save_path2
         
 def standard_float(hyper_parameter):
@@ -137,6 +138,9 @@ def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t
     elif scheduler_name.lower() == "multi_step_imagenet":
         decay_epochs = [30, 60]
         scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
+    elif scheduler_name.lower() == "multi_step_wide_resnet":
+        decay_epochs = [60,120,160]
+        scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.2)
     else:
         raise ValueError("Unsupported scheduler name.")
 
@@ -277,7 +281,7 @@ def get_target_model(name="resnet18", num_classes=10, dropout =None):
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
     elif name == "densenet121":
-        model = torch.hub.load('pytorch/vision:v0.10.0', 'densenet121',weights=None)
+        model = torch.hub.load('pytorch/vision:v0.10.0', 'densenet121')
         num_ftrs = model.classifier.in_features
         model.classifier = nn.Linear(num_ftrs, num_classes)
     else:
