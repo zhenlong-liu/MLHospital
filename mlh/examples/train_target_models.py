@@ -12,13 +12,9 @@ from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothi
 from defenses.membership_inference.MixupMMD import TrainTargetMixupMMD
 from defenses.membership_inference.PATE import TrainTargetPATE
 from defenses.membership_inference.Normal import TrainTargetNormal
-
 from defenses.membership_inference.logit_norm import TrainTargetLogitsNorm
-
 from defenses.membership_inference.logit_norm import LogitNormLoss
-
 from defenses.membership_inference.LogitClip import TrainTargetLogitClip
-
 from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
 from tqdm import tqdm
 import torch

@@ -34,7 +34,7 @@ if __name__ == "__main__":
     "loss_adjust" : None,
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
-    # lossfunction =["ce","flood","fo cal","gce","sce","ereg","mae","nceagce","ncemae","ncerce","ngcemae"]
+    # lossfunction =["ce","flood","fo cal","gce","sce","ereg","mae","nceagce","ncemae","ncerce","ngcemae","taylor"]
     # ss = [0.1,1,10,100] # beta nce
     # ss = [0.02,0.05,0.1,0.2,0.4] # sce
     # ss =  [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8] # gce
