@@ -113,13 +113,13 @@ def evaluate(args, model, dataloader):
 
 if __name__ == "__main__":
     opt = parse_args()
-    s = GetDataLoaderTarget(opt)
     seed = opt.seed
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
     torch.cuda.manual_seed_all(seed)    
-    
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    s = GetDataLoaderTarget(opt)
     #split_num = [0.25,0,0.25,0.25,0,0.25]
     target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =opt.batch_size, num_workers =opt.num_workers)
 

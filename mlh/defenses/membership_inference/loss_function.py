@@ -46,6 +46,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 ) ,
         "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
+        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device)
     }
     CIFAR100_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -76,6 +77,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_exp": ConcaveExpLoss(alpha= 0.05, beta =0.05 ),
         "concave_log": ConcaveLogLoss(alpha= 0.05, beta =0.05, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5),
+        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device)
     }
     Imagenet_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -105,6 +107,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "flood": FloodLoss(device=device, t = 0.1*args.temp, reduction = reduction),
         "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
+        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
     }
     
     TinyImagenet_CONFIG = {
@@ -135,6 +138,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "flood": FloodLoss(device=device, t = 0.1*args.temp, reduction = reduction),
         "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
+        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
     }
     
     WEB_CONFIG = {
@@ -162,6 +166,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "nceagce": NCEandAGCE(alpha=50, beta=0.1, a=2.5, q=3.0, num_classes=50),
         "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
+        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
     }
     
     FashionMNIST = {
@@ -197,6 +202,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 ),
         "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
+        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
     }
     if args.dataset.lower() == "cifar10":
         return CIFAR10_CONFIG[loss_type]
@@ -248,6 +254,7 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_loss": ConcaveLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau),
+        "mixup_py": MixupPy(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau, device = args.device),
     }
     CIFAR100_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -278,6 +285,7 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma), 
         "concave_loss": ConcaveLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau),
+        "mixup_py": MixupPy(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau, device = args.device),
     }
     Imagenet_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -308,6 +316,7 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_loss": ConcaveLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau),
+        "mixup_py": MixupPy(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau, device = args.device),
     }  
     
     TinyImagenet_CONFIG = {
@@ -339,6 +348,7 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_loss": ConcaveLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau),
+        "mixup_py": MixupPy(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau, device = args.device),
     }  
     
     WEB_CONFIG = {
@@ -367,6 +377,7 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_loss": ConcaveLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau),
+        "mixup_py": MixupPy(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau, device = args.device),
     }
 
     FashionMNIST = {
@@ -402,6 +413,7 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "concave_exp": ConcaveExpLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma),
         "concave_loss": ConcaveLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau),
+        "mixup_py": MixupPy(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau, device = args.device),
     }
     if args.dataset.lower() == "cifar10":
         return CIFAR10_CONFIG[loss_type]
@@ -1121,7 +1133,45 @@ def ce_concave_log_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
         return loss.sum()
     else:
         raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+    
 
+def ce_mixup_py_loss(input_values, alpha, beta, gamma =1.0, tau=1.0, reduction="mean", use_cuda=True, device ="cuda:0"):
+    """Computes the focal loss"""
+    p = torch.exp(-input_values)
+    if beta > 0.:
+        lam = np.random.beta(beta, beta)
+    else:
+        lam = 1.
+    batch_size = p.size()[0]
+    if use_cuda:
+        index = torch.randperm(batch_size).to(device)
+    else:
+        index = torch.randperm(batch_size)
+    mixed_p = lam * p + (1 - lam) * p[index]
+    loss = - alpha *torch.log(mixed_p)
+    
+    if reduction == "none":
+        return loss
+    elif reduction == "mean":
+        return loss.mean()
+    elif reduction == "sum":
+        return loss.sum()
+    else:
+        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+
+
+class MixupPy(nn.Module):
+    def __init__(self, alpha = 1, beta = 1, gamma=1.0,tau=0.5,reduction='mean',device ="cuda:0" ):
+        super(MixupPy, self).__init__()
+        # assert tau >= 1e-7
+        self.gamma = gamma
+        self.alpha = alpha
+        self.beta = beta
+        self.tau = tau
+        self.reduction = reduction
+        self.device = device
+    def forward(self, input, target):
+        return ce_mixup_py_loss(F.cross_entropy(input, target, reduction="none"), self.alpha, self.beta, self.gamma, self.tau, reduction = self.reduction,device =self.device)
 
 
 def ce_concave_loss(input_values, alpha, beta, gamma =1.0, tau=1.0, reduction="mean"):

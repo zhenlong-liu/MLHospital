@@ -18,7 +18,7 @@ if __name__ == "__main__":
     "num_class": 100,
     'log_path': '../save_p4', # '../save_p2'
     'training_type': 'NormalLoss',
-    'loss_type': 'concave_loss', # concave_log  concave_exp
+    'loss_type': 'mixup_py', # concave_log  concave_exp
     'learning_rate': 0.1,
     'epochs': 150, # 100
     "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50
@@ -60,15 +60,15 @@ if __name__ == "__main__":
     
     #aa = [0.05, 0.1]  # concave_loss
     #tt = [0.05, 0.1] # concave_loss
-    gg = [0.05, 0.1, 0.2,0.5,0.9]
-    uu = [0, 1e-7,1e-6,1e-5,1e-4,1e-3,1e-2]
+    #gg = [0.05, 0.1, 0.2,0.5,0.9]
+    #uu = [0, 1e-7,1e-6,1e-5,1e-4,1e-3,1e-2]
     #gg = [0.5,1,3] # concave_loss
     
-    aa = [0.05]
+    aa = [0.01, 0.05, 0.1, 0.5 , 1]
     tt = [0.05]
     #gg = [0.05]
     #uu = [0.05]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor2:
         futures = []
         for temp in tt:
             for alpha in aa:
