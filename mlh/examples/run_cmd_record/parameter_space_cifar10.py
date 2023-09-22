@@ -43,6 +43,27 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
         "gamma": [1],
     }
 
+    mixup_py_param = {
+        "alpha": [0.001, 0.01, 0.1, 1],
+        "temp": [0.01, 0.05, 0.1, 1, 5, 10],
+        "tau": [1],
+        "gamma": [1],
+    }
+    
+    ce_ls_param ={
+        "alpha": [1],
+        "temp": [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+        "tau": [1],
+        "gamma": [1],
+    }
+    
+    ereg_param ={
+        "alpha": [0.1,0.3,0.5,1,2,4,8],
+        "temp": [1],
+        "tau": [1],
+        "gamma": [1],
+    }
+    
     loss_type_param_space = {
         "gce": gce_param,
         "sce": sce_param,
@@ -50,6 +71,9 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
         "taylor": taylor_param,
         "concave_exp": concave_exp_param,
         "concave_log": concave_log_param,
+        "ce_ls": ce_ls_param,
+        "ereg": ereg_param,
+        "mixup_py": mixup_py_param,
     }
 
     return loss_type_param_space.get(loss_type)

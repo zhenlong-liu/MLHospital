@@ -4,7 +4,9 @@ import sys
 sys.path.append("..")
 sys.path.append("../..")
 from run_cmd.generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
-from parameter_space import get_cifar10_parameter_set, save_merged_dicts_to_yaml
+from mlh.examples.run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
+from run_cmd_record.record import save_merged_dicts_to_yaml
+
 def run_command(cmd):
     os.system(cmd)
 
@@ -35,17 +37,18 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     
-    #loss_function =["concave_exp","concave_log","gce","flood","taylor"]
-    loss_function =["concave_exp","concave_log"]
+    #loss_function =["concave_exp","concave_log","gce","flood","taylor","ce_ls","ereg"]
+    loss_function =["ce_ls","ereg"]
     save_merged_dicts_to_yaml(params, loss_function, "./A100_record")
     
     
-    """
+    #"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for loss in loss_function:
             
             param_dict = get_cifar10_parameter_set(loss)
+            print(param_dict)
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
@@ -65,7 +68,7 @@ if __name__ == "__main__":
             
         # 等待所有任务完成
         concurrent.futures.wait(futures)
-    """
+    #"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
         
         futures = []
