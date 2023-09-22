@@ -237,7 +237,7 @@ def plot_celoss_distribution_together(target_train_loader, target_test_loader, t
     train_variance = np.var(train_loss)
     test_mean = np.mean(test_loss)
     test_variance = np.var(test_loss)
-    print(f'Loss: train_mean:{train_mean: .3f} train_variance:{train_variance: .3f} test_mean:{test_mean: .3f} test_variance:{test_variance: .3f}')
+    print(f'Loss: train_mean:{train_mean: .8f} train_variance:{train_variance: .8f} test_mean:{test_mean: .8f} test_variance:{test_variance: .8f}')
     # Plot the distribution of entropies
 
     plt.figure(figsize=(8, 6))

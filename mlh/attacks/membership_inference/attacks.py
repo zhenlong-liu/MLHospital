@@ -264,6 +264,8 @@ class MembershipInferenceAttack(abc.ABC):
 
     @staticmethod
     def cal_metrics(label, pred_label, pred_posteriors):
+        num_nans = np.sum(np.isnan(pred_posteriors))
+        print(f"Number of NaN values in pred_posteriors: {num_nans}")
         acc = accuracy_score(label, pred_label)
         precision = precision_score(label, pred_label, zero_division=0)
         recall = recall_score(label, pred_label)

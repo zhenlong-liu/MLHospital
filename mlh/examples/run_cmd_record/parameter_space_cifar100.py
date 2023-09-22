@@ -26,7 +26,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
 
     concave_log_param = {
         "alpha": [0.01, 0.04, 0.07, 0.1],
-        "temp": [0.01, 0.04, 0.07, 0.1],
+        "temp": [0.01, 0.04 , 0.07, 0.1],
         "tau": [1],
         "gamma": [0.6, 0.8, 1, 1.2 , 1.4],
     }
@@ -54,8 +54,8 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     
     
     mixup_py_param = {
-        "alpha": [0.01, 0.05, 0.1, 1, 10],
-        "temp": [0.1, 1, 5, 10, 50, 100, 200, 256],
+        "alpha": [0.002, 0.004, 0.006, 0.008,  0.01, 0.02],
+        "temp": [0.001, 0.01, 0.05, 0.1, 1, 5, 10],
         "tau": [1],
         "gamma": [1],
     }

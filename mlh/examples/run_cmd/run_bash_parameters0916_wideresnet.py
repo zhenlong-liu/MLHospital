@@ -34,10 +34,10 @@ if __name__ == "__main__":
     "gamma" :1.
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
-    lossfunction =["taylor"]
+    lossfunction =["gce"]
     gg = [1]
-    aa = [1]
-    tt = [1]
+    aa = [0.1]
+    tt = [0.3]
     uu = [1]
     # ss = [0.1,1,10,100] # beta nce
     # ss = [0.02,0.05,0.1,0.2,0.4] # sce
@@ -87,9 +87,9 @@ if __name__ == "__main__":
     #aa = [0.1]
     #tt = [0.3]
     #uu = [1]
-    gpu0 = 2
-    gpu1 = 5
-    
+    gpu0 = 6
+    gpu1 = 7
+    """
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor2:
         futures = []
         for temp in tt:
@@ -110,7 +110,7 @@ if __name__ == "__main__":
             
         # 等待所有任务完成
         concurrent.futures.wait(futures)
-    
+    """
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         
         futures = []
