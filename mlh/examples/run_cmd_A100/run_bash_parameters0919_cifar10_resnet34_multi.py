@@ -35,11 +35,12 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     
-    loss_function =["concave_exp","concave_log","gce","flood","taylor"]
+    #loss_function =["concave_exp","concave_log","gce","flood","taylor"]
+    loss_function =["concave_exp","concave_log"]
     save_merged_dicts_to_yaml(params, loss_function, "./A100_record")
     
     
-
+    """
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for loss in loss_function:
@@ -64,8 +65,8 @@ if __name__ == "__main__":
             
         # 等待所有任务完成
         concurrent.futures.wait(futures)
-    
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
+    """
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
         
         futures = []
         for loss in loss_function:   
