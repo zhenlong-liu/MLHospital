@@ -54,8 +54,8 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     
     
     mixup_py_param = {
-        "alpha": [0.002, 0.004, 0.006, 0.008,  0.01, 0.02],
-        "temp": [0.001, 0.01, 0.05, 0.1, 1, 5, 10],
+        "alpha": [0.01, 0.02,0.04,0.06,0.08],
+        "temp": [0.001,0.005, 0.01, 0.05, 0.1, 1,10],
         "tau": [1],
         "gamma": [1],
     }
@@ -67,7 +67,29 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "gamma": [0.05, 0.1, 0.5, 0.9, 1, 3],
     }
 
-    loss_type_param_space = { 
+    ce_ls_param = {
+        "alpha": [1],
+        "temp": [0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+        "tau": [1],
+        "gamma": [1],
+    }
+    
+    ereg_param ={
+        "alpha": [0.05,0.1,0.2,0.4,0.8,1,2,4,8],
+        "temp": [1],
+        "tau": [1],
+        "gamma": [1],
+    }
+    focal_param ={
+        "alpha": [1],
+        "temp": [1],
+        "tau": [1],
+        "gamma": [0.05,0.1,0.2,0.4,0.8,1,2,4,8],
+    }
+    loss_type_param_space = {
+        "ce_ls":ce_ls_param,
+        "ereg":ereg_param,
+        "focal":focal_param,
         "gce": gce_param,
         "sce": sce_param,
         "flood": flood_param,

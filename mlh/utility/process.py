@@ -141,7 +141,7 @@ def process_files(root_dir, output_excel, var= None):
 
 
 
-def process_files_yaml(root_dir, output_excel, var= None, if_round = True):
+def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataframe = False):
     # sourcery skip: dict-assign-update-to-union
     output_folder = os.path.dirname(output_excel)
     if not os.path.exists(output_folder):
@@ -182,15 +182,15 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True):
             # return(df)
             if var != None:
                 df = df[var]
-            df.to_excel(output_excel, index=False, float_format='%.3f') 
         else:
             df = pd.DataFrame(data)
-         
             # return(df)
             if var != None:
                 df = df[var]
+        if dataframe:
+            return df
+        else:
             df.to_excel(output_excel, index=False) 
-
 
 def load_yaml_to_dict(yaml_path):
     with open(yaml_path, 'r') as yaml_file:
