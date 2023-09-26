@@ -38,12 +38,12 @@ if __name__ == "__main__":
     
     
     #loss_function =["concave_exp","concave_log","gce","flood","taylor","ce_ls","ereg"]
-    loss_function =["ce_ls","ereg"]
+    loss_function =["ereg","focal","ncemae"]
     save_merged_dicts_to_yaml(params, loss_function, "./A100_record")
     
     
     #"""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         for loss in loss_function:
             

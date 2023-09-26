@@ -148,7 +148,7 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
         os.makedirs(output_folder)
     data = []
     for subdir, dirs, files in os.walk(root_dir):
-        if 'logging.log' in files:
+        if any(file.endswith('.pth') for file in files):
             for file in files:
                 if file == 'config.yaml':
                     log_file_path = os.path.join(subdir, file)
