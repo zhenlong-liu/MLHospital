@@ -39,12 +39,12 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     #["concave_log","mixup_py"]
-    loss_function =["ce_ls","ereg","focal"]
+    loss_function =["sce"]
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))
     
     
-    gpu0 = 5
-    gpu1 = 6
+    gpu0 = 0
+    gpu1 = 7
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for loss in loss_function:
@@ -66,7 +66,7 @@ if __name__ == "__main__":
                             
                             futures.append(executor1.submit(run_command, cmd1))
                             futures.append(executor2.submit(run_command, cmd2))
-            
+             
         # 等待所有任务完成
         concurrent.futures.wait(futures)
     
