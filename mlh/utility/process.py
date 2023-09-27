@@ -148,7 +148,14 @@ def process_files(root_dir, output_excel, var= None, if_round = True, dataframe 
         else:
             df.to_excel(output_excel, index=False) 
 
-
+def p_score(acc_t,acc_a):
+    if acc_t is None or acc_a is None:
+        return None
+    if acc_t>1:
+        acc_t = acc_t/100
+    if acc_a>1:
+        acc_a = acc_a/100
+    return 2*acc_t*(1-acc_a)/(acc_t +1-acc_a )
 
 
 def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataframe = False):
@@ -179,9 +186,9 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
                         distribution =  extract_metrics(mia_metrics_file)
                         data_config.update(mia_metrics)
                         data_config.update(distribution)
-                    
-                        #`row_data.update(mia_metrics)` is a method that updates the `row_data` dictionary with the key-value pairs from the `mia_metrics` dictionary.
-                        
+                        if 'cross entropy loss test acc' in data_config:
+                            data_config["p1"] = p_score(data_config["Test Acc"], data_config['cross entropy loss test acc'])
+                        #`row_data.update(mia_metrics)` is a method that updates the `row_data` dictionary with the key-value pairs from the `mia_metrics` dictionary. 
                     data.append(data_config)
                 
     
