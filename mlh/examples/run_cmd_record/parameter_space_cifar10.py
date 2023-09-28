@@ -38,8 +38,8 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
     }
 
     flood_param = {
-        "alpha": [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.11, 0.12, 0.13, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2],
-        "temp": [1],
+        "alpha": [1],
+        "temp": [0.01, 0.02, 0.04, 0.06, 0.08, 0.1,0.12, 0.14, 0.16, 0.18, 0.2],
         "tau": [1],
         "gamma": [1],
     }
@@ -52,8 +52,8 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
     }
 
     mixup_py_param = {
-        "alpha": [0.001, 0.01, 0.1, 1],
-        "temp": [0.01, 0.05, 0.1, 1, 5, 10],
+        "alpha": [0.5, 1, 2],
+        "temp": [0.005, 0.01, 0.05, 0.1, 1, 5, 10],
         "tau": [1],
         "gamma": [1],
     }
