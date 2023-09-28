@@ -39,7 +39,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     }
 
     flood_param = {
-        "alpha": [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.11, 0.12, 0.13, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2],
+        "alpha": [0.4,0.8,1.6,3.2, 4, 6.4],
         "temp": [1],
         "tau": [1],
         "gamma": [1],
@@ -60,29 +60,17 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "gamma": [1],
     }
     
-    ce_ls_param ={
-        "alpha": [1],
-        "temp": [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
-        "tau": [1],
-        "gamma": [1],
-    }
-    
-    ereg_param ={
-        "alpha": [0.1,0.3,0.5,1,2,4,8],
-        "temp": [1],
-        "tau": [1],
-        "gamma": [1],
-    }
 
     ce_ls_param = {
         "alpha": [1],
-        "temp": [0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+         #[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],s
+        "temp": [0.001,0.01,0.95,0.99,0.999,0.9999],
         "tau": [1],
         "gamma": [1],
     }
     
     ereg_param ={
-        "alpha": [0.05,0.1,0.2,0.4,0.8,1,2,4,8],
+        "alpha": [8,16,20,32,40,50,64,128], # [0.1,0.3,0.5,1,2,4,8]
         "temp": [1],
         "tau": [1],
         "gamma": [1],
@@ -91,7 +79,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "alpha": [1],
         "temp": [1],
         "tau": [1],
-        "gamma": [0.05,0.1,0.2,0.4,0.8,1,2,4,8],
+        "gamma": [8,16,20,32,40,50,64,128],
     }
     concave_loss_param ={
         "alpha": [0.01,0.02],
