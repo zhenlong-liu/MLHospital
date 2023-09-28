@@ -187,7 +187,8 @@ class AttackDataset():
             shadow_train_dataloader)
         self.shadow_test_info = self.shadow_model_parser.get_posteriors(
             shadow_test_dataloader)
-
+        #print(self.target_train_info)
+        #exit()
         # _info contains posteriors, it is prob
 
 
@@ -238,10 +239,11 @@ class AttackDataset():
             torch.from_numpy(np.array(original_label2 +
                             original_label3)).type(torch.long),
         )
-        
-        # print(attack_train_dataset[0])
+        print(self.shadow_train_info)
+        exit()
+        # attack_train_dataset
         # (tensor([2.4628e-04, 3.9297e-01, 3.7773e-04, 9.3001e-05, 2.3009e-04, 3.6489e-04, 1.2535e-04, 6.5634e-05, 1.3375e-03, 6.0419e-01]), tensor(1), tensor(9))
-
+        
         attack_test_dataset = torch.utils.data.TensorDataset(
             torch.from_numpy(np.array(mem_data0 + mem_data1, dtype='f')),
             torch.from_numpy(np.array(mem_label0 + mem_label1)
@@ -263,7 +265,7 @@ class MembershipInferenceAttack(abc.ABC):
         super().__init__()
 
     @staticmethod
-    def cal_metrics(label, pred_label, pred_posteriors):
+    def  cal_metrics(label, pred_label, pred_posteriors):
         num_nans = np.sum(np.isnan(pred_posteriors))
         print(f"Number of NaN values in pred_posteriors: {num_nans}")
         acc = accuracy_score(label, pred_label)
@@ -352,7 +354,7 @@ class MetricBasedMIA(MembershipInferenceAttack):
         train_tuple0, test_tuple0, test_results0 = self._mem_inf_via_corr()
         self.print_result("correct train", train_tuple0)
         self.print_result("correct test", test_tuple0)
-
+     
         train_tuple1, test_tuple1, test_results1 = self._mem_inf_thre(
             'confidence', self.s_tr_conf, self.s_te_conf, self.t_tr_conf, self.t_te_conf)
         self.print_result("confidence train", train_tuple1)
@@ -569,7 +571,7 @@ class MetricBasedMIA(MembershipInferenceAttack):
         # s_tr_values :15000
         # perform membership inference attack by thresholding feature values: the feature can be prediction confidence,
         # (negative) prediction entropy, and (negative) modified entropy
-
+        
         train_mem_label = []
         # for shadow train label, it is 1, for test sample, it is 0.
         train_pred_label = []
