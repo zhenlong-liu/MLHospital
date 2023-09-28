@@ -96,4 +96,3 @@ if __name__ == "__main__":
         # conda activate ml-hospital
         # cd mlh/examples/run_cmd_A100/
         # python run_bash_parameters0919_cifar10_resnet34_multi.py
-      
