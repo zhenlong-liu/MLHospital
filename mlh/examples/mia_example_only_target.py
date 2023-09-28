@@ -22,7 +22,7 @@ import torchvision.transforms as transforms
 import argparse
 import numpy as np
 import torch.optim as optim
-
+import os
 torch.set_num_threads(1)
 import torch
 import torch.nn.functional as F
@@ -107,6 +107,15 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
     torch.cuda.manual_seed_all(seed)
+    
+    
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
+    torch.cuda.manual_seed_all(seed)    
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    
+    
     
     target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
 

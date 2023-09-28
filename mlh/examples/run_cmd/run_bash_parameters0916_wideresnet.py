@@ -34,10 +34,10 @@ if __name__ == "__main__":
     "gamma" :1.
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
-    lossfunction =["gce"]
+    lossfunction =["mixup_py"]
     gg = [1]
-    aa = [0.1]
-    tt = [0.3]
+    aa = [0.08]
+    tt = [0.01]
     uu = [1]
     # ss = [0.1,1,10,100] # beta nce
     # ss = [0.02,0.05,0.1,0.2,0.4] # sce
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     #uu = [1]
     gpu0 = 6
     gpu1 = 7
-    
+    """
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor2:
         futures = []
         for temp in tt:
@@ -111,6 +111,8 @@ if __name__ == "__main__":
         # 等待所有任务完成
         concurrent.futures.wait(futures)
     
+    
+    """
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         
         futures = []
@@ -125,9 +127,9 @@ if __name__ == "__main__":
                             params["gamma"] = gamma
                             params["tau"] = tau
                             cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
-                            cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                            #cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                             futures.append(executor1.submit(run_command, cmd3))
-                            futures.append(executor2.submit(run_command, cmd4))
+                            #futures.append(executor2.submit(run_command, cmd4))
 
         concurrent.futures.wait(futures)
         # tmux kill-session -t 0
