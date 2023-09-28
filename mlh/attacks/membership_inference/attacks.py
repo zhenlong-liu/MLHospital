@@ -239,8 +239,7 @@ class AttackDataset():
             torch.from_numpy(np.array(original_label2 +
                             original_label3)).type(torch.long),
         )
-        print(self.shadow_train_info)
-        exit()
+        
         # attack_train_dataset
         # (tensor([2.4628e-04, 3.9297e-01, 3.7773e-04, 9.3001e-05, 2.3009e-04, 3.6489e-04, 1.2535e-04, 6.5634e-05, 1.3375e-03, 6.0419e-01]), tensor(1), tensor(9))
         
