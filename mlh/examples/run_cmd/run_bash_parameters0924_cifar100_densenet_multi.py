@@ -38,13 +38,13 @@ if __name__ == "__main__":
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
-    #["concave_log","mixup_py","concave_exp"]
-    loss_function =["focal","ereg","ce_ls","flood"]
+    #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood"]
+    loss_function =["concave_exp"]
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))
     
     
     gpu0 = 7
-    gpu1 = 1
+    gpu1 = 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for loss in loss_function:
