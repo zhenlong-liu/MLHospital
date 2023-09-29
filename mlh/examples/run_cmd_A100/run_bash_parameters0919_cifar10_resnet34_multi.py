@@ -38,7 +38,7 @@ if __name__ == "__main__":
     
     
     #loss_function =["concave_exp","concave_log","gce","flood","taylor","ce_ls","ereg","ereg","focal","ncemae"]
-    loss_function =["flood","mixup_py"]
+    loss_function =["mixup_py"]
     save_merged_dicts_to_yaml(params, loss_function, "./A100_record")
     
     
@@ -85,10 +85,10 @@ if __name__ == "__main__":
                             params["tau"] = tau
                             
                             cmd3 =generate_mia_command(params, gpu = 0,  nohup = False, mia = "../mia_example_only_target.py")
-                            cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = 1,  nohup = False, mia = "../mia_example_only_target.py")
+                            #cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = 1,  nohup = False, mia = "../mia_example_only_target.py")
                             
                             futures.append(executor1.submit(run_command, cmd3))
-                            futures.append(executor2.submit(run_command, cmd4))
+                            #futures.append(executor2.submit(run_command, cmd4))
 
         concurrent.futures.wait(futures)
         # tmux kill-session -t 0

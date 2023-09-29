@@ -31,8 +31,8 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
     }
 
     sce_param = {
-        "alpha": [0.01, 0.1, 0.5, 1, 5, 10],
-        "temp": [0.01, 0.1, 0.5, 1, 5, 10],
+        "alpha": [0.5],
+        "temp": [12,16,32,50,64,128],
         "tau": [1],
         "gamma": [1],
     }
