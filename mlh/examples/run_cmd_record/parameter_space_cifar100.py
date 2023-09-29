@@ -63,7 +63,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
 
     ce_ls_param = {
         "alpha": [1],
-         #[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],s
+        #[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],s
         "temp": [0.001,0.01,0.95,0.99,0.999,0.9999],
         "tau": [1],
         "gamma": [1],

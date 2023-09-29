@@ -72,8 +72,7 @@ if __name__ == "__main__":
         print("Did not find suitable GPUs within 24 hours. Exiting the program.")
         exit()
 
-    # Place your code here
-    # TODO: Add your own code that you want to run when the GPUs are found.
+    
 
     
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))

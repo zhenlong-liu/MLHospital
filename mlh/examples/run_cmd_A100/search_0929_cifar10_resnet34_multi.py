@@ -6,9 +6,21 @@ sys.path.append("../..")
 from run_cmd.generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
 from mlh.examples.run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
 from run_cmd_record.record import save_merged_dicts_to_yaml
-
+import GPUtil
+import time
 def run_command(cmd):
     os.system(cmd)
+
+def check_gpu_memory():
+        """
+        Check the GPUs and return the IDs of the first two GPUs with less than 4MB memory used.
+        """
+        GPUs = GPUtil.getGPUs()
+        valid_gpus = [gpu.id for gpu in GPUs if gpu.memoryUsed < 100]
+        if len(valid_gpus) >= 2:
+            return valid_gpus[:2]
+        return None
+
 
 if __name__ == "__main__":
     
@@ -38,7 +50,24 @@ if __name__ == "__main__":
     
     
     #loss_function =["concave_exp","concave_log","gce","flood","taylor","ce_ls","ereg","ereg","focal","ncemae"]
-    loss_function =["mixup_py","phuber"]
+    # "mixup_py","phuber"
+    loss_function =["sce"]
+    
+    
+    end_time = time.time() + 24*60*60  # 24 hours from now
+    found_gpus = False
+    while time.time() < end_time:
+        gpu_ids = check_gpu_memory()
+        if gpu_ids:
+            print(f"Found suitable GPUs with IDs: {gpu_ids[0]} and {gpu_ids[1]}")
+            found_gpus = True
+            break
+        time.sleep(10*60)  # Wait for 10 minutes
+
+    if not found_gpus:
+        print("Did not find suitable GPUs within 24 hours. Exiting the program.")
+        exit()
+    
     save_merged_dicts_to_yaml(params, loss_function, "./A100_record")
     
     
@@ -95,4 +124,4 @@ if __name__ == "__main__":
         # tmux new -s <session-name>
         # conda activate ml-hospital
         # cd mlh/examples/run_cmd_A100/
-        # python run_bash_parameters0919_cifar10_resnet34_multi.py
+        # python search_0929_cifar10_resnet34_multi.py
