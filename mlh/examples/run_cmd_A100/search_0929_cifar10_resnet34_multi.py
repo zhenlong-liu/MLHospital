@@ -49,9 +49,9 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     
-    #loss_function =["concave_exp","concave_log","gce","flood","taylor","ce_ls","ereg","ereg","focal","ncemae"]
+    #loss_function =["concave_exp","concave_log","gce","flood","taylor","ce_ls","ereg","focal","ncemae"]
     # "mixup_py","phuber"
-    loss_function =["sce"]
+    loss_function =["sce","ce_ls","ereg","flood","focal"]
     
     
     end_time = time.time() + 24*60*60  # 24 hours from now
@@ -98,7 +98,7 @@ if __name__ == "__main__":
         # 等待所有任务完成
         concurrent.futures.wait(futures)
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         
         futures = []
         for loss in loss_function:   

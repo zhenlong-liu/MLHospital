@@ -39,7 +39,8 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
 
     flood_param = {
         "alpha": [1],
-        "temp": [0.01, 0.02, 0.04, 0.06, 0.08, 0.1,0.12, 0.14, 0.16, 0.18, 0.2],
+        "temp": [0.4, 0.8, 1, 1.6, 2, 3.2],
+        # [0.01, 0.02, 0.04, 0.06, 0.08, 0.1,0.12, 0.14, 0.16, 0.18, 0.2],
         "tau": [1],
         "gamma": [1],
     }
@@ -60,13 +61,15 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
 
     ce_ls_param ={
         "alpha": [1],
-        "temp": [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+        "temp": [0.01, 0.05,0.95,0.98, 0.99,0.999],
+        #[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
         "tau": [1],
         "gamma": [1],
     }
 
     ereg_param ={
-        "alpha": [0.05,0.1,0.2,0.4,0.8,1,2,4,8],
+        "alpha": [16,32,50,64,80,128],
+        # [0.05,0.1,0.2,0.4,0.8,1,2,4,8]
         "temp": [1],
         "tau": [1],
         "gamma": [1],
@@ -76,7 +79,7 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
         "alpha": [1],
         "temp": [1],
         "tau": [1],
-        "gamma": [0.05,0.1,0.2,0.4,0.8,1,2,4,8],
+        "gamma": [16,32,64,128,256,512,1024],
     }
 
     phuber_param ={
