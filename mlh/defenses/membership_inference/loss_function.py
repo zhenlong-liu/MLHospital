@@ -251,6 +251,7 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "concave_log": ConcaveLogLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma), 
         "concave_loss": ConcaveLoss(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau),
         "mixup_py": MixupPy(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau, device = args.device),
+        "gce_mixup": GCE(device, alpha = args.alpha, q=args.temp, k=num_classes, mixup_beta = args.tau, mixup= True),
     }
 
     return CIFAR100_CONFIG[loss_type]
@@ -959,7 +960,21 @@ def ce_concave_log_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
         return loss.sum()
     else:
         raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
-    
+
+
+
+def mixup_py(softmax_input, alpha, beta,gamma =1.0, tau=1.0, reduction="mean", use_cuda=True, device ="cuda:0"):
+    if beta > 0.:
+        lam = np.random.beta(beta, beta)
+    else:
+        lam = 1.
+    batch_size = softmax_input.size()[0]
+    if use_cuda:
+        index = torch.randperm(batch_size).to(device)
+    else:
+        index = torch.randperm(batch_size)
+    mixed_p = lam * softmax_input + (1 - lam) * softmax_input[index]
+    return mixed_p
 
 def ce_mixup_py_loss(input_values, alpha, beta, gamma =1.0, tau=1.0, reduction="mean", use_cuda=True, device ="cuda:0"):
     """Computes the focal loss"""
@@ -1108,17 +1123,25 @@ class SCE(nn.Module):
 
         return loss_sce(input, labels_one_hot, self.alpha, self.beta, reduction=self.reduction)
 
+
+
+
+
 class GCE(nn.Module):
-    def __init__(self, device, q=0.7, k=10, alpha=1, reduction='mean',):
+    def __init__(self, device, q=0.7, k=10, alpha=1, mixup_beta =1,reduction='mean',mixup = False):
         super(GCE, self).__init__()
         self.q = q
         self.k = k
         self.device = device
         self.reduction = reduction
         self.alpha = alpha
+        self.mixup= mixup
+        self.beta =mixup_beta
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         soft_max = nn.Softmax(dim=1)
         sm_outputs = soft_max(input)
+        if self.mixup: 
+            sm_outputs =mixup_py(sm_outputs, alpha=1, beta =self.beta,device =self.device)
         label_one_hot = nn.functional.one_hot(target, self.k).float().to(self.device)
         sm_out = torch.pow((sm_outputs * label_one_hot).sum(dim=1), self.q)
         target = torch.ones_like(target)
@@ -1132,6 +1155,12 @@ class GCE(nn.Module):
             return loss_vec
         else:
             raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
+
+
+    
+
+
+
 
 class AGCELoss(nn.Module):
     def __init__(self, num_classes=10, a=1, q=2, eps=1e-7, scale=1.):

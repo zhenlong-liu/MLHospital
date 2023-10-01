@@ -22,6 +22,8 @@
 import sys
 import numpy as np
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
+
+import yaml
 from models.resnet import resnet20
 import torch.nn as nn
 import torchvision
@@ -34,6 +36,21 @@ import matplotlib.pyplot as plt
 import argparse
 sys.path.append("..")
 sys.path.append("../..")
+def store_dict_to_yaml(my_dict, save_path, file_name):
+    """
+    Stores a dictionary into a YAML file at the specified file path.
+    
+    Parameters:
+    my_dict (dict): The dictionary to be stored.
+    file_path (str): The path where the YAML file should be created.
+    
+    Returns:
+    None
+    """
+    
+    file_path = f'{save_path}/{file_name}'
+    with open(file_path, 'w') as file:
+        yaml.dump(my_dict, file)
 
 
 def dict_str(input_dict):
@@ -209,7 +226,13 @@ def plot_entropy_distribution_together(target_train_loader, target_test_loader, 
     train_variance = np.var(train_entropies)
     test_mean = np.mean(test_entropies)
     test_variance = np.var(test_entropies)
+    dict_sta = {"entropies_train_mean":train_mean, "entropies_train_variance": train_variance,
+            "entropies_test_mean": test_mean, "entropies_test_variance" :test_variance}
+    
+    store_dict_to_yaml(dict_sta, save_path,"entropy_distribution.yaml")
+    
     print(f'Entropies: train_mean:{train_mean: .3f} train_variance:{train_variance: .3f} test_mean:{test_mean: .3f} test_variance:{test_variance: .3f}')
+    
     # Plot the distribution of entropies
     plt.figure(figsize=(8, 6))
     plt.hist(train_entropies, bins=50, alpha=0.5,range= (0,5), label=f'Train Entropy\nMean: {train_mean:.2f}\nVariance: {train_variance:.2f}', color='blue')
@@ -237,6 +260,13 @@ def plot_celoss_distribution_together(target_train_loader, target_test_loader, t
     train_variance = np.var(train_loss)
     test_mean = np.mean(test_loss)
     test_variance = np.var(test_loss)
+    
+    dict_sta = {"loss_train_mean":train_mean, "loss_train_variance": train_variance,
+            "loss_test_mean": test_mean, "loss_test_variance" :test_variance}
+    
+    store_dict_to_yaml(dict_sta, save_path,"loss_distribution.yaml")
+    
+    
     print(f'Loss: train_mean:{train_mean: .8f} train_variance:{train_variance: .8f} test_mean:{test_mean: .8f} test_variance:{test_variance: .8f}')
     # Plot the distribution of entropies
 

@@ -3,6 +3,23 @@ import os
 import pandas as pd
 import yaml
 # extract train mean train variance
+
+def store_dict_to_yaml(my_dict, file_path):
+    """
+    Stores a dictionary into a YAML file at the specified file path.
+    
+    Parameters:
+    my_dict (dict): The dictionary to be stored.
+    file_path (str): The path where the YAML file should be created.
+    
+    Returns:
+    None
+    """
+    with open(file_path, 'w') as file:
+        yaml.dump(my_dict, file)
+
+
+
 def extract_metrics(log_file):
     with open(log_file, 'r') as file:
         text = file.read()
@@ -181,14 +198,27 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
                     
                     
                     mia_metrics_file = os.path.join(subdir, 'mia_metric-based.log')
+                    mia_yaml = os.path.join(subdir, 'mia_metric_based.yaml')
+                    mia_bb_yaml = os.path.join(subdir, 'mia_black_box.yaml')
                     if os.path.exists(mia_metrics_file):
                         mia_metrics = extract_mia_metrics(mia_metrics_file)
                         distribution =  extract_metrics(mia_metrics_file)
                         data_config.update(mia_metrics)
                         data_config.update(distribution)
-                        if 'cross entropy loss test acc' in data_config:
-                            data_config["p1"] = p_score(data_config["Test Acc"], data_config['cross entropy loss test acc'])
+                        
                         #`row_data.update(mia_metrics)` is a method that updates the `row_data` dictionary with the key-value pairs from the `mia_metrics` dictionary. 
+                    elif os.path.exists(mia_yaml):
+                        with open(mia_yaml, 'r') as f:
+                            mia_metrics = yaml.safe_load(f)
+                        data_config.update(mia_metrics)
+                    if os.path.exists(mia_bb_yaml):
+                        with open(mia_bb_yaml, 'r') as f:
+                            mia_black_box = yaml.safe_load(f)
+                        data_config.update(mia_black_box)
+                    
+                    if 'cross entropy loss test acc' in data_config:
+                            data_config["p1"] = p_score(data_config["Test Acc"], data_config['cross entropy loss test acc'])
+                    
                     data.append(data_config)
                 
     

@@ -119,7 +119,6 @@ if __name__ == "__main__":
                             params["temp"] = temp
                             params["gamma"] = gamma
                             params["tau"] = tau
-                            
                             cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                             cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                             

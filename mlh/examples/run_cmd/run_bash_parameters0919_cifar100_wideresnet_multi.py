@@ -38,13 +38,11 @@ if __name__ == "__main__":
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
-    #["concave_log","mixup_py"]
-    loss_function =["concave_exp"]
+    #["concave_log","mixup_py"] "focal","ereg","ce_ls","flood"
+    loss_function =['gce_mixup']
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))
-    
-    
-    gpu0 = 7
-    gpu1 = 6
+    gpu0 = 0
+    gpu1 = 1
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for loss in loss_function:
@@ -97,4 +95,4 @@ if __name__ == "__main__":
         # conda activate mlh
         # cd mlh/examples/run_cmd/
         # python run_bash_parameters0919_cifar100_wideresnet_multi.py
-      
+        
