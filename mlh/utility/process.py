@@ -59,7 +59,7 @@ def get_grandparent_directory_name(path, n=4):
     # Get the parent directory of the provided path
     return os.path.basename(path)
 
-def extract_last_line_logging_info(log_file):
+def extract_last_line_logging_info(log_file,df = False):
     with open(log_file, 'r') as file:
         lines = file.readlines()
         #print(lines)
@@ -74,8 +74,15 @@ def extract_last_line_logging_info(log_file):
                 epoch = int(match.group(1))
                 train_acc = float(match.group(2))
                 test_acc = float(match.group(3))
+                if df:
+                    info_dict = {"Train Epoch" : epoch, 
+                            "Train Acc": train_acc, "Test Acc":test_acc}
+                    return info_dict
                 return epoch, train_acc, test_acc
-    return None, None, None
+    return None
+
+
+
 
 def extract_mia_metrics(log_file):
     # Read the logging data from the log_file
@@ -189,11 +196,15 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
                     with open(log_file_path, 'r') as f:
                         data_config = yaml.safe_load(f)
                     log_file_path_train_log = os.path.join(subdir, "train_log.yaml")
-                    with open(log_file_path_train_log, 'r') as f:
-                        data_train_log = yaml.safe_load(f)
+                    if os.path.exists(log_file_path_train_log):
+                        with open(log_file_path_train_log, 'r') as f:
+                            data_train_log = yaml.safe_load(f)
                     # print(log_file_path)
-                    
-                    data_config.update(data_train_log)
+                    else: 
+                        log_file = os.path.join(subdir, 'logging.log')
+                        data_train_log=extract_last_line_logging_info(log_file,df = True)
+                    if data_train_log is not None:
+                        data_config.update(data_train_log)
                     
                     
                     

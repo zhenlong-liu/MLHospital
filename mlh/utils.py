@@ -47,7 +47,9 @@ def store_dict_to_yaml(my_dict, save_path, file_name):
     Returns:
     None
     """
-    
+    for key, value in my_dict.items():
+        if isinstance(value, (np.ndarray, np.generic)):
+            my_dict[key] = value.item() 
     file_path = f'{save_path}/{file_name}'
     with open(file_path, 'w') as file:
         yaml.dump(my_dict, file)

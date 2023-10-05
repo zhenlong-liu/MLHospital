@@ -39,7 +39,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     #["concave_log","mixup_py"] "focal","ereg","ce_ls","flood"
-    loss_function =['gce_mixup']
+    loss_function =['sce']
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))
     gpu0 = 0
     gpu1 = 1
