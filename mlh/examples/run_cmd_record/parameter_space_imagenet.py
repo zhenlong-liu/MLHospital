@@ -2,7 +2,15 @@
 
 
 
-def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresnet"):
+def get_imagenet_parameter_set(loss_type, dataset = "cifar100", model ="wideresnet"):
+    
+    ce_param ={
+        "alpha": [1],
+        "temp": [1],
+        "tau": [1],
+        "gamma": [1],
+    }
+    
     ncemae_param ={
         "alpha": [0.1, 0.5,1, 5, 10],
         "temp": [0.1, 0.5,1, 5,10],
@@ -13,7 +21,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     gce_param = {
         "alpha": [0.01],
             #[0.01, 0.1, 1],
-        "temp": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+        "temp": [0.2, 0.4, 0.6,  0.8],
         "tau": [1],
         "gamma": [1],
     }
@@ -26,24 +34,27 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     concave_exp_param = {
         "alpha": [0.05],
             #[0.01, 0.05, 0.08,0.1],
-        "temp": [0.01, 0.03, 0.05],
+        "temp": [0.05],
+            # [0.01, 0.03, 0.05]
             #[0.01,0.02,0.05,0.08, 0.1],
         "tau": [1],
-        "gamma": [2, 3 ,3.2, 4, 5, 6, 6.4]
+        "gamma": [0.05,0.1,0.2,0.4,0.8,1.6,3.2]
+        # [2, 3 ,3.2, 4, 5, 6, 6.4]
         #[1.8, 2, 2.2,2.4,2.6, 2.8, 3 ]
             #[0.05,0.1,0.2,0.4,0.8,1.6,3.2],
     }
 
     concave_log_param = {
-        "alpha": [0.01, 0.02,0.05,0.1],
-        "temp": [0.01, 0.02,0.05,0.1],
+        "alpha": [0.01, 0.02],
+        "temp": [0.01,0.02],
         "tau": [1],
-        "gamma": [0.1,0.5, 1,2, 4, 8, 16],
+        "gamma": [0.5, 1,2, 4, 8, 16, 32],
     }
 
     sce_param = {
         "alpha": [0.1],
-        "temp": [1,2,4,8,16,32],
+        "temp": [0.01, 0.05, 0.1, 0.5, 1],
+        # [1,2,4,8,16,32],
         # 0.01, 0.02,  0.05, 0.1, 0.2, 0.4, 0.8
         "tau": [1],
         "gamma": [1],
@@ -120,6 +131,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     }
     
     loss_type_param_space = {
+        "ce": ce_param,
         "ce_ls":ce_ls_param,
         "ereg":ereg_param,
         "focal":focal_param,

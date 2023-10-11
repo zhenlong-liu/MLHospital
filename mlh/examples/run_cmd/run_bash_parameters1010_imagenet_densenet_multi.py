@@ -4,8 +4,7 @@ import sys
 sys.path.append("..")
 sys.path.append("../..")
 from generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
-from mlh.examples.run_cmd_record.parameter_space_cifar100 import get_cifar100_parameter_set
-from run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
+from mlh.examples.run_cmd_record.parameter_space_imagenet import get_imagenet_parameter_set
 
 from run_cmd_record.record import save_merged_dicts_to_yaml
 
@@ -17,39 +16,39 @@ if __name__ == "__main__":
     
     params = {
     'python': "../train_target_models_noinference.py",
-    "dataset": "CIFAR100", # imagnet
-    "num_class": 100,
+    "dataset": "Imagenet", # imagnet
+    "num_class": 1000,
     'log_path': '../save_adj', # '../save_p2'
     'training_type': 'NormalLoss',
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
-    'epochs': 150, # 100
+    'epochs': 90, # 100
     "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
     "tau" : 1,
-    #'scheduler' : 'multi_step_wide_resnet',
+    'scheduler' : 'multi_step_imagenet',
     "temp" : 1,
     'batch_size' : 128,
-    "num_workers" : 8,
+    "num_workers" : 12,
     "loss_adjust" : None,
     "gamma" :1.
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
-    #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    loss_function =["concave_log"]
+    #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]["sce","gce","concave_exp"]
+    loss_function =["ce"]
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))
     
     
-    gpu0 = 4
-    gpu1 = 3
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
+    gpu0 = 1
+    gpu1 = 2
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         for loss in loss_function:
             
-            param_dict = get_cifar100_parameter_set(loss)
+            param_dict = get_imagenet_parameter_set(loss)
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
@@ -71,7 +70,7 @@ if __name__ == "__main__":
         
         futures = []
         for loss in loss_function:   
-            param_dict = get_cifar100_parameter_set(loss)
+            param_dict = get_imagenet_parameter_set(loss)
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
@@ -93,5 +92,5 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters0924_cifar100_densenet_multi.py
+        # python run_bash_parameters1010_imagenet_densenet_multi.py
       

@@ -17,10 +17,10 @@ if __name__ == "__main__":
     
     params = {
     'python': "../train_target_models_noinference.py",
-    "dataset": "CIFAR100", # imagnet
+    "dataset": "CIFAR100",
     "num_class": 100,
     'log_path': '../save_adj', # '../save_p2'
-    'training_type': 'NormalLoss',
+    'training_type': 'NormalRelaxLoss', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
     'epochs': 150, # 100
@@ -39,12 +39,12 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    loss_function =["concave_log"]
+    loss_function =["relax"]
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))
     
     
-    gpu0 = 4
-    gpu1 = 3
+    gpu0 = 5
+    gpu1 = 6
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for loss in loss_function:
@@ -54,7 +54,7 @@ if __name__ == "__main__":
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
-                            params['loss_type'] = loss
+                            #params['loss_type'] = loss
                             params["alpha"] = alpha
                             params["temp"] = temp
                             params["gamma"] = gamma
@@ -76,7 +76,7 @@ if __name__ == "__main__":
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
-                            params['loss_type'] = loss
+                            #params['loss_type'] = loss
                             params["alpha"] = alpha
                             params["temp"] = temp
                             params["gamma"] = gamma
@@ -93,5 +93,5 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters0924_cifar100_densenet_multi.py
-      
+        # python run_bash_parameters1007_cifar100_others.py
+        

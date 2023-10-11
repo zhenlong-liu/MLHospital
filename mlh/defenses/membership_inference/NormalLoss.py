@@ -5,7 +5,7 @@ import time
 import sys
 sys.path.append("..")
 sys.path.append("../..")
-from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
+
 # class LabelSmoothingLoss(torch.nn.Module):
 from runx.logx import logx
 import torch.nn.functional as F
@@ -16,6 +16,7 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 from tqdm import tqdm
 from utils import get_optimizer, get_scheduler, get_init_args, dict_str
+from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
 #     """
 #     copy from:
 #     https://github.com/pytorch/pytorch/issues/7455

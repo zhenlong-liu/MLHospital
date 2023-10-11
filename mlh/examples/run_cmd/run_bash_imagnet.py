@@ -10,8 +10,8 @@ def run_command(cmd):
     os.system(cmd)
 
 if __name__ == "__main__":
-    # lossfunction =["ce","flood","focal","gce","sce","ereg","mae","nceagce","ncemae","ncerce","ngcemae"]
-    lossfunction =["gce", "sce","ce_ls"]
+    # lossfunction =["ce","flood","focal","gce","sce","ereg","mae","nceagce","ncemae","ncerce","ngcemae",""gce", "sce","ce_ls""]
+    lossfunction =["ce"]
     params_loss = {
     'python': "../train_target_models_noinference.py",
     'log_path': '../save0',
