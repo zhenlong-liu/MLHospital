@@ -269,6 +269,15 @@ class GetDataLoaderTarget(object):
     
     def get_ordered_dataset(self, target_dataset):
         """
+    
+        Sorts and returns a dataset based on the labels of the data points.
+
+        Parameters:
+        - target_dataset (Dataset): The dataset to be sorted.
+
+        Returns:
+        - Subset: The sorted dataset.
+
         Inspired by https://stackoverflow.com/questions/66695251/define-manually-sorted-mnist-dataset-with-batch-size-1-in-pytorch
         """
         label = np.array([row[1] for row in target_dataset])
@@ -302,7 +311,7 @@ class GetDataLoaderTarget(object):
         target_inference_sorted = self.get_ordered_dataset(target_inference) # dataset
         shadow_train_sorted = self.get_ordered_dataset(shadow_train)
         shadow_inference_sorted = self.get_ordered_dataset(shadow_inference)
-
+ 
 
         start_index_target_inference = self.get_label_index(
             target_inference_sorted)
