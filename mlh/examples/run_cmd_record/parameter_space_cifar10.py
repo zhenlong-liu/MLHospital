@@ -24,7 +24,8 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
     }
 
     concave_log_param = {
-        "alpha": [0.01, 0.1, 0.5, 1, 5],
+        #"alpha": [0.01, 0.1, 0.5, 1, 5],
+        "alpha": [2,4,6, 10],
         "temp": [0.01, 0.05, 0.1, 0.5, 1],
         "tau": [1],
         "gamma": [0, 0.01, 0.1, 1, 2, 4, 8],
