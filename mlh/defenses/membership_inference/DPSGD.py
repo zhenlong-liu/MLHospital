@@ -47,9 +47,6 @@ class TrainTargetDP(Trainer):
         self.num_classes = args.num_class
         self.epochs = args.epochs
         self.batch_size = args.batch_size
-        
-        
-        
         self.noise_scale = args.alpha
         self.grad_norm = args.temp
         self.delta = delta

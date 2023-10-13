@@ -28,10 +28,16 @@ from runx.logx import logx
 import torch.nn as nn
 from defenses.membership_inference.trainer import Trainer
 
+import sys
+sys.path.append("..")
+sys.path.append("../..")
+
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
-
-
+from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from tqdm import tqdm
+from utils import get_optimizer, get_scheduler, get_init_args, dict_str
+from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
 class AttackAdvReg(nn.Module):
     def __init__(self, posterior_dim, class_dim):
         self.posterior_dim = posterior_dim
@@ -78,37 +84,64 @@ class TrainTargetAdvReg(Trainer):
     as the reference
     """
 
-    def __init__(self, model, device="cuda:0", num_class=10, epochs=100, learning_rate=0.01, momentum=0.9, weight_decay=5e-4, log_path="./"):
+    def __init__(self, model,args, momentum=0.9, weight_decay=5e-4, log_path="./"):
 
         super().__init__()
-
-        # self.opt = opt
+        self.args = args
         self.model = model
-        self.device = device
-        self.num_class = num_class
-        self.epochs = epochs
-        self.learning_rate = learning_rate
+        self.device = args.device
+        self.num_classes = args.num_class
+        self.epochs = args.epochs
+        self.loss_type = args.loss_type
+        self.learning_rate = args.learning_rate
+        # self.opt = opt
+        
         self.momentum = momentum
         self.weight_decay = weight_decay
-        self.attack_model = AttackAdvReg(self.num_class, self.num_class)
+        
+        self.attack_model = AttackAdvReg(self.num_classes, self.num_classes)
         self.model.to(self.device)
         self.attack_model.to(self.device)
-
+        
+        self.loss_num = None
+        """
         self.optimizer = torch.optim.SGD(self.model.parameters(
-        ), learning_rate, momentum=momentum, weight_decay=self.weight_decay)
+        ), self.learning_rate, momentum=momentum, weight_decay=self.weight_decay)
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer, T_max=self.epochs)
 
         self.optimizer_adv = torch.optim.SGD(self.attack_model.parameters(
-        ), learning_rate, momentum=momentum, weight_decay=weight_decay)
+        ), self.learning_rate, momentum=momentum, weight_decay=weight_decay)
         self.scheduler_adv = torch.optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer_adv, T_max=self.epochs)
 
         self.criterion = torch.nn.CrossEntropyLoss()
-
+        """
+        
+        self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, weight_decay)
+        #self.optimizer = torch.optim.SGD( self.model.parameters(), self.learning_rate, momentum, weight_decay)
+        
+        self.scheduler = get_scheduler(scheduler_name = args.scheduler, optimizer =self.optimizer, t_max=self.epochs)
+        
+        self.optimizer_adv = torch.optim.SGD(self.attack_model.parameters(
+        ), self.learning_rate, momentum=momentum, weight_decay=weight_decay)
+        self.scheduler_adv = torch.optim.lr_scheduler.CosineAnnealingLR(
+            self.optimizer_adv, T_max=self.epochs)
+        
+        #self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
+        if args.loss_adjust:
+            self.criterion = get_loss_adj(loss_type =self.loss_type, device=self.device, args = self.args, num_classes= self.num_classes)
+        else: self.criterion = get_loss(loss_type =self.loss_type, device=self.device, args = self.args, num_classes= self.num_classes)
+        
         self.log_path = log_path
         logx.initialize(logdir=self.log_path,
                         coolname=False, tensorboard=False)
+
+        logx.msg(f"optimizer:{args.optimizer}, learning rate:{args.learning_rate}, scheduler:{args.scheduler}, epoches:{args.epochs}")
+
+        
+        save_namespace_to_yaml(args, f'{self.log_path}/config.yaml')
+        save_namespace_to_yaml(dict_str(get_init_args(self.criterion)), f'{self.log_path}/loss_config.yaml')
 
     def eval(self, data_laoder):
 
@@ -147,7 +180,7 @@ class TrainTargetAdvReg(Trainer):
             all_output = self.model(all_data)
 
             one_hot_tr = torch.from_numpy((np.zeros(
-                (all_target.size(0), self.num_class))-1)).type(torch.FloatTensor).to(self.device)
+                (all_target.size(0), self.num_classes))-1)).type(torch.FloatTensor).to(self.device)
             infer_input_one_hot = one_hot_tr.scatter_(1, all_target.type(
                 torch.LongTensor).view([-1, 1]).data.to(self.device), 1)
             attack_output = self.attack_model(all_output, infer_input_one_hot)
@@ -162,28 +195,28 @@ class TrainTargetAdvReg(Trainer):
             self.attack_model.zero_grad()
             loss.backward()
             self.optimizer_adv.step()
-
+            self.scheduler_adv.step()
     def train_target_privately(self, train_loader):
         self.model.train()
         self.attack_model.eval()
-        alpha = 1
+        alpha = self.args.tau
 
         for batch_idx, (data, target) in enumerate(train_loader):
             data, target = data.to(self.device), target.to(self.device)
             output = self.model(data)
             one_hot_tr = torch.from_numpy((np.zeros((output.size(
-                0), self.num_class)) - 1)).type(torch.FloatTensor).to(self.device)
+                0), self.num_classes)) - 1)).type(torch.FloatTensor).to(self.device)
             target_one_hot_tr = one_hot_tr.scatter_(1, target.type(
                 torch.LongTensor).view([-1, 1]).data.to(self.device), 1)
 
             member_output = self.attack_model(output, target_one_hot_tr)
             loss = self.criterion(output, target) + \
                 (alpha)*(torch.mean((member_output)) - 0.5)
-
+            self.loss_num = loss.item()
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-
+            self.scheduler.step()
     def train(self, train_loader, inference_loader, test_loader):
 
         best_accuracy = 0
@@ -207,10 +240,10 @@ class TrainTargetAdvReg(Trainer):
             train_acc = self.eval(train_loader)
             test_acc = self.eval(test_loader)
 
-            logx.msg('Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Total Time: %.3fs' % (
-                e, len(train_loader.dataset), train_acc, test_acc, time.time() - t_start))
-            self.scheduler.step()
-            self.scheduler_adv.step()
+            logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
+                self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, self.loss_num, time.time() - t_start))
+            
+            
 
         #     if e % 10 == 0:
         #         torch.save(self.model.state_dict(), os.path.join(
@@ -218,3 +251,7 @@ class TrainTargetAdvReg(Trainer):
 
         # torch.save(self.model.state_dict(), os.path.join(
         #     self.log_path, "%s.pth" % self.model_save_name))
+            if e == self.epochs:
+                log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
+                            "Train Acc": train_acc, "Test Acc": test_acc, "Loss": self.loss_num, "Total Time" : time.time() - t_start}
+                save_dict_to_yaml(log_dict, f'{self.log_path}/train_log.yaml')

@@ -49,7 +49,7 @@ from utils import add_new_last_layer, get_dropout_fc_layers, get_target_model, g
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
 
-    parser.add_argument('--batch_size', type=int, default=512,
+    parser.add_argument('--batch_size', type=int, default=128,
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=10,
                         help='num of workers to use')
@@ -96,19 +96,7 @@ def parse_args():
     
 
 
-def evaluate(args, model, dataloader):
-    model.eval()
-    correct = 0
-    total = 0
-    for data in dataloader:
-        inputs, labels = data
-        inputs, labels = inputs.to(args.device), labels.to(args.device)
-        outputs = model(inputs)
-        _, predicted = outputs.max(1)
-        total += labels.size(0)
-        correct += predicted.eq(labels).sum().item()
-    model.train()
-    return correct / total
+
 
 
 if __name__ == "__main__":
@@ -121,16 +109,20 @@ if __name__ == "__main__":
     os.environ['PYTHONHASHSEED'] = str(seed)
     s = GetDataLoaderTarget(opt)
     #split_num = [0.25,0,0.25,0.25,0,0.25]
-    target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =opt.batch_size, num_workers =opt.num_workers)
+    if opt.inference:
+        target_train_loader, target_test_loader, inference_loader,shadow_train_loader, shadow_test_loader  = s.get_data_supervised_inference(batch_size =opt.batch_size, num_workers =opt.num_workers)
+        
+    else:
+        target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =opt.batch_size, num_workers =opt.num_workers)
 
 
     
-    # 选择是训练target model 还是训练shadow model
+    #  target model  shadow model
     if opt.mode == "target":
         train_loader, test_loader = target_train_loader, target_test_loader
         
-        # train_loader is a dataloader, using next(), feature shape is [128,3,32,32], label shape [128]
-    # 
+    # train_loader is a dataloader, using next(), feature shape is [128,3,32,32], label shape [128]
+    
     elif opt.mode == "shadow":
         train_loader, test_loader = shadow_train_loader, shadow_test_loader
     else:
@@ -180,7 +172,7 @@ if __name__ == "__main__":
     elif opt.training_type == "AdvReg":
 
         total_evaluator = TrainTargetAdvReg(
-            model=target_model, epochs=opt.epochs, log_path=save_pth)
+            model=target_model, args = opt,  log_path=save_pth)
         total_evaluator.train(train_loader, inference_loader, test_loader)
         model = total_evaluator.model
 
