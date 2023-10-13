@@ -26,7 +26,6 @@ from defenses.membership_inference.LogitClip import TrainTargetLogitClip
 
 from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
 
-from models.resnet import resnet20
 from tqdm import tqdm
 import torch
 import torch.nn as nn

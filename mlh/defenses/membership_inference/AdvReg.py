@@ -41,7 +41,7 @@ from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
 class AttackAdvReg(nn.Module):
     def __init__(self, posterior_dim, class_dim):
         self.posterior_dim = posterior_dim
-        self.class_dim = posterior_dim
+        self.class_dim = class_dim
         super(AttackAdvReg, self).__init__()
         self.features = nn.Sequential(
             nn.Linear(self.posterior_dim, 1024),
@@ -152,7 +152,7 @@ class TrainTargetAdvReg(Trainer):
 
             for img, label in data_laoder:
                 img, label = img.to(self.device), label.to(self.device)
-                logits = self.model.eval().forward(img)
+                logits = self.model(img)
 
                 predicted = torch.argmax(logits, dim=1)
                 total += label.size(0)

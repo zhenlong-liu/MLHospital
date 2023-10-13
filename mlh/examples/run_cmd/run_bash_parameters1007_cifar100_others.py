@@ -62,7 +62,7 @@ if __name__ == "__main__":
                             params["tau"] = tau
                             
                             cmd1, cmd2 = generate_cmd_hup(params,gpu0,gpu1)
-                            futures.append(executor1.submit(run_command, cmd1))
+                            #futures.append(executor1.submit(run_command, cmd1))
                             futures.append(executor2.submit(run_command, cmd2))
             
         # 等待所有任务完成

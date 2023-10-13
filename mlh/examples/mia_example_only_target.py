@@ -116,8 +116,12 @@ if __name__ == "__main__":
     os.environ['PYTHONHASHSEED'] = str(seed)
     
     
-    
-    target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
+    if args.inference:
+        target_train_loader, target_test_loader, _,shadow_train_loader, shadow_test_loader  = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers)
+        
+    else:
+        target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers)
+    #target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
 
     target_model = get_target_model(name= args.model, num_classes=args.num_class)
     shadow_model = get_target_model(name= args.model, num_classes=args.num_class)
