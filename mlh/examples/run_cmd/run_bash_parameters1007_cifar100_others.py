@@ -16,11 +16,11 @@ if __name__ == "__main__":
     
     
     params = {
-    'python': "../train_target_models_noinference.py",
+    'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
     "dataset": "CIFAR100",
     "num_class": 100,
     'log_path': '../save_adj', # '../save_p2'
-    'training_type': 'NormalRelaxLoss', # 
+    'training_type': 'AdvReg', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
     'epochs': 150, # 100
@@ -34,12 +34,13 @@ if __name__ == "__main__":
     'batch_size' : 128,
     "num_workers" : 8,
     "loss_adjust" : None,
+    "inference" : None,
     "gamma" :1.
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    loss_function =["relax"]
+    loss_function =["advreg"]
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))
     
     

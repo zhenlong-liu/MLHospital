@@ -24,7 +24,7 @@ import torchvision.transforms as transforms
 import torch
 import numpy as np
 from io import RawIOBase
-from data_preprocessing.dataset_preprocessing import prepare_dataset, cut_dataset, prepare_dataset_ni, prepare_inference_dataset, prepare_dataset_target
+from data_preprocessing.dataset_preprocessing import prepare_dataset, cut_dataset, prepare_dataset_ni, prepare_inference_dataset, prepare_dataset_target, prepare_dataset_inference
 from torchvision import datasets
 from PIL import Image
 from tqdm import tqdm
@@ -112,13 +112,11 @@ class GetDataLoaderTarget(object):
         
         transform_list = [transforms.Resize(
             (self.input_shape[0], self.input_shape[0])), ]
-        # 初始时，它只包含一个 transforms.Resize 操作，用于调整图像大小至 (self.input_shape[0], self.input_shape[0])
         
         if use_transform == "simple":
             transform_list += [transforms.RandomCrop(
                 32, padding=4), transforms.RandomHorizontalFlip(), ]
-        # transforms.RandomCrop(32, padding=4)：随机裁剪图像为大小为 32x32 的区域，padding=4 表示在图像周围填充 4 个像素。
-        # transforms.RandomHorizontalFlip()：随机水平翻转图像
+      
             print("add simple data augmentation!")
             ## 是在此处做的print
         transform_list.append(transforms.ToTensor())
@@ -129,7 +127,7 @@ class GetDataLoaderTarget(object):
 
         transform_ = transforms.Compose(transform_list)
         return transform_
-        # 得到的 transform 对象可以应用于数据加载器中，对图像进行预处理。
+
     # def get_data_transform(self, dataset):
     #     train_transform_list = [transforms.Resize(
     #         (self.input_shape[0], self.input_shape[0])), ]
@@ -202,7 +200,40 @@ class GetDataLoaderTarget(object):
         
 
         return target_train_loader, target_test_loader
-    
+    def get_data_supervised_inference(self, batch_size=128, num_workers=8, select_num=None):
+        # inference 1/5
+        # self.args.dataset default CIFAR10
+        train_transform = self.get_data_transform(self.args.dataset)
+        test_transform = self.get_data_transform(self.args.dataset)
+
+        dataset = self.get_dataset(train_transform, test_transform)
+
+        target_train, target_test,inference, shadow_train, shadow_test = prepare_dataset_inference(
+            dataset, select_num=select_num)
+
+        print("Preparing dataloader!")
+        print("dataset: ", len(dataset))
+        print("target_train: %d \t target_test: %s inference_dataset: %s"  %
+            (len(target_train), len(target_test), len(inference)))
+
+        target_train_loader = torch.utils.data.DataLoader(
+            target_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+        
+        
+        target_test_loader = torch.utils.data.DataLoader(
+            target_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+        
+        inference_data_loader = torch.utils.data.DataLoader(
+            inference, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+        
+        
+        shadow_train_loader = torch.utils.data.DataLoader(
+            shadow_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+        
+        shadow_test_loader = torch.utils.data.DataLoader(
+            shadow_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+
+        return target_train_loader, target_test_loader,inference_data_loader, shadow_train_loader, shadow_test_loader
     
     def get_data_supervised_ni(self, batch_size=128, num_workers=2, select_num=None):
         # 没有inference
@@ -238,6 +269,15 @@ class GetDataLoaderTarget(object):
     
     def get_ordered_dataset(self, target_dataset):
         """
+    
+        Sorts and returns a dataset based on the labels of the data points.
+
+        Parameters:
+        - target_dataset (Dataset): The dataset to be sorted.
+
+        Returns:
+        - Subset: The sorted dataset.
+
         Inspired by https://stackoverflow.com/questions/66695251/define-manually-sorted-mnist-dataset-with-batch-size-1-in-pytorch
         """
         label = np.array([row[1] for row in target_dataset])
@@ -271,7 +311,7 @@ class GetDataLoaderTarget(object):
         target_inference_sorted = self.get_ordered_dataset(target_inference) # dataset
         shadow_train_sorted = self.get_ordered_dataset(shadow_train)
         shadow_inference_sorted = self.get_ordered_dataset(shadow_inference)
-
+ 
 
         start_index_target_inference = self.get_label_index(
             target_inference_sorted)

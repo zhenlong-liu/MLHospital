@@ -40,8 +40,7 @@ from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
 
 
 class TrainTargetNormalLoss(Trainer):
-    def __init__(self, model, args, train_loader, loss_type ="ce", device="cuda:0", num_classes=10, epochs=100, learning_rate=0.01, 
-                momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
+    def __init__(self, model, args, train_loader, loss_type ="ce", device="cuda:0", num_classes=10, epochs=100, learning_rate=0.01, momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
 
         super().__init__()
         
