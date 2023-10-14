@@ -7,7 +7,7 @@ from utility.main_parse import add_argument_parameter
 
 from defenses.membership_inference.NormalRelaxLoss import TrainTargetNormalRelaxLoss
 from mlh.defenses.membership_inference.Mixup_no_inf import TrainTargetMixup
-
+import copy
 import torchvision
 import utils
 from defenses.membership_inference.loss_function import get_loss
@@ -17,9 +17,7 @@ from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothi
 from defenses.membership_inference.MixupMMD import TrainTargetMixupMMD
 from defenses.membership_inference.PATE import TrainTargetPATE
 from defenses.membership_inference.Normal import TrainTargetNormal
-
-from defenses.membership_inference.logit_norm import TrainTargetLogitsNorm
-
+from defenses.membership_inference.KnowledgeDistillation import TrainTargetKnowledgeDistillation
 from defenses.membership_inference.logit_norm import LogitNormLoss
 
 from defenses.membership_inference.LogitClip import TrainTargetLogitClip
@@ -92,9 +90,25 @@ def parse_args():
 
     return args
 
+def load_teacher_model(model,teacher_path ,device):
+    """
+    Load a teacher model from the given path.
+    Returns:
+        MyModel: The loaded model.
+    """
+    # Ensure the model path exists
+    if not os.path.exists(teacher_path):
+        raise FileNotFoundError(f"No model found at {teacher_path}")
+    # Move model to appropriate device
+    model_copy = copy.deepcopy(model)
+    model_copy = model_copy.to(device)
+    # Load the state dict into the model
+    model_copy.load_state_dict(torch.load(teacher_path, map_location=device))
     
+    # Set the model to evaluation mode
+    model_copy.eval()
 
-
+    return model_copy
 
 
 
@@ -108,7 +122,7 @@ if __name__ == "__main__":
     os.environ['PYTHONHASHSEED'] = str(seed)
     s = GetDataLoaderTarget(opt)
     #split_num = [0.25,0,0.25,0.25,0,0.25]
-    if opt.inference:
+    if opt.inference:  
         target_train_loader, target_test_loader, inference_loader,shadow_train_loader, shadow_test_loader  = s.get_data_supervised_inference(batch_size =opt.batch_size, num_workers =opt.num_workers)
         
     else:
@@ -148,7 +162,7 @@ if __name__ == "__main__":
     elif opt.training_type == "NormalLoss":
         
         total_evaluator = TrainTargetNormalLoss(
-            model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, num_classes= opt.num_class, epochs=opt.epochs, log_path=save_pth)
+            model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
 
     elif opt.training_type == "Dropout":
@@ -159,7 +173,11 @@ if __name__ == "__main__":
             model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, num_classes= opt.num_class, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
     
-    
+    elif opt.training_type == "KnowledgeDistillation":
+        teacher_model = load_teacher_model(target_model, opt.teacher_path, opt.device)
+        total_evaluator = TrainTargetKnowledgeDistillation(model= target_model,teacher_model =teacher_model ,args=opt,log_path=save_pth, T= opt.tau)
+        
+        total_evaluator.train(train_loader, test_loader)
     
     
     elif opt.training_type == "LabelSmoothing":

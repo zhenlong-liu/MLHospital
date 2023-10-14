@@ -130,6 +130,14 @@ def get_imagenet_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "gamma": [1]
     }
     
+    kd_param ={
+        "alpha": [1],
+        "temp": [1],
+        "tau": [1],
+        "gamma": [1]
+    }
+    
+    
     loss_type_param_space = {
         "ce": ce_param,
         "ce_ls":ce_ls_param,
@@ -148,7 +156,8 @@ def get_imagenet_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "concave_loss":concave_loss_param,
         "gce_mixup":gce_mixup_param,
         "phuber": phuber_param,
-        "relax" :relaxloss_param
+        "relax" :relaxloss_param,
+        "kd": kd_param
     }
     
     

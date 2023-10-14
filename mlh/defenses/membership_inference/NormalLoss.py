@@ -40,19 +40,17 @@ from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
 
 
 class TrainTargetNormalLoss(Trainer):
-    def __init__(self, model, args, train_loader, loss_type ="ce", device="cuda:0", num_classes=10, epochs=100, learning_rate=0.01, momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
+    def __init__(self, model, args, momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
 
         super().__init__()
         
-        self.model = model
-        self.device = device
+        self.model = model.to(args.device)
+        self.device = args.device
         self.num_classes = args.num_class
-        self.epochs = epochs
+        self.epochs = args.epochs
         self.smooth_eps = smooth_eps
         self.args = args
-        self.loss_type = loss_type
-        self.model = self.model.to(self.device)
-        self.train_loader = train_loader
+        self.loss_type = args.loss_type
         self.learning_rate = args.learning_rate
        
         self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, weight_decay)
@@ -60,9 +58,7 @@ class TrainTargetNormalLoss(Trainer):
         
         self.scheduler = get_scheduler(scheduler_name = args.scheduler, optimizer =self.optimizer, t_max=self.epochs)
         #self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
-        if args.loss_adjust:
-            self.criterion = get_loss_adj(loss_type =self.loss_type, device=self.device, args = self.args, num_classes= self.num_classes)
-        else: self.criterion = get_loss(loss_type =self.loss_type, device=self.device, args = self.args, num_classes= self.num_classes)
+        self.criterion = self.initialize_criterion()
         
         # self.log_path = "%smodel_%s_bs_%s_dataset_%s/%s/label_smoothing_%.1f" % (self.opt.model_save_path, self.opt.model,
         # #                                                                              self.opt.batch_size, self.opt.dataset, self.opt.mode, self.opt.smooth_eps)
@@ -76,13 +72,30 @@ class TrainTargetNormalLoss(Trainer):
         logx.initialize(logdir=self.log_path,
                         coolname=False, tensorboard=False)
 
-        logx.msg(f"optimizer:{args.optimizer}, learning rate:{args.learning_rate}, scheduler:{args.scheduler}, epoches:{epochs}")
+        logx.msg(f"optimizer:{args.optimizer}, learning rate:{args.learning_rate}, scheduler:{args.scheduler}, epoches:{self.epochs}")
 
-        
-        save_namespace_to_yaml(args, f'{self.log_path}/config.yaml')
-        save_namespace_to_yaml(dict_str(get_init_args(self.criterion)), f'{self.log_path}/loss_config.yaml')
+        self.save_configs()
+       
     # 需要通过装饰器 @staticmethod 来进行修饰， 静态方法既不需要传递类对象也不需要传递实例对象（形参没有self/cls ） 。
 
+    
+    
+    def initialize_criterion(self):
+        """Initialize the loss criterion."""
+        if self.args.loss_adjust:
+            return get_loss_adj(loss_type=self.loss_type, device=self.device, args=self.args, num_classes=self.num_classes)
+        else:
+            return get_loss(loss_type=self.loss_type, device=self.device, args=self.args, num_classes=self.num_classes)
+
+    def save_configs(self):
+        """Save configurations for better reproducibility and logging."""
+        save_namespace_to_yaml(self.args, f'{self.log_path}/config.yaml')
+        save_namespace_to_yaml(dict_str(get_init_args(self.criterion)), f'{self.log_path}/loss_config.yaml')
+
+    
+    
+    
+    
     @staticmethod
     def _sample_weight_decay():
         # We selected the l2 regularization parameter from a range of 45 logarithmically spaced values between 10−6 and 105
