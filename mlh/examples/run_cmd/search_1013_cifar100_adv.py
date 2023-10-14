@@ -6,10 +6,10 @@ sys.path.append("../..")
 from generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
 from mlh.examples.run_cmd_record.parameter_space_cifar100 import get_cifar100_parameter_set
 from run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
+
+from run_cmd_record.record import save_merged_dicts_to_yaml
 import GPUtil
 import time
-from run_cmd_record.record import save_merged_dicts_to_yaml
-
 def check_gpu_memory():
         """
         Check the GPUs and return the IDs of the first two GPUs with less than 4MB memory used.
@@ -66,9 +66,8 @@ if __name__ == "__main__":
     if not found_gpus:
         print("Did not find suitable GPUs within 24 hours. Exiting the program.")
         exit()
-    
-    
-    
+    gpu0 = gpu_ids[0]
+    gpu1 = gpu_ids[1]
     
     
     
@@ -77,8 +76,7 @@ if __name__ == "__main__":
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))
     
     
-    gpu0 = gpu_ids[0]
-    gpu1 = gpu_ids[1]
+    
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         for loss in loss_function:

@@ -297,7 +297,40 @@ class GetDataLoaderTarget(object):
                 label_index.append(i)
                 start_label += 1
         return label_index
+    
+    def get_sorted_data_mixup_mmd_one_inference(self):
 
+        train_transform = self.get_data_transform(self.args.dataset)
+        test_transform = self.get_data_transform(self.args.dataset)
+        dataset = self.get_dataset(train_transform, test_transform)
+
+        target_train, _,  inference, shadow_train, _ = prepare_dataset_inference(
+            dataset, select_num=None)
+            # sort by label
+        target_train_sorted = self.get_ordered_dataset(target_train)
+        target_inference_sorted = self.get_ordered_dataset(inference) # dataset
+        shadow_train_sorted = self.get_ordered_dataset(shadow_train)
+        shadow_inference_sorted = self.get_ordered_dataset(inference)
+ 
+
+        start_index_target_inference = self.get_label_index(
+            target_inference_sorted)
+        start_index_shadow_inference = self.get_label_index(
+            shadow_inference_sorted)
+
+        # note that we set the inference loader's batch size to 1
+        target_train_sorted_loader = torch.utils.data.DataLoader(
+            target_train_sorted, batch_size=self.args.batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True)
+        target_inference_sorted_loader = torch.utils.data.DataLoader(
+            target_inference_sorted, batch_size=self.args.batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True)
+        shadow_train_sorted_loader = torch.utils.data.DataLoader(
+            shadow_train_sorted, batch_size=self.args.batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True)
+        shadow_inference_sorted_loader = torch.utils.data.DataLoader(
+            shadow_inference_sorted, batch_size=self.args.batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True)
+
+        return target_train_sorted_loader, target_inference_sorted_loader, shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_target_inference, start_index_shadow_inference, target_inference_sorted, shadow_inference_sorted
+    
+    
     def get_sorted_data_mixup_mmd(self):
 
         train_transform = self.get_data_transform(self.args.dataset)

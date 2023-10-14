@@ -15,6 +15,8 @@ from defenses.membership_inference.AdvReg import TrainTargetAdvReg
 from defenses.membership_inference.DPSGD import TrainTargetDP
 from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothing
 from defenses.membership_inference.MixupMMD import TrainTargetMixupMMD
+from defenses.membership_inference.MixupMMDLoss import TrainTargetMixupMMDLoss
+
 from defenses.membership_inference.PATE import TrainTargetPATE
 from defenses.membership_inference.Normal import TrainTargetNormal
 from defenses.membership_inference.KnowledgeDistillation import TrainTargetKnowledgeDistillation
@@ -122,14 +124,13 @@ if __name__ == "__main__":
     os.environ['PYTHONHASHSEED'] = str(seed)
     s = GetDataLoaderTarget(opt)
     #split_num = [0.25,0,0.25,0.25,0,0.25]
+    
+    
     if opt.inference:  
         target_train_loader, target_test_loader, inference_loader,shadow_train_loader, shadow_test_loader  = s.get_data_supervised_inference(batch_size =opt.batch_size, num_workers =opt.num_workers)
         
     else:
         target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =opt.batch_size, num_workers =opt.num_workers)
-
-
-    
     #  target model  shadow model
     if opt.mode == "target":
         train_loader, test_loader = target_train_loader, target_test_loader
@@ -207,22 +208,22 @@ if __name__ == "__main__":
     
     elif opt.training_type == "MixupMMD":
 
-        target_train_sorted_loader, target_inference_sorted_loader, shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_target_inference, start_index_shadow_inference, target_inference_sorted, shadow_inference_sorted = s.get_sorted_data_mixup_mmd()
+        target_train_sorted_loader, target_inference_sorted_loader, shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_target_inference, start_index_shadow_inference, target_inference_sorted, shadow_inference_sorted = s.get_sorted_data_mixup_mmd_one_inference()
         if opt.mode == "target":
             train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = target_train_sorted_loader, target_inference_sorted_loader, start_index_target_inference, target_inference_sorted
 
         elif opt.mode == "shadow":
             train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_shadow_inference, shadow_inference_sorted
 
-        total_evaluator = TrainTargetMixupMMD(
-            model=target_model, epochs=opt.epochs, log_path=save_pth)
+        total_evaluator = TrainTargetMixupMMDLoss(
+            model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, train_loader_ordered,
                               inference_loader_ordered, test_loader, starting_index, inference_sorted)
 
     elif opt.training_type == "PATE":
 
         total_evaluator = TrainTargetPATE(
-            model=target_model, epochs=opt.epochs, log_path=save_pth)
+            model=target_model, args = opt, log_path=save_pth)
         total_evaluator.train(train_loader, inference_loader, test_loader)
 
     else:
