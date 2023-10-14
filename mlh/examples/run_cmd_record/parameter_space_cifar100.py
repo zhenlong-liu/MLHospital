@@ -3,6 +3,14 @@
 
 
 def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresnet"):
+    
+    ce_param = {
+        "alpha": [1],
+        "temp": [1],
+        "tau": [1],
+        "gamma": [1],
+    }
+    
     ncemae_param ={
         "alpha": [0.1, 0.5,1, 5, 10],
         "temp": [0.1, 0.5,1, 5,10],
@@ -126,7 +134,16 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "gamma": [1]
        
     }
+    
+    kd_param ={
+        "alpha": [1],
+        "temp": [1],
+        "tau": [1,2,5,10,20,50,100],
+        "gamma": [1]
+    }
+    
     loss_type_param_space = {
+        "ce":ce_param,
         "ce_ls":ce_ls_param,
         "ereg":ereg_param,
         "focal":focal_param,
@@ -144,7 +161,8 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "gce_mixup":gce_mixup_param,
         "phuber": phuber_param,
         "relax" :relaxloss_param,
-        "advreg":advreg_param
+        "advreg":advreg_param,
+        "KnowledgeDistillation": kd_param,
     }
     
     

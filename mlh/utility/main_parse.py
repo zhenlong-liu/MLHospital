@@ -32,6 +32,8 @@ def add_argument_parameter(parser):
     parser.add_argument('--gamma', type=float, default=1, help='adjust parameter')
     parser.add_argument('--loss_adjust', action='store_true', default=False, help='if invoke loss_adj function')
     parser.add_argument('--inference', action='store_true', default=False, help='if spilt inference dataset')
+    parser.add_argument('--teacher_path', type=str, default="../save0/CIFAR100/densenet121/NormalLoss/target/ce/epochs150/seed0/1/1/1/1/densenet121.pth", help='teacher path for Knowledge Distillation')
+    
 def save_namespace_to_yaml(namespace, output_path):
     """
     Save a Namespace object to a YAML file.
