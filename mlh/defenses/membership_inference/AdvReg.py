@@ -103,7 +103,6 @@ class TrainTargetAdvReg(Trainer):
         self.model.to(self.device)
         self.attack_model.to(self.device)
         
-        self.loss_num = None
         """
         self.optimizer = torch.optim.SGD(self.model.parameters(
         ), self.learning_rate, momentum=momentum, weight_decay=self.weight_decay)

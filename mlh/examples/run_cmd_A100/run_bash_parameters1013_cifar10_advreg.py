@@ -32,7 +32,7 @@ if __name__ == "__main__":
     #'scheduler' : 'multi_step_wide_resnet',
     "temp" : 1,
     'batch_size' : 128,
-    "num_workers" : 8,
+    "num_workers" : 1,
     "loss_adjust" : None,
     "inference" : None,
     "gamma" :1.
@@ -91,8 +91,8 @@ if __name__ == "__main__":
 
         concurrent.futures.wait(futures)
         # tmux kill-session -t 0
-        # tmux new -s 1
-        # conda activate mlh
-        # cd mlh/examples/run_cmd/
+        # tmux new -s 0
+        # conda activate ml-hospital
+        # cd mlh/examples/run_cmd_A100/
         # python run_bash_parameters1013_cifar10_advreg.py
         
