@@ -94,6 +94,14 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
         "temp": [1],
         "tau": [0.8,1,1.2,1.4,1.6,1.8],
         "gamma": [1]}
+    
+    kd_param ={
+        "alpha": [1],
+        "temp": [1],
+        "tau": [1,2,5,10,20,50,100],
+        "gamma": [1]
+    }
+    
     loss_type_param_space = {
         "focal": focal_param,
         "gce": gce_param,
@@ -107,7 +115,8 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
         "ce_ls": ce_ls_param,
         "ereg": ereg_param,
         "phuber":phuber_param,
-        "advreg":advreg_param
+        "AdvReg":advreg_param,
+        "KnowledgeDistillation": kd_param,
     }
 
     return loss_type_param_space.get(loss_type)

@@ -161,7 +161,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "gce_mixup":gce_mixup_param,
         "phuber": phuber_param,
         "relax" :relaxloss_param,
-        "advreg":advreg_param,
+        "AdvReg":advreg_param,
         "KnowledgeDistillation": kd_param,
     }
     
