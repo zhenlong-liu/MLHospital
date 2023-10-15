@@ -191,7 +191,7 @@ class TrainTargetMixupMMDLoss(TrainTargetNormalLoss):
                         train_labels)[i].to(self.device)
                     this_class_start = starting_index[i]
 
-                    if (i < self.num_class - 1):
+                    if (i < self.num_classes - 1):
                         this_class_end = starting_index[i+1]-1
                     else:
                         this_class_end = len(inference_sorted) - 1
