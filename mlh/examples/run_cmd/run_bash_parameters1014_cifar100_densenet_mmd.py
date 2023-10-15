@@ -68,7 +68,7 @@ if __name__ == "__main__":
     gpu1 = gpu_ids[1]
     
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
         futures = []
         for method in denfense_method:
             
