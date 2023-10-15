@@ -109,7 +109,8 @@ if __name__ == "__main__":
     shadow_model.load_state_dict(torch.load(
         f'{args.log_path}/{args.dataset}/{args.training_type}/shadow/{args.loss_type}/{args.temp}/{args.model}.pth'))
     shadow_model = shadow_model.to(args.device)
-    
+    target_model.eval()
+    shadow_model.eval()
     # generate attack dataset
     # or "black-box, black-box-sorted", "black-box-top3", "metric-based", and "label-only"
     attack_type = args.attack_type
@@ -150,3 +151,15 @@ if __name__ == "__main__":
                 attack_train_dataset=attack_dataset.attack_train_dataset,
                 attack_test_dataset=attack_dataset.attack_test_dataset,
                 batch_size=128)
+        elif "white_box" in attack_type:
+            attack_model = MetricBasedMIA(
+                num_class=args.num_class,
+                device=args.device,
+                attack_type=attack_type,
+                attack_train_dataset=attack_dataset.attack_train_dataset,
+                attack_test_dataset=attack_dataset.attack_test_dataset,
+                batch_size=128)
+
+
+#self.target_gird_x, self.target_gird_w =  self.target_model_parser.combined_gradient_attack(target_train_dataloader)
+ #       self.shadow_grid_x, self.shadow_grid_w =  self.shadow_model_parser.combined_gradient_attack(target_train_dataloader)

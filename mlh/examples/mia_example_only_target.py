@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
     else:
         attack_dataset = AttackDataset(args, attack_type, target_model, shadow_model,
-                                target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader)
+                                        target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader)
 
 
         # train attack model
@@ -195,4 +195,12 @@ if __name__ == "__main__":
                 attack_test_dataset=attack_dataset.attack_test_dataset,
                 train_loader = target_train_loader,
                 save_path = save_path,
+                batch_size=128)
+        elif "white_box" in attack_type:
+            attack_model = MetricBasedMIA(
+                num_class=args.num_class,
+                device=args.device,
+                attack_type=attack_type,
+                attack_train_dataset=attack_dataset.attack_train_dataset,
+                attack_test_dataset=attack_dataset.attack_test_dataset,
                 batch_size=128)

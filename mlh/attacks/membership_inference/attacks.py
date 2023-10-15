@@ -28,7 +28,7 @@ sys.path.append('../..')
 sys.path.append('../../..')
 from mlh.utility.main_parse import save_dict_to_yaml, save_namespace_to_yaml
 # from mlh.models.utils import FeatureExtractor, VerboseExecution
-
+from scipy.stats import norm, kurtosis, skew
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -96,7 +96,70 @@ class ModelParser():
         self.args = args
         self.device = self.args.device
         self.model = model.to(self.device)
+        self.model.eval()
         self.criterion = get_loss(loss_type= args.loss_type, device = args.device, args= args, num_classes=args.num_class)
+        
+    def compute_norm_metrics(gradient):
+        """Compute the metrics"""
+        l1 = np.linalg.norm(gradient, ord=1)
+        l2 = np.linalg.norm(gradient)
+        Min = np.linalg.norm(gradient, ord=-np.inf)  ## min(abs(x))
+        Max = np.linalg.norm(gradient, ord=np.inf)  ## max(abs(x))
+        Mean = np.average(gradient)
+        Skewness = skew(gradient)
+        Kurtosis = kurtosis(gradient)
+        return [l1, l2, Min, Max, Mean, Skewness, Kurtosis]
+    
+    def combined_gradient_attack(self, dataloader):
+        """Gradient attack w.r.t input and weights"""
+        self.model.eval()
+
+        # store results
+        names = ['l1', 'l2', 'Min', 'Max', 'Mean', 'Skewness', 'Kurtosis']
+        all_stats_x = {name: [] for name in names}
+        all_stats_w = {name: [] for name in names}
+
+        # iterate over batches
+        for batch_idx, (inputs, targets) in enumerate(tqdm(dataloader)):
+            inputs, targets = inputs.to(self.device), targets.to(self.device)
+            inputs.requires_grad = True  # Enable gradient computation w.r.t inputs
+
+            # Compute output and loss
+            outputs = self.model(inputs)
+            loss = nn.CrossEntropyLoss(outputs, targets)
+
+            # Zero gradients, perform a backward pass, and get the gradients
+            self.model.zero_grad()
+            loss.backward()
+
+            # Gradients w.r.t input
+            gradients_x = inputs.grad.view(inputs.size(0), -1).cpu().numpy()
+
+            # Gradients w.r.t weights
+            grads_onesample = []
+            for param in self.model.parameters():
+                grads_onesample.append(param.grad.view(-1))
+            gradient_w = torch.cat(grads_onesample).cpu().numpy()
+
+            # Compute and store statistics for each sample in the batch
+            for gradient in gradients_x:
+                stats = self.compute_norm_metrics(gradient)
+                for i, stat in enumerate(stats):
+                    all_stats_x[names[i]].append(stat)
+
+            # Assuming the gradients w.r.t weights are the same for all samples in the batch
+            stats = self.compute_norm_metrics(gradient_w)
+            for i, stat in enumerate(stats):
+                all_stats_w[names[i]].extend([stat] * len(inputs))
+
+        # Convert lists to numpy arrays
+        for name in names:
+            all_stats_x[name] = np.array(all_stats_x[name])
+            all_stats_w[name] = np.array(all_stats_w[name])
+
+        return all_stats_x, all_stats_w
+
+        return all_stats
     def get_posteriors(self, dataloader):
         info = {}
         target_list = []
@@ -177,28 +240,32 @@ class AttackDataset():
         self.attack_type = attack_type
         self.target_model_parser = ModelParser(args, target_model)
         self.shadow_model_parser = ModelParser(args, shadow_model)
-
-        # if attack_type == "black-box":
-        self.target_train_info = self.target_model_parser.get_posteriors(
-            target_train_dataloader)
-        self.target_test_info = self.target_model_parser.get_posteriors(
-            target_test_dataloader)
-        self.shadow_train_info = self.shadow_model_parser.get_posteriors(
-            shadow_train_dataloader)
-        self.shadow_test_info = self.shadow_model_parser.get_posteriors(
-            shadow_test_dataloader)
-        #print(self.target_train_info)
-        #exit()
-        # _info contains posteriors, it is prob
-
-
-
-
-
-
-        # get attack dataset
-        self.attack_train_dataset, self.attack_test_dataset = self.generate_attack_dataset()
-
+        
+        if attack_type == "white_box":
+            self.attack_test_dataset =  (self.target_model_parser.combined_gradient_attack(target_train_dataloader),
+                                         self.target_model_parser.combined_gradient_attack(target_test_dataloader))
+            
+            
+            self.attack_train_dataset =  (self.shadow_model_parser.combined_gradient_attack(shadow_train_dataloader), 
+                                          self.shadow_model_parser.combined_gradient_attack(shadow_test_dataloader))
+        
+        else:
+            # if attack_type == "black-box":
+            self.target_train_info = self.target_model_parser.get_posteriors(
+                target_train_dataloader)
+            self.target_test_info = self.target_model_parser.get_posteriors(
+                target_test_dataloader)
+            self.shadow_train_info = self.shadow_model_parser.get_posteriors(
+                shadow_train_dataloader)
+            self.shadow_test_info = self.shadow_model_parser.get_posteriors(
+                shadow_test_dataloader)
+            #print(self.target_train_info)
+            #exit()
+            # _info contains posteriors, it is prob
+            # get attack dataset
+            self.attack_train_dataset, self.attack_test_dataset = self.generate_attack_dataset()
+     
+    
     def parse_info(self, info, label=0):
         mem_label = [label] * len(info["targets"])
         original_label = info["targets"]
@@ -320,16 +387,19 @@ class MetricBasedMIA(MembershipInferenceAttack):
         self.attack_type = attack_type
         self.attack_train_dataset = attack_train_dataset
         self.attack_test_dataset = attack_test_dataset
+        """
         self.attack_train_loader = torch.utils.data.DataLoader(
             attack_train_dataset, batch_size=batch_size, shuffle=True)
         self.attack_test_loader = torch.utils.data.DataLoader(
             attack_test_dataset, batch_size=batch_size, shuffle=False)
-
+        """
         self.loss_type = args.loss_type
         self.save_path = save_path
         self.criterion = get_loss(loss_type =self.loss_type, device=self.device, args = self.args)
         if self.attack_type == "metric-based":
             self.metric_based_attacks()
+        elif  self.attack_type == "white_box":
+            self.white_box_grid_attacks()
         else:
             raise ValueError("Not implemented yet")
         
@@ -342,6 +412,29 @@ class MetricBasedMIA(MembershipInferenceAttack):
                 new_dict[new_key] = float(value_tuple[i])
             
         return new_dict
+    def white_box_grid_attacks(self):
+        names = ['l1', 'l2', 'Min', 'Max', 'Mean', 'Skewness', 'Kurtosis']
+        #self.s_tr_conf[] = self.attack_train_dataset
+        shadow_train,  shadow_test = self.attack_train_dataset
+        target_train,  target_test = self.attack_test_dataset
+        name_list = ["acc", "precision" , "recall", "f1", "auc"]
+        
+        wb_dict= {}
+        
+        for name in names:
+            train_tuple, test_tuple, _ = self._mem_inf_thre(
+            f"{name} ", -shadow_train[name], -shadow_test[name], -target_train[name], -target_test[name])
+            for i in range(len(name_list)):
+                key1 = f"{name}_train_{name_list[i]}"
+                key2 = f"{name}_test_{name_list[i]}"
+                wb_dict[key1] = float(train_tuple[i])
+                wb_dict[key2] = float(test_tuple[i])
+        
+                self.print_result("key1", train_tuple)
+                self.print_result("key2", test_tuple)
+        
+        save_dict_to_yaml(wb_dict, f"{self.save_path}/white_box_grid_attacks.yaml")
+
     
     def metric_based_attacks(self):
         """
@@ -390,7 +483,6 @@ class MetricBasedMIA(MembershipInferenceAttack):
                     "cross entropy loss test": test_tuple4,
                     }
         name_list = [" acc", " precision" , " recall", " f1", " auc"]
-        aa = self.tuple_to_dict(name_list, mia_dict)
         #print(aa)
         #print(aa["confidence test acc"])
         
@@ -902,3 +994,5 @@ class LabelOnlyMIA(MembershipInferenceAttack):
         fpr, tpr, _ = roc_curve(groundtruth, prediction, pos_label=1, drop_intermediate=False)
         AUC = round(auc(fpr, tpr), 4)
         return AUC
+    
+    

@@ -40,7 +40,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    loss_function =["ce"]
+    loss_function =["concave_exp"]
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))
     
     
@@ -83,12 +83,14 @@ if __name__ == "__main__":
                             params["gamma"] = gamma
                             params["tau"] = tau
                             
-                            cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
-                            cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                            #cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
+                            #cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                             
-                            futures.append(executor1.submit(run_command, cmd3))
-                            futures.append(executor2.submit(run_command, cmd4))
-
+                            cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                            
+                            #futures.append(executor1.submit(run_command, cmd3))
+                            #futures.append(executor2.submit(run_command, cmd4))
+                            
         concurrent.futures.wait(futures)
         # tmux kill-session -t 0
         # tmux new -s 1
