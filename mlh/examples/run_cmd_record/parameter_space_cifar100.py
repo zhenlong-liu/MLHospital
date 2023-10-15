@@ -132,7 +132,6 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "tau": [0.8,1.8],
         # "tau": [0.8,1,1.2,1.4,1.6,1.8],
         "gamma": [1]
-       
     }
     
     kd_param ={

@@ -32,7 +32,7 @@ if __name__ == "__main__":
     "dataset": "CIFAR10",
     "num_class": 10,
     'log_path': '../save_adj', # '../save_p2'
-    'training_type': 'KnowledgeDistillation',
+    'training_type': 'MixupMMD',
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.01,
     'epochs': 120, # 100
@@ -48,14 +48,13 @@ if __name__ == "__main__":
     "loss_adjust" : None,
     "inference": None,
     "gamma" :1.0,
-    "teacher_path": "../save_adj/CIFAR10/resnet34/NormalLoss/target/ce/epochs120/seed0/1/1/1/1/resnet34.pth"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     
     #loss_function =["concave_exp","concave_log","gce","flood","taylor","ce_ls","ereg","focal","ncemae", "mixup_py","phuber"]
     # 
-    denfense_method =["KnowledgeDistillation"]
+    denfense_method =["MixupMMD"]
     
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
@@ -128,4 +127,4 @@ if __name__ == "__main__":
         # tmux new -s <session-name>
         # conda activate ml-hospital
         # cd mlh/examples/run_cmd_A100/
-        # python search_1014_cifar10_resnet34_kd.py
+        # python search_1014_cifar10_resnet34_mixupmmd.py

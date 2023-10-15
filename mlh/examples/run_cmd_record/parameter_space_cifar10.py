@@ -102,6 +102,14 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
         "gamma": [1]
     }
     
+    mixupmmd_param ={
+        "alpha": [1],
+        "temp": [1],
+        #"tau": [3],
+        "tau": [0.01, 0.02,0.05 ,0.1, 0.2, 0.5,1,2,4,8],
+        "gamma": [1]
+    }
+    
     loss_type_param_space = {
         "focal": focal_param,
         "gce": gce_param,
@@ -117,6 +125,7 @@ def get_cifar10_parameter_set(loss_type, dataset = "cifar10", model ="resnet34")
         "phuber":phuber_param,
         "AdvReg":advreg_param,
         "KnowledgeDistillation": kd_param,
+        "MixupMMD": mixupmmd_param,
     }
 
     return loss_type_param_space.get(loss_type)
