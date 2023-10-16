@@ -198,9 +198,12 @@ if __name__ == "__main__":
                 batch_size=128)
         elif "white_box" in attack_type:
             attack_model = MetricBasedMIA(
+                args = args,
                 num_class=args.num_class,
                 device=args.device,
                 attack_type=attack_type,
                 attack_train_dataset=attack_dataset.attack_train_dataset,
                 attack_test_dataset=attack_dataset.attack_test_dataset,
+                train_loader = target_train_loader,
+                save_path = save_path,
                 batch_size=128)
