@@ -34,10 +34,11 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     concave_exp_param = {
         "alpha": [0.05],
             #[0.01, 0.05, 0.08,0.1],
-        "temp": [0.01, 0.03, 0.05],
+        "temp": [0.03],
             #[0.01,0.02,0.05,0.08, 0.1],
         "tau": [1],
-        "gamma": [2, 3 ,3.2, 4, 5, 6, 6.4]
+        "gamma": [0.05,0.1,0.2,0.4,0.8,1.6, 2.5,2.8]
+            #[2, 3 ,3.2, 4, 5, 6, 6.4]
         #[1.8, 2, 2.2,2.4,2.6, 2.8, 3 ]
             #[0.05,0.1,0.2,0.4,0.8,1.6,3.2],
     }
@@ -129,7 +130,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     advreg_param = {
         "alpha": [1],
         "temp": [1],
-        "tau": [0.8,1.8],
+        "tau": [0.01,0.02,0.05,0.1,0.2,0.4,0.6],
         # "tau": [0.8,1,1.2,1.4,1.6,1.8],
         "gamma": [1]
     }
@@ -147,6 +148,15 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "tau": [0.01, 0.02,0.05 ,0.1, 0.2, 0.5,1,2,4,8],
         "gamma": [1]
     }
+    
+    dropout_param = {
+        "alpha": [1],
+        "temp": [1],
+        #"tau": [3],
+        "tau": [0.01, 0.02,0.05 ,0.1, 0.3, 0.5, 0.7, 0.9],
+        "gamma": [1]
+    } 
+    
     loss_type_param_space = {
         "ce":ce_param,
         "ce_ls":ce_ls_param,
@@ -169,6 +179,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "AdvReg":advreg_param,
         "KnowledgeDistillation": kd_param,
         "MixupMMD": mixupmmd_param,
+        "Dropout" : dropout_param,
     }
     
     

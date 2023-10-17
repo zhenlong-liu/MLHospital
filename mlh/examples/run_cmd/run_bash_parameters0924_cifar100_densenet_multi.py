@@ -44,8 +44,8 @@ if __name__ == "__main__":
     save_merged_dicts_to_yaml(params, loss_function, "./4090_record", dataset= params.get("dataset"))
     
     
-    gpu0 = 5
-    gpu1 = 6
+    gpu0 = 1
+    gpu1 = 2
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for loss in loss_function:
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         # 等待所有任务完成
         concurrent.futures.wait(futures)
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         
         futures = []
         for loss in loss_function:   
@@ -83,13 +83,14 @@ if __name__ == "__main__":
                             params["gamma"] = gamma
                             params["tau"] = tau
                             
-                            #cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
-                            #cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                            cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
+                            cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                             
-                            cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                            cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                             
-                            #futures.append(executor1.submit(run_command, cmd3))
-                            #futures.append(executor2.submit(run_command, cmd4))
+                            futures.append(executor1.submit(run_command, cmd3))
+                            futures.append(executor1.submit(run_command, cmd4))
+                            futures.append(executor1.submit(run_command, cmd5))
                             
         concurrent.futures.wait(futures)
         # tmux kill-session -t 0

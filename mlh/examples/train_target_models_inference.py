@@ -143,7 +143,11 @@ if __name__ == "__main__":
         raise ValueError("opt.mode should be target or shadow")
     
     temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
-    target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
+    
+    if opt.training_type == "Dropout":
+        target_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout = opt.tau)
+    else: 
+        target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
 
     save_pth = generate_save_path(opt)
     #save_pth = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}/{opt.mode}/{opt.loss_type}/epochs{opt.epochs}/seed{seed}/{temp_save}'
@@ -167,11 +171,8 @@ if __name__ == "__main__":
         total_evaluator.train(train_loader, test_loader)
 
     elif opt.training_type == "Dropout":
-        new_last_layer = get_dropout_fc_layers(target_model, rate = opt.alpha)
-        add_new_last_layer(target_model, new_last_layer)
-        
         total_evaluator = TrainTargetNormalLoss(
-            model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, num_classes= opt.num_class, epochs=opt.epochs, log_path=save_pth)
+            model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
     
     elif opt.training_type == "KnowledgeDistillation":
@@ -186,7 +187,7 @@ if __name__ == "__main__":
         total_evaluator = TrainTargetLabelSmoothing(
             model=target_model, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
-
+    
     elif opt.training_type == "AdvReg":
 
         total_evaluator = TrainTargetAdvReg(

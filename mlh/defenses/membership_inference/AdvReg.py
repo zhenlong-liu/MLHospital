@@ -209,8 +209,7 @@ class TrainTargetAdvReg(Trainer):
                 torch.LongTensor).view([-1, 1]).data.to(self.device), 1)
 
             member_output = self.attack_model(output, target_one_hot_tr)
-            loss = self.criterion(output, target) + \
-                (alpha)*(torch.mean((member_output)) - 0.5)
+            loss = self.criterion(output, target) + (alpha)*(torch.mean((member_output)) - 0.5)
             self.loss_num = loss.item()
             self.optimizer.zero_grad()
             loss.backward()
