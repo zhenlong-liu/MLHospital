@@ -34,7 +34,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     concave_exp_param = {
         "alpha": [0.05],
             #[0.01, 0.05, 0.08,0.1],
-        "temp": [0.03],
+        "temp": [0.05],
             #[0.01,0.02,0.05,0.08, 0.1],
         "tau": [1],
         "gamma": [0.05,0.1,0.2,0.4,0.8,1.6, 2.5,2.8]
@@ -122,7 +122,8 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     }
     
     relaxloss_param = {
-        "alpha": [0.01,0.02,0.04,0.08,0.1,0.16, 0.2,0.25, 0.3, 0.4,0.5, 0.8,1.6,3.2],
+        "alpha": [0.001,0.005, 0.01, 0.04,0.1,0.16, 0.2, 0.4, 0.8,1.6,3.2],
+        # [0.01,0.02,0.04,0.08,0.1,0.16, 0.2,0.25, 0.3, 0.4,0.5, 0.8,1.6,3.2],
         "temp": [1],
         "tau": [1],
         "gamma": [1]
@@ -130,9 +131,11 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     advreg_param = {
         "alpha": [1],
         "temp": [1],
-        "tau": [0.01,0.02,0.05,0.1,0.2,0.4,0.6],
+        "tau": [0.01, 0.05, 0.1, 0.8, 1, 1.6],
+            #[0.01,0.02,0.05,0.1,0.2,0.4,0.6],
         # "tau": [0.8,1,1.2,1.4,1.6,1.8],
-        "gamma": [1]
+        "gamma": [1],
+        "num_workers":1,
     }
     
     kd_param ={
@@ -175,7 +178,7 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "concave_loss":concave_loss_param,
         "gce_mixup":gce_mixup_param,
         "phuber": phuber_param,
-        "relax" :relaxloss_param,
+        "RelaxLoss" :relaxloss_param,
         "AdvReg":advreg_param,
         "KnowledgeDistillation": kd_param,
         "MixupMMD": mixupmmd_param,

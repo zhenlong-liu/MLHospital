@@ -158,7 +158,7 @@ if __name__ == "__main__":
             model=target_model, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
         
-    elif opt.training_type == "NormalRelaxLoss":
+    elif opt.training_type == "RelaxLoss":
         
         total_evaluator = TrainTargetNormalRelaxLoss(
             model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, epochs=opt.epochs, log_path=save_pth)

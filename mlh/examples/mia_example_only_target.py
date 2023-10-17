@@ -47,7 +47,7 @@ def parse_args():
 
     parser.add_argument('--epochs', type=int, default=100,
                         help='number of training epochs')
-    parser.add_argument('--gpu', type=int, default=0,
+    parser.add_argument('--gpu', type=int, default=5,
                         help='gpu index used for training')
 
     # model dataset
@@ -124,12 +124,15 @@ if __name__ == "__main__":
     #target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
 
     target_model = get_target_model(name= args.model, num_classes=args.num_class)
-    shadow_model = get_target_model(name= args.model, num_classes=args.num_class)
+    
 
+    
     if args.training_type == "Dropout":
-        new_last_layer = get_dropout_fc_layers(target_model, rate = args.alpha)
-        add_new_last_layer(target_model, new_last_layer)
-        add_new_last_layer(shadow_model, new_last_layer)
+        target_model = get_target_model(name=args.model, num_classes=args.num_class, dropout = args.tau)
+        shadow_model = get_target_model(name= args.model, num_classes=args.num_class, dropout = args.tau)
+    else: 
+        target_model = get_target_model(name=args.model, num_classes=args.num_class)
+        shadow_model = get_target_model(name= args.model, num_classes=args.num_class)
     
     
     temp_save = str(args.temp).rstrip('0').rstrip('.') if '.' in str(args.temp) else str(args.temp)
