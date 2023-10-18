@@ -2,7 +2,7 @@
 
 
 
-def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresnet"):
+def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", model ="wideresnet"):
     
     ce_param = {
         "alpha": [1],
@@ -32,12 +32,14 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "gamma": [1],
     }
     concave_exp_param = {
-        "alpha": [0.05],
+        "alpha": [0.01, 0.02, 0.05, 0.08, 0.1],
             #[0.01, 0.05, 0.08,0.1],
-        "temp": [0.05],
-            #[0.01,0.02,0.05,0.08, 0.1],
+        "temp": [0.01, 0.02, 0.05, 0.08, 0.1],
+            #[0.01,0.02,0.05,0.08, 0.1],  
         "tau": [1],
-        "gamma": [0.05,0.1,0.2,0.4,0.8,1.6, 2.5,2.8]
+        "gamma": [1]
+            
+            #[0.05,0.1,0.2,0.4,0.8,1.6, 2.5,2.8]
             #[2, 3 ,3.2, 4, 5, 6, 6.4]
         #[1.8, 2, 2.2,2.4,2.6, 2.8, 3 ]
             #[0.05,0.1,0.2,0.4,0.8,1.6,3.2],
@@ -187,4 +189,4 @@ def get_cifar100_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     
     
 
-    return loss_type_param_space.get(loss_type)
+    return loss_type_param_space.get(method)
