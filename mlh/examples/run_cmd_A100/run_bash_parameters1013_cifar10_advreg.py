@@ -32,7 +32,7 @@ if __name__ == "__main__":
     #'scheduler' : 'multi_step_wide_resnet',
     "temp" : 1,
     'batch_size' : 128,
-    "num_workers" : 1,
+    "num_workers" : 2,
     "loss_adjust" : None,
     "inference" : None,
     "gamma" :1.
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    denfense_method =["AdvReg"]
+    denfense_method =["AdvReg", "MixupMMD"]
     save_merged_dicts_to_yaml(params, denfense_method, "./A100_record", dataset= params.get("dataset"))
     
     
@@ -69,8 +69,8 @@ if __name__ == "__main__":
      
         concurrent.futures.wait(futures)
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
-        
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
+
         futures = []
         for method in denfense_method:   
             param_dict = get_cifar10_parameter_set(method)
@@ -87,9 +87,11 @@ if __name__ == "__main__":
                             cmd3 = generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                             cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                             
+                            cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                             futures.append(executor1.submit(run_command, cmd3))
-                            futures.append(executor2.submit(run_command, cmd4))
-    
+                            futures.append(executor1.submit(run_command, cmd4))
+                            futures.append(executor1.submit(run_command, cmd5))
+
         concurrent.futures.wait(futures)
         # tmux attach -t 0
         # tmux kill-session -t 0

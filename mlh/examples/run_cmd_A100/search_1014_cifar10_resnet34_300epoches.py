@@ -32,30 +32,29 @@ if __name__ == "__main__":
     "dataset": "CIFAR10",
     "num_class": 10,
     'log_path': '../save_adj', # '../save_p2'
-    'training_type': 'KnowledgeDistillation',
+    'training_type': 'MixupMMD',
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.01,
-    'epochs': 120, # 100
+    'epochs': 300, # 100
     "model": "resnet34",  # resnet18 # densenet121 # wide_resnet50 resnet34
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
     "tau" : 1,
-    #'scheduler' : 'multi_step_wide_resnet',
+    'scheduler' :'multi_step', # 'multi_step_wide_resnet',
     "temp" : 1,
     'batch_size' : 128,
     "num_workers" : 8,
     "loss_adjust" : None,
     "inference": None,
     "gamma" :1.0,
-    "teacher_path": "../save_adj/CIFAR10/resnet34/NormalLoss/target/ce/epochs120/seed0/1/1/1/1/resnet34.pth"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     
     #loss_function =["concave_exp","concave_log","gce","flood","taylor","ce_ls","ereg","focal","ncemae", "mixup_py","phuber"]
     # 
-    denfense_method =["KnowledgeDistillation"]
+    denfense_method =["MixupMMD"]
     
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
@@ -116,6 +115,7 @@ if __name__ == "__main__":
                             params["temp"] = temp
                             params["gamma"] = gamma
                             params["tau"] = tau
+                            
                             cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                             cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                             
@@ -127,4 +127,4 @@ if __name__ == "__main__":
         # tmux new -s <session-name>
         # conda activate ml-hospital
         # cd mlh/examples/run_cmd_A100/
-        # python search_1014_cifar10_resnet34_kd.py
+        # python search_1014_cifar10_resnet34_mixupmmd.py
