@@ -22,7 +22,7 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "alpha": [0.01],
             #[0.01, 0.1, 1],
         "temp": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
-        "tau": [1],
+        "tau": [1],   
         "gamma": [1],
     }
     gce_mixup_param = {

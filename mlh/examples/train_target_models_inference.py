@@ -226,7 +226,14 @@ if __name__ == "__main__":
         total_evaluator = TrainTargetPATE(
             model=target_model, args = opt, log_path=save_pth)
         total_evaluator.train(train_loader, inference_loader, test_loader)
-
+        
+    elif opt.training_type == "EarlyStopping":
+        total_evaluator = TrainTargetPATE(
+            model=target_model, args = opt, log_path=save_pth)
+        total_evaluator.train(train_loader, inference_loader, test_loader)
+        print("Finish Training")
+        exit()
+        
     else:
         raise ValueError(
             "opt.training_type should be Normal, LabelSmoothing, AdvReg, DP, MixupMMD, PATE")

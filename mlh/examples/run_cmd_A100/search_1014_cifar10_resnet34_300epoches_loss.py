@@ -34,7 +34,7 @@ if __name__ == "__main__":
     'log_path': '../save_adj', # '../save_p2'
     'training_type': 'MixupMMD',
     'loss_type': 'ce', # concave_log  concave_exp
-    'learning_rate': 0.01,
+    'learning_rate': 0.1,
     'epochs': 300, # 100
     "model": "resnet34",  # resnet18 # densenet121 # wide_resnet50 resnet34
     'optimizer' : "sgd",
@@ -54,12 +54,12 @@ if __name__ == "__main__":
     
     #loss_function =["concave_exp","concave_log","gce","flood","taylor","ce_ls","ereg","focal","ncemae", "mixup_py","phuber"]
     # 
-    denfense_method =["RelaxLoss","concave_exp"]
+    denfense_method =[("RelaxLoss","ce"),("NormalLoss","concave_exp")]
     
     gpu0 = 0
     gpu1 = 1
     
-    """
+    
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
     while time.time() < end_time:
@@ -78,23 +78,24 @@ if __name__ == "__main__":
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]    
         
-    """
+    
     save_merged_dicts_to_yaml(params, denfense_method, "./A100_record")
     
     
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
         futures = []
-        for method in denfense_method:
-            
+        for method, loss in denfense_method:
             param_dict = get_cifar10_parameter_set(method)
-            print(param_dict)
+            if param_dict == None:
+                param_dict = get_cifar10_parameter_set(loss)
+                
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
-                            
-                            params['loss_type'] = method
+                            params['training_type'] = method
+                            params['loss_type'] = loss
                             params["alpha"] = alpha
                             params["temp"] = temp
                             params["gamma"] = gamma
@@ -112,13 +113,17 @@ if __name__ == "__main__":
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
         
         futures = []
-        for method in denfense_method:   
+        for method, loss in denfense_method:
             param_dict = get_cifar10_parameter_set(method)
+            if param_dict == None:
+                param_dict = get_cifar10_parameter_set(loss)
+                
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
-                            params['loss_type'] = method
+                            params['training_type'] = method
+                            params['loss_type'] = loss
                             params["alpha"] = alpha
                             params["temp"] = temp
                             params["gamma"] = gamma

@@ -75,8 +75,6 @@ class TrainTargetNormalLoss(Trainer):
         logx.msg(f"optimizer:{args.optimizer}, learning rate:{args.learning_rate}, scheduler:{args.scheduler}, epoches:{self.epochs}")
 
         self.save_configs()
-       
-    # 需要通过装饰器 @staticmethod 来进行修饰， 静态方法既不需要传递类对象也不需要传递实例对象（形参没有self/cls ） 。
 
     
     
