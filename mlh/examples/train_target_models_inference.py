@@ -25,7 +25,7 @@ from defenses.membership_inference.logit_norm import LogitNormLoss
 from defenses.membership_inference.LogitClip import TrainTargetLogitClip
 
 from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
-
+from defenses.membership_inference.EarlyStopping import TrainTargetEarlyStopping
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -228,7 +228,7 @@ if __name__ == "__main__":
         total_evaluator.train(train_loader, inference_loader, test_loader)
         
     elif opt.training_type == "EarlyStopping":
-        total_evaluator = TrainTargetPATE(
+        total_evaluator = TrainTargetEarlyStopping(
             model=target_model, args = opt, log_path=save_pth)
         total_evaluator.train(train_loader, inference_loader, test_loader)
         print("Finish Training")

@@ -18,7 +18,7 @@ torch.backends.cudnn.benchmark = False
 from tqdm import tqdm
 from utils import generate_save_path, get_optimizer, get_scheduler, get_init_args, dict_str
 from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
-class TrainTargetKnowledgeDistillation(TrainTargetNormalLoss):
+class TrainTargetEarlyStopping(TrainTargetNormalLoss):
     def __init__(self, model, args, 
                   **kwargs):
         """
@@ -49,8 +49,6 @@ class TrainTargetKnowledgeDistillation(TrainTargetNormalLoss):
         for e in range(1, min(self.epochs, max(self.stop_eps))):
             batch_n = 0
             self.model.train()
-            loss_num =0
-            
             for img, label in tqdm(train_loader):
                 self.model.zero_grad()
                 batch_n += 1
@@ -80,7 +78,7 @@ class TrainTargetKnowledgeDistillation(TrainTargetNormalLoss):
             
             
             
-            if e in self.stop_eps or e == self.epochs:
+            if e in list(set(self.stop_eps + [self.epochs])):
                 self.args_copy.epochs = e
                 log_path = generate_save_path(self.args_copy)
                 if not os.path.exists(log_path):

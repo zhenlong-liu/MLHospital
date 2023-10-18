@@ -32,7 +32,7 @@ if __name__ == "__main__":
     "dataset": "CIFAR100",
     "num_class": 100,
     'log_path': '../save_adj', # '../save_p2'
-    'training_type': 'Dropout', # 
+    'training_type': 'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
     'epochs': 300, # 100
@@ -47,19 +47,20 @@ if __name__ == "__main__":
     "num_workers" : 8,
     "loss_adjust" : None,
     #"inference" : None,
-    "gamma" :1.
+    "gamma" :1,
+    "stop_eps": [25,50,75,100,125,150,175,200,225,250,275]
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods =["NormalLoss"]
-    loss_funtion = ["concave_exp"]
+    methods =[("EarlyStopping", "ce")]
+    #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 5
-    gpu1 = 2
+    gpu0 = 7
+    gpu1 = 4
     
     
-    """
+    #"""
     
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
@@ -77,32 +78,30 @@ if __name__ == "__main__":
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
     
-    """
+    #"""
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
-        for method in methods:
-            for loss in loss_funtion:
-                param_dict = get_cifar100_parameter_set(method)
-                if param_dict == None:
-                    param_dict = get_cifar100_parameter_set(loss)
-                for temp in param_dict["temp"]:
-                    for alpha in param_dict["alpha"]:
-                        for gamma in param_dict["gamma"]:
-                            for tau in param_dict["tau"]:
-                                params['training_type'] = method
-                                params["loss_type"] = loss
-                                params["alpha"] = alpha
-                                params["temp"] = temp
-                                params["gamma"] = gamma
-                                params["tau"] = tau
-                                
-                                cmd1, cmd2 = generate_cmd_hup(params,gpu0,gpu1)
-                                futures.append(executor1.submit(run_command, cmd1))
-                                futures.append(executor2.submit(run_command, cmd2))
+        for method, loss  in methods:
+            param_dict = get_cifar100_parameter_set(method)
+            if param_dict == None:
+                param_dict = get_cifar100_parameter_set(loss)
+            for temp in param_dict["temp"]:
+                for alpha in param_dict["alpha"]:
+                    for gamma in param_dict["gamma"]:
+                        for tau in param_dict["tau"]:
+                            params['training_type'] = method
+                            params["loss_type"] = loss
+                            params["alpha"] = alpha
+                            params["temp"] = temp
+                            params["gamma"] = gamma
+                            params["tau"] = tau
+                            cmd1, cmd2 = generate_cmd_hup(params,gpu0,gpu1)
+                            futures.append(executor1.submit(run_command, cmd1))
+                            futures.append(executor2.submit(run_command, cmd2))
         
         # 等待所有任务完成
         concurrent.futures.wait(futures)
@@ -110,34 +109,42 @@ if __name__ == "__main__":
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
         
         futures = []
-        for method in methods:
-            for loss in loss_funtion:
-                param_dict = get_cifar100_parameter_set(method)
-                if param_dict == None:
-                    param_dict = get_cifar100_parameter_set(loss)
-                for temp in param_dict["temp"]:
-                    for alpha in param_dict["alpha"]:
-                        for gamma in param_dict["gamma"]:
-                            for tau in param_dict["tau"]:
-                                params['training_type'] = method
-                                params["loss_type"] = loss
-                                params["alpha"] = alpha
-                                params["temp"] = temp
-                                params["gamma"] = gamma
-                                params["tau"] = tau
-
+        for method, loss  in methods:
+            param_dict = get_cifar100_parameter_set(method)
+            if param_dict == None:
+                param_dict = get_cifar100_parameter_set(loss)
+            for temp in param_dict["temp"]:
+                for alpha in param_dict["alpha"]:
+                    for gamma in param_dict["gamma"]:
+                        for tau in param_dict["tau"]:
+                            params['training_type'] = method
+                            params["loss_type"] = loss
+                            params["alpha"] = alpha
+                            params["temp"] = temp
+                            params["gamma"] = gamma
+                            params["tau"] = tau
+                            if params.get("stop_eps") is not None:
+                                for epoch in params["stop_eps"]:
+                                    params["epochs"] = epoch
                             
+                                    cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
+                                    cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                                    cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
+                                    futures.append(executor1.submit(run_command, cmd3))
+                                    futures.append(executor1.submit(run_command, cmd4))
+                                    futures.append(executor1.submit(run_command, cmd5))
+                            else:
                                 cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                 cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                                 cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                 futures.append(executor1.submit(run_command, cmd3))
                                 futures.append(executor1.submit(run_command, cmd4))
                                 futures.append(executor1.submit(run_command, cmd5))
-
+                                
         concurrent.futures.wait(futures)
         # tmux kill-session -t 1
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters1017_cifar100_300epoch_noinference.py
+        # python run_bash_parameters1018_cifar100_300epoch_earlystop.py
         
