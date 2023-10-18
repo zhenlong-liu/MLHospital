@@ -193,13 +193,14 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
             for file in files:
                 if file == 'config.yaml':
                     log_file_path = os.path.join(subdir, file)
+                    if "shadow" in log_file_path:
+                        continue
                     with open(log_file_path, 'r') as f:
                         data_config = yaml.safe_load(f)
                     log_file_path_train_log = os.path.join(subdir, "train_log.yaml")
                     if os.path.exists(log_file_path_train_log):
                         with open(log_file_path_train_log, 'r') as f:
                             data_train_log = yaml.safe_load(f)
-                    # print(log_file_path)
                     else: 
                         log_file = os.path.join(subdir, 'logging.log')
                         data_train_log=extract_last_line_logging_info(log_file,df = True)
