@@ -17,10 +17,14 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
     }
 
     concave_exp_param = {
-        "alpha": [0.01, 0.1, 0.5, 1, 5],
-        "temp": [0.01, 0.1, 0.5, 1, 5, 10],
+        "alpha":[0.01, 0.1, 0.5, 1, 5],
+            #[0.01, 0.1, 0.5, 1, 5],
+        "temp":[0.01, 0.1, 0.5, 1, 5, 10],
+            #[0.01, 0.02, 0.05, 0.08, 0.1, 0.2, 0.5], 
+            #[0.01, 0.1, 0.5, 1, 5, 10],
         "tau": [1],
-        "gamma": [0.2, 0.4, 0.8, 1, 2, 3, 4],
+        "gamma": [1],
+        # "gamma": [0.2, 0.4, 0.8, 1, 2, 3, 4],
     }
 
     concave_log_param = {
@@ -110,10 +114,10 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "gamma": [1]
     }
     relaxloss_param = {
-        "alpha": [1],
+        "alpha": [0.001,0.005, 0.01, 0.04,0.1,0.16, 0.2, 0.4, 0.8,1.6,3.2],
         "temp": [1],
         #"tau": [3],
-        "tau": [0.01, 0.02,0.05 ,0.1, 0.2, 0.5,1,2,4,8],
+        "tau": [1],
         "gamma": [1]
     }
     loss_type_param_space = {
@@ -132,6 +136,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "AdvReg":advreg_param,
         "KnowledgeDistillation": kd_param,
         "MixupMMD": mixupmmd_param,
+        "RelaxLoss" :relaxloss_param,
     }
 
     method_type_param_space = {

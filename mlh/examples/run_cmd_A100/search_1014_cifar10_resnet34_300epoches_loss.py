@@ -54,8 +54,12 @@ if __name__ == "__main__":
     
     #loss_function =["concave_exp","concave_log","gce","flood","taylor","ce_ls","ereg","focal","ncemae", "mixup_py","phuber"]
     # 
-    denfense_method =["MixupMMD"]
+    denfense_method =["RelaxLoss","concave_exp"]
     
+    gpu0 = 0
+    gpu1 = 1
+    
+    """
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
     while time.time() < end_time:
@@ -66,14 +70,18 @@ if __name__ == "__main__":
             break
         time.sleep(10*60)  # Wait for 10 minutes
 
+    
+    
     if not found_gpus:
         print("Did not find suitable GPUs within 24 hours. Exiting the program.")
         exit()
-    
+    gpu0 = gpu_ids[0]
+    gpu1 = gpu_ids[1]    
+        
+    """
     save_merged_dicts_to_yaml(params, denfense_method, "./A100_record")
     
-    gpu0 = gpu_ids[0]
-    gpu1 = gpu_ids[1]
+    
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
         futures = []
@@ -86,7 +94,7 @@ if __name__ == "__main__":
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
                             
-                            params['training_type'] = method
+                            params['loss_type'] = method
                             params["alpha"] = alpha
                             params["temp"] = temp
                             params["gamma"] = gamma
@@ -110,7 +118,7 @@ if __name__ == "__main__":
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
-                            params['training_type'] = method
+                            params['loss_type'] = method
                             params["alpha"] = alpha
                             params["temp"] = temp
                             params["gamma"] = gamma
@@ -127,4 +135,4 @@ if __name__ == "__main__":
         # tmux new -s <session-name>
         # conda activate ml-hospital
         # cd mlh/examples/run_cmd_A100/
-        # python search_1014_cifar10_resnet34_mixupmmd.py
+        # python search_1014_cifar10_resnet34_300epoches_loss.py
