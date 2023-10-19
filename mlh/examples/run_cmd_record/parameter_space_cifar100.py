@@ -162,6 +162,15 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "gamma": [1]
     } 
     
+    
+    early_param = {
+        "alpha": [1],
+        "temp": [1],
+        #"tau": [3],
+        "tau": [1],
+        "gamma": [1]
+    }
+    
     loss_type_param_space = {
         "ce":ce_param,
         "ce_ls":ce_ls_param,
@@ -185,8 +194,9 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "KnowledgeDistillation": kd_param,
         "MixupMMD": mixupmmd_param,
         "Dropout" : dropout_param,
+        "EarlyStopping": early_param,
     }
     
     
 
-    return loss_type_param_space.get(method)
+    return loss_type_param_space.get(method,"ce")

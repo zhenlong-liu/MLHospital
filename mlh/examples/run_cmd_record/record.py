@@ -29,6 +29,22 @@ def save_merged_dicts_to_yaml(params, loss_set, root, dataset ="cifar10"):
     # Get the current time and add it to the dictionary
     current_time = datetime.now()
     record['current_time'] = current_time.strftime('%Y-%m-%d %H:%M:%S')
+    
+    if isinstance(loss_set[0], tuple):
+        for method, loss in loss_set:
+            if dataset.lower() == "cifar10":
+                record[loss+method] = get_cifar10_parameter_set(method)
+                
+                if record[loss+method] == None:
+                    record[loss+method] = get_cifar10_parameter_set(loss)
+            elif dataset.lower() == "cifar100":
+                record[loss+method] = get_cifar100_parameter_set(method)
+                
+                if record[loss+method] == None:
+                    record[loss+method] = get_cifar100_parameter_set(loss)
+                
+                #record[loss] = get_cifar100_parameter_set(loss)
+    
     for loss in loss_set:
         if dataset.lower() == "cifar10":
             record[loss] = get_cifar10_parameter_set(loss)

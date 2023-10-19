@@ -230,7 +230,7 @@ if __name__ == "__main__":
     elif opt.training_type == "EarlyStopping":
         total_evaluator = TrainTargetEarlyStopping(
             model=target_model, args = opt, log_path=save_pth)
-        total_evaluator.train(train_loader, inference_loader, test_loader)
+        total_evaluator.train(train_loader, test_loader)
         print("Finish Training")
         exit()
         

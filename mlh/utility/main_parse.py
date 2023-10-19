@@ -35,6 +35,7 @@ def add_argument_parameter(parser):
     parser.add_argument('--teacher_path', type=str, default="../save0/CIFAR100/densenet121/NormalLoss/target/ce/epochs150/seed0/1/1/1/1/densenet121.pth", help='teacher path for Knowledge Distillation')
     parser.add_argument('--stop_eps', type=int, nargs='+', help='a list of stop epoches')
     
+    parser.add_argument('--checkpoint', action='store_false', default=True, help='if check point')
     
 def save_namespace_to_yaml(namespace, output_path):
     """

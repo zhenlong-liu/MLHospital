@@ -52,7 +52,7 @@ class TrainTargetNormalLoss(Trainer):
         self.args = args
         self.loss_type = args.loss_type
         self.learning_rate = args.learning_rate
-       
+
         self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, weight_decay)
         #self.optimizer = torch.optim.SGD( self.model.parameters(), self.learning_rate, momentum, weight_decay)
         
@@ -75,7 +75,8 @@ class TrainTargetNormalLoss(Trainer):
         logx.msg(f"optimizer:{args.optimizer}, learning rate:{args.learning_rate}, scheduler:{args.scheduler}, epoches:{self.epochs}")
 
         self.save_configs()
-
+        if args.checkpoint:
+            self.check_point()
     
     
     def initialize_criterion(self):
@@ -91,6 +92,10 @@ class TrainTargetNormalLoss(Trainer):
         save_namespace_to_yaml(dict_str(get_init_args(self.criterion)), f'{self.log_path}/loss_config.yaml')
 
     
+    def check_point(self):
+        checkpoint = f"{self.log_path}/{self.args.model}.pth"
+        if os.path.exists(checkpoint) and os.path.isfile(checkpoint):
+            exit()  
     
     
     

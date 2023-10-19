@@ -34,6 +34,9 @@ def generate_train_command_2(params, mode, gpu):
         
         elif value == None:
             args_command += f"--{key} "
+        elif isinstance(value, list):
+            value = ' '.join(map(str, value))
+            args_command +=f"--{key} {value} "
         else: args_command +=f"--{key} {value} "
     args_command += f"--mode {mode} "
     args_command += f"--gpu {gpu} "
@@ -50,6 +53,9 @@ def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type 
         
         elif value == None:
             args_command += f"--{key} "
+        elif isinstance(value, list):
+            value = ' '.join(map(str, value))
+            args_command +=f"--{key} {value} "
         else: args_command +=f"--{key} {value} "
         
     args_command += f"--attack_type {attack_type} "
