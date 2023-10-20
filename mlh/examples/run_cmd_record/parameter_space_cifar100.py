@@ -32,9 +32,12 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "gamma": [1],
     }
     concave_exp_param = {
-        "alpha": [0.01, 0.02, 0.05, 0.08, 0.1],
+        "alpha": [0.02, 0.05, 0.08, 0.1],
+            #[0.01,0.02, 0.05, 0.08, 0.1 ],
             #[0.01, 0.05, 0.08,0.1],
-        "temp": [0.01, 0.02, 0.05, 0.08, 0.1],
+        "temp":[0.01, 0.02, 0.05, 0.08, 0.1,],
+            #[0.01, 0.02, 0.05, 0.08, 0.1],
+            #[0.01, 0.02, 0.05, 0.08, 0.1, 0.12, 0.16, 0.2],
             #[0.01,0.02,0.05,0.08, 0.1],  
         "tau": [1],
         "gamma": [1]
@@ -124,7 +127,8 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     }
     
     relaxloss_param = {
-        "alpha": [0.001,0.005, 0.01, 0.04,0.1,0.16, 0.2, 0.4, 0.8,1.6,3.2],
+        "alpha": [0.001,0.005, 0.01, 0.04, 0.1, 0.2, 0.4, 0.8, 1.6, 1.8, 2, 2.4, 3.2],
+            #[0.001,0.005, 0.01, 0.04, 0.1, 0.16, 0.2, 0.4, 0.8,1.6, 3.2],
         # [0.01,0.02,0.04,0.08,0.1,0.16, 0.2,0.25, 0.3, 0.4,0.5, 0.8,1.6,3.2],
         "temp": [1],
         "tau": [1],
@@ -171,6 +175,15 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "gamma": [1]
     }
     
+    concave_exp_one_param = {
+        "alpha": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+        "temp": [0.01,0.02, 0.05, 0.1],
+        #"tau": [3],
+        "tau": [1],
+        "gamma": [1]
+    }
+    
+    
     loss_type_param_space = {
         "ce":ce_param,
         "ce_ls":ce_ls_param,
@@ -195,8 +208,9 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "MixupMMD": mixupmmd_param,
         "Dropout" : dropout_param,
         "EarlyStopping": early_param,
+        "concave_exp_one": concave_exp_one_param,
     }
     
     
 
-    return loss_type_param_space.get(method,"ce")
+    return loss_type_param_space.get(method)

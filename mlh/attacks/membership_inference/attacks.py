@@ -458,15 +458,15 @@ class MetricBasedMIA(MembershipInferenceAttack):
                 key1 = f"grid_x_{name}_train_{name_list[i]}"
                 key2 = f"grid_x_{name}_test_{name_list[i]}"
                 key3 = f"grid_w_{name}_train_{name_list[i]}"
-                key4 = f"grid_w_{name}_train_{name_list[i]}"
+                key4 = f"grid_w_{name}_test_{name_list[i]}"
                 wb_dict[key1] = float(train_tuple_x[i])
                 wb_dict[key2] = float(test_tuple_x[i])
                 wb_dict[key3] = float(train_tuple_w[i])
                 wb_dict[key4] = float(test_tuple_w[i])
-                self.print_result("key1", train_tuple_x)
-                self.print_result("key2", test_tuple_x)
-                self.print_result("key3", train_tuple_w)
-                self.print_result("key4", test_tuple_w)
+                self.print_result(f"{key1}", train_tuple_x)
+                self.print_result(f"{key2}", test_tuple_x)
+                self.print_result(f"{key3}", train_tuple_w)               
+                self.print_result(f"{key4}", test_tuple_w)
         
         save_dict_to_yaml(wb_dict, f"{self.save_path}/white_box_grid_attacks.yaml")
 

@@ -94,8 +94,8 @@ class TrainTargetNormalLoss(Trainer):
     
     def check_point(self):
         checkpoint = f"{self.log_path}/{self.args.model}.pth"
-        if os.path.exists(checkpoint) and os.path.isfile(checkpoint):
-            exit()  
+        if os.path.isfile(checkpoint):
+            exit()
     
     
     

@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import yaml
 # extract train mean train variance
+from ruamel.yaml import YAML
+
 
 def store_dict_to_yaml(my_dict, file_path):
     """
@@ -183,6 +185,7 @@ def p_score(acc_t,acc_a):
 
 
 def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataframe = False):
+    yaml_2 = YAML()
     # sourcery skip: dict-assign-update-to-union
     output_folder = os.path.dirname(output_excel)
     if not os.path.exists(output_folder):
@@ -212,22 +215,37 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
                     mia_metrics_file = os.path.join(subdir, 'mia_metric-based.log')
                     mia_yaml = os.path.join(subdir, 'mia_metric_based.yaml')
                     mia_bb_yaml = os.path.join(subdir, 'mia_black_box.yaml')
-                    if os.path.exists(mia_metrics_file):
+                    mia_wb_yaml = os.path.join(subdir, 'white_box_grid_attacks.yaml')
+                    loss_distribution = os.path.join(subdir, 'loss_distribution.yaml')
+                    if os.path.exists(loss_distribution):
+                        with open(loss_distribution, 'r') as f:
+                            #distribution = yaml.safe_load(f)
+                            distribution = yaml_2.load(f)
+                        data_config.update(distribution)
+                    
+                    if os.path.exists(mia_yaml):
+                        with open(mia_yaml, 'r') as f:
+                            mia_metrics = yaml.safe_load(f)
+                        data_config.update(mia_metrics)
+                    
+                    elif os.path.exists(mia_metrics_file):
                         mia_metrics = extract_mia_metrics(mia_metrics_file)
                         distribution =  extract_metrics(mia_metrics_file)
                         data_config.update(mia_metrics)
                         data_config.update(distribution)
                         
                         #`row_data.update(mia_metrics)` is a method that updates the `row_data` dictionary with the key-value pairs from the `mia_metrics` dictionary. 
-                    elif os.path.exists(mia_yaml):
-                        with open(mia_yaml, 'r') as f:
-                            mia_metrics = yaml.safe_load(f)
-                        data_config.update(mia_metrics)
+                        
+                     # add black box mia   
                     if os.path.exists(mia_bb_yaml):
                         with open(mia_bb_yaml, 'r') as f:
                             mia_black_box = yaml.safe_load(f)
                         data_config.update(mia_black_box)
-                    
+                    # add white box mia
+                    if os.path.exists(mia_wb_yaml):
+                        with open(mia_wb_yaml, 'r') as f:
+                            mia_white_box = yaml.safe_load(f)
+                        data_config.update(mia_white_box)
                     if 'cross entropy loss test acc' in data_config:
                             data_config["p1"] = p_score(data_config["Test Acc"], data_config['cross entropy loss test acc'])
                     

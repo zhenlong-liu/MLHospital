@@ -63,6 +63,8 @@ def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type 
     
     save_pth = generate_save_path(params, 'target')
     if store:
+        if "specific_path" in params.keys():
+            save_pth = params["load_model_path"]
         args_command += f"> {save_pth}/mia_{attack_type}.log"
     else: 
         return args_command.strip()

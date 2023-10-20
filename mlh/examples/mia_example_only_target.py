@@ -27,7 +27,9 @@ torch.set_num_threads(1)
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-
+import yaml
+from ruamel.yaml import YAML
+from ruamel.yaml.scalarfloat import ScalarFloat
 """
 torch.manual_seed(0)
 np.random.seed(0)
@@ -79,22 +81,16 @@ def parse_args():
     return args
 
 
-
-
-def evaluate(model, dataloader):
-    model.eval()
-    correct = 0
-    total = 0
-    for data in dataloader:
-        inputs, labels = data
-        inputs, labels = inputs.to(args.device), labels.to(args.device)
-        outputs = model(inputs)
-        _, predicted = outputs.max(1)
-        total += labels.size(0)
-        correct += predicted.eq(labels).sum().item()
-    model.train()
-    return correct / total
-
+def check_loss_distr(save_path,file_name= "loss_distribution.yaml"):
+    yaml_2 = YAML()
+    loss_distr = f"{save_path}/{file_name}"
+    if os.path.exists(loss_distr):
+        with open(loss_distr, 'r') as f:
+            #distribution = yaml.safe_load(f)
+            distribution = yaml_2.load(f)
+            return not isinstance(distribution["loss_train_mean"], ScalarFloat)
+    else:
+        return True
 
 if __name__ == "__main__":
 
@@ -137,13 +133,20 @@ if __name__ == "__main__":
     
     temp_save = str(args.temp).rstrip('0').rstrip('.') if '.' in str(args.temp) else str(args.temp)
 
+    
+    if args.specific_path:
+        load_path_target = f"{args.load_model_path}/{args.model}.pth"
+        load_path_shadow = load_path_target.replace("/target/", "/shadow/")
+        save_path = args.load_model_path
+    else:
+        load_path_target = f'{generate_save_path(args, mode = "target")}/{args.model}.pth'
+        load_path_shadow = f'{generate_save_path(args, mode = "shadow")}/{args.model}.pth'
+        save_path = generate_save_path(args, mode = "target")
     # load target/shadow model to conduct the attacks
-    target_model.load_state_dict(torch.load(
-        f'{generate_save_path(args, mode = "target")}/{args.model}.pth'))
+    target_model.load_state_dict(torch.load(load_path_target))
     target_model = target_model.to(args.device)
     target_model.eval()
-    shadow_model.load_state_dict(torch.load(
-        f'{generate_save_path(args, mode = "shadow")}/{args.model}.pth'))
+    shadow_model.load_state_dict(torch.load(load_path_shadow))
     shadow_model = shadow_model.to(args.device)
     shadow_model.eval()
     # generate attack dataset
@@ -151,11 +154,13 @@ if __name__ == "__main__":
     attack_type = args.attack_type
 
     # save_path = f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}'
-    save_path = generate_save_path(args, mode = "target")
     
-    plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
     
-    plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
+    # check whether there exits loss distribtion
+    if check_loss_distr:
+        plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
+
+        plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
     
     # attack_type = "metric-based"
     

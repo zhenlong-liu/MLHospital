@@ -102,19 +102,6 @@ def generate_save_path(opt, mode = None):
 
 
 def get_optimizer(optimizer_name, model_parameters, learning_rate=0.1, momentum=0.9, weight_decay=1e-4):
-    """
-    获取指定优化器的实例
-
-    参数：
-        optimizer_name (str): 优化器的名称，可以是 'sgd' 或 'adam'.
-        model_parameters (iterable): 模型的参数，通常通过 model.parameters() 获得.
-        learning_rate (float): 初始学习率 (默认为 0.1).
-        momentum (float): SGD优化器的动量参数 (默认为 0.9).
-        weight_decay (float): L2正则化项的权重衰减参数 (默认为 1e-4).
-
-    返回：
-        torch.optim.Optimizer: 返回所选优化器的实例.
-    """
     if optimizer_name.lower() == 'sgd':
         optimizer = optim.SGD(model_parameters, lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
     elif optimizer_name.lower() == 'adam':

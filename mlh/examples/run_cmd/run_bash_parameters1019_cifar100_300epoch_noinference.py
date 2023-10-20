@@ -31,34 +31,38 @@ if __name__ == "__main__":
     'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
     "dataset": "CIFAR100",
     "num_class": 100,
-    'log_path': '../save_adj', # '../save_p2'
-    'training_type': 'EarlyStopping', # 
+    'log_path': "../save_adj", #'../save_300_cosine', # '../save_p2' save_adj
+    'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
-    'epochs': 300, # 100
+    'epochs': 150, # 100 300
     "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
     "tau" : 1,
-    'scheduler' : 'multi_step',
+    #'scheduler' : 'multi_step',
     "temp" : 1,
     'batch_size' : 128,
     "num_workers" : 8,
     "loss_adjust" : None,
     #"inference" : None,
     "gamma" :1,
-    "stop_eps": "25 50 75 100 125 150 175 200 225 250 275"
+    #"stop_eps": "25 50 75 100 125 150 175 200 225 250 275"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods =[("NoramlLoss","concave_exp")]
-    #[("EarlyStopping", "ce")]
+    methods = [("NormalLoss", "concave_exp_one")]
+    #methods  = [("AdvReg","concave_exp"),("MixupMMD","concave_exp")]
+    #[("NormalLoss", "concave_exp")]
+    # ("RelaxLoss","ce")
+    #methods =[("RelaxLoss","ce"),("NormalLoss", "concave_exp")]
+    #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 7
-    gpu1 = 5
+    gpu0 = 3
+    gpu1 = 4
     
     
     """
@@ -78,8 +82,8 @@ if __name__ == "__main__":
         exit()
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
-    
     """
+    
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     
@@ -104,7 +108,7 @@ if __name__ == "__main__":
                             futures.append(executor1.submit(run_command, cmd1))
                             futures.append(executor2.submit(run_command, cmd2))
         
-        # 等待所有任务完成
+        
         concurrent.futures.wait(futures)
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
@@ -147,5 +151,7 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters1018_cifar100_300epoch_earlystop.py
+        # python run_bash_parameters1019_cifar100_300epoch_noinference.py
+        # 
+        
         

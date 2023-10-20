@@ -26,6 +26,8 @@ from defenses.membership_inference.LogitClip import TrainTargetLogitClip
 
 from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
 from defenses.membership_inference.EarlyStopping import TrainTargetEarlyStopping
+from defenses.membership_inference.RelaxLoss import TrainTargetRelaxLoss
+
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -160,10 +162,14 @@ if __name__ == "__main__":
         
     elif opt.training_type == "RelaxLoss":
         
+        total_evaluator = TrainTargetRelaxLoss(
+            model=target_model, args=opt,log_path=save_pth)
+        total_evaluator.train(train_loader, test_loader) 
+        """
         total_evaluator = TrainTargetNormalRelaxLoss(
             model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)    
-        
+        """
     elif opt.training_type == "NormalLoss":
         
         total_evaluator = TrainTargetNormalLoss(
