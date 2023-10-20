@@ -39,7 +39,7 @@ from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
 
 
 class TrainTargetDPSGD(TrainTargetNormalLoss):
-    def __init__(self, model, args, delta=1e-5, **kwargs):
+    def __init__(self, model, args, delta=1e-5,momentum=0.9, weight_decay=5e-4, **kwargs):
 
         super().__init__(model, args, **kwargs)
         
@@ -48,14 +48,12 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
         self.delta = delta
         self.model = ModuleValidator.fix(self.model)
         self.model = self.model.to(self.device)
-    
+        self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, weight_decay)
         #self.optimizer = torch.optim.SGD(self.model.parameters(
         # ), args.learning_rate, momentum=momentum, weight_decay=weight_decay)
         
         # self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         #    self.optimizer, T_max=self.epochs)
-
-      
 
     def train(self, train_loader, test_loader):
         
@@ -89,7 +87,7 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
         )
         """
         
-       
+        
         self.model, self.optimizer, train_loader = privacy_engine.make_private(
             module=self.model,
             optimizer=self.optimizer,
@@ -120,8 +118,8 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
             alphas=[1 + x / 10.0 for x in range(1, 100)] + list(range(12, 64)),
             noise_multiplier=self.noise_scale,  # sigma
             max_grad_norm=self.grad_norm,  # this is from dp-sgd paper
-         )
-         privacy_engine.attach(self.optimizer)
+        )
+        privacy_engine.attach(self.optimizer)
         """
         t_start = time.time()
 

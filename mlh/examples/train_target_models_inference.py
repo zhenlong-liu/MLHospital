@@ -12,7 +12,8 @@ import torchvision
 import utils
 from defenses.membership_inference.loss_function import get_loss
 from defenses.membership_inference.AdvReg import TrainTargetAdvReg
-from defenses.membership_inference.DPSGD import TrainTargetDP
+from defenses.membership_inference.DPSGD import TrainTargetDP # origin
+from defenses.membership_inference.DP import TrainTargetDPSGD # new
 from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothing
 from defenses.membership_inference.MixupMMD import TrainTargetMixupMMD
 from defenses.membership_inference.MixupMMDLoss import TrainTargetMixupMMDLoss
@@ -203,6 +204,11 @@ if __name__ == "__main__":
 
     elif opt.training_type == "DP":
         total_evaluator = TrainTargetDP(
+            model=target_model, args=opt, log_path=save_pth)
+        total_evaluator.train(train_loader, test_loader)
+
+    elif opt.training_type == "DPSGD":
+        total_evaluator = TrainTargetDPSGD(
             model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
 
