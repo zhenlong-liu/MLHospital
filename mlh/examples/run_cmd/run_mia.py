@@ -49,9 +49,9 @@ if __name__ == "__main__":
     
     
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
-    gpu0 = 2
+    gpu0 = 0
     gpu1 = 1
-    gpu2 = 7
+    gpu2 = 2
     root_dir = '../save_adj/CIFAR100/densenet121/'
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
@@ -68,11 +68,8 @@ if __name__ == "__main__":
                         if "gamma" not in data_config.keys():
                             data_config["gamma"] =1
                         
-                        ###
-                        if data_config["loss_type"] == "concave_exp_one":
+                        if data_config["loss_type"] != "concave_exp_one":
                             continue
-                        
-                        ###
                         update_dict1_from_dict2(params,data_config)
                         
                         params["specific_path"] = None
@@ -90,21 +87,56 @@ if __name__ == "__main__":
                         if os.path.exists(log_file_path_train_log):
                             with open(log_file_path_train_log, 'r') as f:
                                 data_train_log = yaml.safe_load(f)
+                        else: continue
                         if data_train_log["Train Acc"] < 100/data_config["num_class"]*1.5:
                             continue
                         mia_yaml = os.path.join(subdir, 'mia_metric_based.yaml')
                         mia_bb_yaml = os.path.join(subdir, 'mia_black_box.yaml')
                         mia_wb_yaml = os.path.join(subdir, 'white_box_grid_attacks.yaml')
+                        
+                        mia_loss = os.path.join(subdir, 'loss_distribution.yaml')
+                        if os.path.exists(mia_loss):
+                            with open(mia_loss, 'r') as f:
+                                data_loss_distribution = yaml.safe_load(f)
+                        #print(data_loss_distribution["loss_train_mean"])
+                        #print(type(data_loss_distribution["loss_train_mean"]))
+                        #continue
+                        """
+                        if not (isinstance(data_loss_distribution["loss_train_mean"], float)):
+                            print(isinstance(data_loss_distribution["loss_train_mean"], ScalarFloat))
+                            print(isinstance(data_loss_distribution["loss_train_mean"], float))
+                            print(type(data_loss_distribution["loss_train_mean"]))
+                            print(cmd3)
+                            exit()
+                        
+                        """
+                        
+                        
                         if not os.path.exists(mia_yaml):
+                            #print(data_train_log["Train Acc"])
+                            #print(cmd3)
+                            #exit()
                             futures.append(executor1.submit(run_command, cmd3))
                         if not os.path.exists(mia_bb_yaml):
+                            #print(cmd4)
+                            #exit()
                             futures.append(executor2.submit(run_command, cmd4))
                         if not os.path.exists(mia_wb_yaml):
-                            futures.append(executor1.submit(run_command, cmd5))
                             
+                            #print(cmd5)
+                            #exit()
+                            futures.append(executor1.submit(run_command, cmd5))
+                        else:
+                            with open(log_file_path_train_log, 'r') as f:
+                                mia_wb_log = yaml.safe_load(f)
+                            if "grid_w_l2_train_acc" in mia_wb_log.keys():
+                                #print(cmd5)
+                                #exit()
+                                futures.append(executor1.submit(run_command, cmd5))
+                                
         concurrent.futures.wait(futures)                
         # tmux kill-session -t 1
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_mia.py
+        # CUDA_VISIBLE_DEVICES=2,3,4 python run_mia.py

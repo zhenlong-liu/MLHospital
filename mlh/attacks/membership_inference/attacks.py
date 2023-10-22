@@ -97,7 +97,7 @@ class ModelParser():
         self.device = self.args.device
         self.model = model.to(self.device)
         self.model.eval()
-        self.criterion = get_loss(loss_type= args.loss_type, device = args.device, args= args, num_classes=args.num_class)
+        #self.criterion = get_loss(loss_type= args.loss_type, device = args.device, args= args, num_classes=args.num_class)
         
     def compute_norm_metrics(self, gradient):
         """Compute the metrics"""
@@ -188,8 +188,10 @@ class ModelParser():
         return {"targets": target_list, "posteriors": posteriors_list}
 
         #targets :1-10
+        
+    """
     def get_losses(self, dataloader):
-        """Auxiliary function to compute per-sample losses"""
+        #Auxiliary function to compute per-sample losses
 
         all_losses = [] 
         for inputs, targets in dataloader:
@@ -199,8 +201,8 @@ class ModelParser():
             losses = self.criterion(logits, targets).numpy(force=True)
             all_losses.extend(iter(losses))
         return {"loss" :np.array(all_losses).tolist()}
-            
-        
+         
+    """    
         
     def parse_info_whitebox(self, dataloader, layers):
         info = {}
@@ -416,7 +418,7 @@ class MetricBasedMIA(MembershipInferenceAttack):
         """
         self.loss_type = args.loss_type
         self.save_path = save_path
-        self.criterion = get_loss(loss_type =self.loss_type, device=self.device, args = self.args)
+        self.criterion = get_loss(loss_type ="ce", device=self.device, args = self.args)
         if self.attack_type == "metric-based":
             self.metric_based_attacks()
         elif  self.attack_type == "white_box":

@@ -276,36 +276,86 @@ def plot_celoss_distribution_together(target_train_loader, target_test_loader, t
     
 
 
-def get_target_model(name="resnet18", num_classes=10, dropout =None):
+import torchvision
+import torch.nn as nn
+import torch.hub
+
+def get_target_model(name="resnet18", num_classes=10, dropout=None):
     if name == "resnet18":
         model = torchvision.models.resnet18()
         num_ftrs = model.fc.in_features
-        model.fc = nn.Sequential(nn.Linear(num_ftrs, num_classes))
+        if dropout is not None:
+            model.fc = nn.Sequential(
+                nn.Linear(num_ftrs, num_classes),
+                nn.Dropout(dropout)
+            )
+        else:
+            model.fc = nn.Linear(num_ftrs, num_classes)
     elif name == "resnet20":
-        model = resnet20(num_classes =num_classes)
+        model = resnet20(num_classes=num_classes)
+        if dropout is not None:
+            # 如果 resnet20 模型的最后一层是线性层，可以如下添加 dropout 层
+            # num_ftrs = model.fc.in_features
+            # model.fc = nn.Sequential(
+            #     nn.Linear(num_ftrs, num_classes),
+            #     nn.Dropout(dropout)
+            # )
+            pass
     elif name == "resnet34":
         model = torchvision.models.resnet34()
         num_ftrs = model.fc.in_features
-        model.fc = nn.Linear(num_ftrs, num_classes)
+        if dropout is not None:
+            model.fc = nn.Sequential(
+                nn.Linear(num_ftrs, num_classes),
+                nn.Dropout(dropout)
+            )
+        else:
+            model.fc = nn.Linear(num_ftrs, num_classes)
     elif name == "resnet50":
         model = torchvision.models.resnet50()
         num_ftrs = model.fc.in_features
-        model.fc = nn.Linear(num_ftrs, num_classes)    
+        if dropout is not None:
+            model.fc = nn.Sequential(
+                nn.Linear(num_ftrs, num_classes),
+                nn.Dropout(dropout)
+            )
+        else:
+            model.fc = nn.Linear(num_ftrs, num_classes)
     elif name == "vgg11":
         model = torchvision.models.vgg11()
         num_ftrs = model.classifier[-1].in_features
-        model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
+        if dropout is not None:
+            model.classifier[-1] = nn.Sequential(
+                nn.Linear(num_ftrs, num_classes),
+                nn.Dropout(dropout)
+            )
+        else:
+            model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
     elif name == "wide_resnet50":
-        model = torch.hub.load('pytorch/vision:v0.10.0', 'wide_resnet50_2', weights=None)
+        model = torch.hub.load('pytorch/vision:v0.10.0', 'wide_resnet50_2', pretrained=False)
         num_ftrs = model.fc.in_features
-        model.fc = nn.Linear(num_ftrs, num_classes)
+        if dropout is not None:
+            model.fc = nn.Sequential(
+                nn.Linear(num_ftrs, num_classes),
+                nn.Dropout(dropout)
+            )
+        else:
+            model.fc = nn.Linear(num_ftrs, num_classes)
     elif name == "densenet121":
-        model = torch.hub.load('pytorch/vision:v0.10.0', 'densenet121')
+        model = torch.hub.load('pytorch/vision:v0.10.0', 'densenet121', pretrained=False)
         num_ftrs = model.classifier.in_features
-        model.classifier = nn.Linear(num_ftrs, num_classes)
+        if dropout is not None:
+            model.classifier = nn.Sequential(
+                nn.Linear(num_ftrs, num_classes),
+                nn.Dropout(dropout)
+            )
+        else:
+            model.classifier = nn.Linear(num_ftrs, num_classes)
     else:
         raise ValueError("Model not implemented yet :P")
+
     return model
+
 
 import torch.nn as nn
 

@@ -154,7 +154,9 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "alpha": [1],
         "temp": [1],
         #"tau": [3],
-        "tau": [0.01, 0.02,0.05 ,0.1, 0.2, 0.5,1,2,4,8],
+        "tau": [1e-3,5e-3,16],
+            #[1e-5,1e-4,1e-3,5e-3] ,
+            #[0.01, 0.02,0.05 ,0.1, 0.2, 0.5,1,2,4,8],
         "gamma": [1]
     }
     
@@ -170,6 +172,14 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     early_param = {
         "alpha": [1],
         "temp": [1],
+        #"tau": [3],
+        "tau": [1],
+        "gamma": [1]
+    }
+    
+    dpsgd_param= {  
+        "alpha": [0.1],
+        "temp": [0.5,1,5,10,20,40,80,200, 400, 800, 1600],
         #"tau": [3],
         "tau": [1],
         "gamma": [1]
@@ -209,6 +219,7 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "Dropout" : dropout_param,
         "EarlyStopping": early_param,
         "concave_exp_one": concave_exp_one_param,
+        "DPSGD" : dpsgd_param,
     }
     
     

@@ -35,25 +35,29 @@ if __name__ == "__main__":
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
-    'epochs': 150, # 100 300
+    'epochs': 300, # 100 300
     "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
     "tau" : 1,
-    #'scheduler' : 'multi_step',
+    'scheduler' : 'multi_step',
     "temp" : 1,
     'batch_size' : 128,
     "num_workers" : 8,
     "loss_adjust" : None,
     #"inference" : None,
     "gamma" :1,
-    #"stop_eps": "25 50 75 100 125 150 175 200 225 250 275"
+    "stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("NormalLoss", "concave_exp_one")]
+    methods = [("Dropout","ce"),("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
+    
+    
+    # ("MixupMMD","ce")
+    #[("NormalLoss", "concave_exp_one")]
     #methods  = [("AdvReg","concave_exp"),("MixupMMD","concave_exp")]
     #[("NormalLoss", "concave_exp")]
     # ("RelaxLoss","ce")
@@ -65,7 +69,7 @@ if __name__ == "__main__":
     gpu1 = 4
     
     
-    """
+    #"""
     
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
@@ -82,7 +86,7 @@ if __name__ == "__main__":
         exit()
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
-    """
+    #"""
     
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
