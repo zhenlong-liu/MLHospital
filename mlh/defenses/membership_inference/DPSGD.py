@@ -119,7 +119,7 @@ class TrainTargetDP(Trainer):
         
         
         
-        privacy_engine = PrivacyEngine()
+        
 
 
         """    
@@ -134,7 +134,7 @@ class TrainTargetDP(Trainer):
         )
         """
         
-       
+        privacy_engine = PrivacyEngine()
         self.model, self.optimizer, train_loader = privacy_engine.make_private(
             module=self.model,
             optimizer=self.optimizer,

@@ -63,7 +63,7 @@ if __name__ == "__main__":
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
     gpu0 = 0
-    gpu1 = 0
+    gpu1 = 1
     
     
     """
@@ -89,12 +89,12 @@ if __name__ == "__main__":
     
     
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         for method, loss  in methods:
-            param_dict = get_cifar100_parameter_set(method)
+            param_dict = get_cifar10_parameter_set(method)
             if param_dict == None:
-                param_dict = get_cifar100_parameter_set(loss)
+                param_dict = get_cifar10_parameter_set(loss)
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
@@ -112,13 +112,13 @@ if __name__ == "__main__":
         
         concurrent.futures.wait(futures)
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1:
         
         futures = []
         for method, loss  in methods:
-            param_dict = get_cifar100_parameter_set(method)
+            param_dict = get_cifar10_parameter_set(method)
             if param_dict == None:
-                param_dict = get_cifar100_parameter_set(loss)
+                param_dict = get_cifar10_parameter_set(loss)
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
@@ -150,8 +150,8 @@ if __name__ == "__main__":
         concurrent.futures.wait(futures)
         # tmux kill-session -t 1
         # tmux new -s 1
-        # conda activate mlh
-        # cd mlh/examples/run_cmd/
+        # conda activate ml-hospital
+        # cd mlh/examples/run_cmd_A100/
         # python run_bash_parameters1020_cifar10_noinference.py
         # 
         
