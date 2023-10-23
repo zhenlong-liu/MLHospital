@@ -37,7 +37,7 @@ if __name__ == "__main__":
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
     'epochs': 300, # 100 300
-    "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50
+    "model": "resnet34",  # resnet18 # densenet121 # wide_resnet50 
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
@@ -47,17 +47,17 @@ if __name__ == "__main__":
     'batch_size' : 128,
     "num_workers" : 8,
     "loss_adjust" : None,
-    #"inference" : None,
+    "inference" : None,
     "gamma" :1,
     #"stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
-    "teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
+    #"teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("DPSGD","ce")]
+    methods = [("NormalLoss", "concave_exp_one")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
-               # ("KnowledgeDistillation","ce") ("DPSGD","ce") ("AdvReg","ce")]
+               # ("KnowledgeDistillation","ce")(("AdvReg","ce"))
     params_copy =copy.deepcopy(params)
     #methods = [("NormalLoss", "concave_exp_one")]
     #[("KnowledgeDistillation","ce")]
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     gpu1 = 6
     
     
-    """
+    #"""
     
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         exit()
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
-    """
+    #"""
     
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
@@ -167,7 +167,7 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters1019_cifar100_300epoch_noinference.py
+        # python run_bash_parameters1023_cifar100_300epoch_inference.py
         # 
         
         

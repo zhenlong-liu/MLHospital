@@ -52,7 +52,9 @@ if __name__ == "__main__":
     gpu0 = 0
     gpu1 = 1
     gpu2 = 2
-    root_dir = '../save_adj/CIFAR100/densenet121/'
+    root_dir = '../save_adj/CIFAR100/densenet121'
+    #'../save_adj/CIFAR100/densenet121'
+    #'../save_adj/CIFAR100/densenet121/MixupMMD/target/ce/epochs300/'
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for subdir, dirs, files in os.walk(root_dir):
@@ -68,7 +70,7 @@ if __name__ == "__main__":
                         if "gamma" not in data_config.keys():
                             data_config["gamma"] =1
                         
-                        if data_config["loss_type"] != "concave_exp_one":
+                        if data_config["loss_type"] == "concave_exp_one":
                             continue
                         update_dict1_from_dict2(params,data_config)
                         
@@ -88,12 +90,13 @@ if __name__ == "__main__":
                             with open(log_file_path_train_log, 'r') as f:
                                 data_train_log = yaml.safe_load(f)
                         else: continue
+                        
                         if data_train_log["Train Acc"] < 100/data_config["num_class"]*1.5:
                             continue
                         mia_yaml = os.path.join(subdir, 'mia_metric_based.yaml')
                         mia_bb_yaml = os.path.join(subdir, 'mia_black_box.yaml')
                         mia_wb_yaml = os.path.join(subdir, 'white_box_grid_attacks.yaml')
-                        
+                        #print(mia_wb_yaml)
                         mia_loss = os.path.join(subdir, 'loss_distribution.yaml')
                         if os.path.exists(mia_loss):
                             with open(mia_loss, 'r') as f:
@@ -111,7 +114,7 @@ if __name__ == "__main__":
                         
                         """
                         
-                        
+                        """
                         if not os.path.exists(mia_yaml):
                             #print(data_train_log["Train Acc"])
                             #print(cmd3)
@@ -121,17 +124,20 @@ if __name__ == "__main__":
                             #print(cmd4)
                             #exit()
                             futures.append(executor2.submit(run_command, cmd4))
+                            
+                        """
                         if not os.path.exists(mia_wb_yaml):
                             
                             #print(cmd5)
                             #exit()
                             futures.append(executor1.submit(run_command, cmd5))
                         else:
-                            with open(log_file_path_train_log, 'r') as f:
+                            with open(mia_wb_yaml, 'r') as f:
                                 mia_wb_log = yaml.safe_load(f)
-                            if "grid_w_l2_train_acc" in mia_wb_log.keys():
+                                #print(mia_wb_log)
+                            if "grid_w_l2_test_acc" not in mia_wb_log.keys():
                                 #print(cmd5)
-                                #exit()
+                                
                                 futures.append(executor1.submit(run_command, cmd5))
                                 
         concurrent.futures.wait(futures)                
@@ -139,4 +145,4 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # CUDA_VISIBLE_DEVICES=2,3,4 python run_mia.py
+        # CUDA_VISIBLE_DEVICES=1,3,4 python run_mia.py

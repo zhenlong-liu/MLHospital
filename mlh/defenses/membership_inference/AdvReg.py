@@ -115,8 +115,8 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
                 torch.LongTensor).view([-1, 1]).data.to(self.device), 1)
             attack_output = self.attack_model(all_output, infer_input_one_hot)
             # get something like [[1], [1], [1], [0], [0], [0]]
-            att_labels = att_labels = torch.cat([torch.ones(
-                train_data.shape[0]), torch.zeros(train_data.shape[0])], dim=0).to(self.device)
+            att_labels = torch.cat([torch.ones(
+    train_data.shape[0]), torch.zeros(train_data.shape[0])], dim=0).to(self.device).unsqueeze(1)
             # att_labels = torch.cat([torch.ones(train_data.shape[0]), torch.zeros(
             #     train_data.shape[0])], dim=0).type(torch.LongTensor).to(self.device)
             # print(att_labels, train_target)
