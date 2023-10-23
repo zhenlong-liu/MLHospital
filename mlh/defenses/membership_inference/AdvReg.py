@@ -26,6 +26,7 @@ import os
 import time
 from runx.logx import logx
 import torch.nn as nn
+from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
 from defenses.membership_inference.trainer import Trainer
 
 import sys
@@ -77,97 +78,27 @@ class AttackAdvReg(nn.Module):
         return self.output(is_member)
 
 
-class TrainTargetAdvReg(Trainer):
-    """
-    We take
-    https://github.com/SPIN-UMass/ML-Privacy-Regulization
-    as the reference
-    """
+class TrainTargetAdvReg(TrainTargetNormalLoss):
+    def __init__(self, model, args, delta=1e-5,momentum=0.9, weight_decay=5e-4, **kwargs):
 
-    def __init__(self, model,args, momentum=0.9, weight_decay=5e-4, log_path="./"):
-
-        super().__init__()
-        self.args = args
-        self.model = model
-        self.device = args.device
-        self.num_classes = args.num_class
-        self.epochs = args.epochs
-        self.loss_type = args.loss_type
-        self.learning_rate = args.learning_rate
-        # self.opt = opt
-        
-        self.momentum = momentum
-        self.weight_decay = weight_decay
+        super().__init__(model, args, **kwargs)
         
         self.attack_model = AttackAdvReg(self.num_classes, self.num_classes)
-        self.model.to(self.device)
         self.attack_model.to(self.device)
-        
-        """
-        self.optimizer = torch.optim.SGD(self.model.parameters(
-        ), self.learning_rate, momentum=momentum, weight_decay=self.weight_decay)
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            self.optimizer, T_max=self.epochs)
-
         self.optimizer_adv = torch.optim.SGD(self.attack_model.parameters(
         ), self.learning_rate, momentum=momentum, weight_decay=weight_decay)
         self.scheduler_adv = torch.optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer_adv, T_max=self.epochs)
-
-        self.criterion = torch.nn.CrossEntropyLoss()
-        """
-        
-        self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, weight_decay)
-        #self.optimizer = torch.optim.SGD( self.model.parameters(), self.learning_rate, momentum, weight_decay)
-        
-        self.scheduler = get_scheduler(scheduler_name = args.scheduler, optimizer =self.optimizer, t_max=self.epochs)
-        
-        self.optimizer_adv = torch.optim.SGD(self.attack_model.parameters(
-        ), self.learning_rate, momentum=momentum, weight_decay=weight_decay)
-        self.scheduler_adv = torch.optim.lr_scheduler.CosineAnnealingLR(
-            self.optimizer_adv, T_max=self.epochs)
-        
-        #self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
-        if args.loss_adjust:
-            self.criterion = get_loss_adj(loss_type =self.loss_type, device=self.device, args = self.args, num_classes= self.num_classes)
-        else: self.criterion = get_loss(loss_type =self.loss_type, device=self.device, args = self.args, num_classes= self.num_classes)
-        
-        self.log_path = log_path
-        logx.initialize(logdir=self.log_path,
-                        coolname=False, tensorboard=False)
-
-        logx.msg(f"optimizer:{args.optimizer}, learning rate:{args.learning_rate}, scheduler:{args.scheduler}, epoches:{args.epochs}")
-
-        
-        save_namespace_to_yaml(args, f'{self.log_path}/config.yaml')
-        save_namespace_to_yaml(dict_str(get_init_args(self.criterion)), f'{self.log_path}/loss_config.yaml')
-
-    def eval(self, data_laoder):
-
-        correct = 0
-        total = 0
-        self.model.eval()
-        with torch.no_grad():
-
-            for img, label in data_laoder:
-                img, label = img.to(self.device), label.to(self.device)
-                logits = self.model(img)
-
-                predicted = torch.argmax(logits, dim=1)
-                total += label.size(0)
-                correct += (predicted == label).sum().item()
-
-            final_acc = 100 * correct / total
-
-        return final_acc
-
     def train_attack_advreg(self, train_loader, inference_loader):
         """
         train the mia classifier to distinguish train and inference data
         """
+        
+        
         self.model.eval()
         self.attack_model.train()
-
+        
+        
         for batch_idx, ((train_data, train_target), (inference_data, inference_target)) in enumerate(zip(train_loader, inference_loader)):
             train_data, train_target = train_data.to(
                 self.device), train_target.to(self.device)
@@ -184,8 +115,8 @@ class TrainTargetAdvReg(Trainer):
                 torch.LongTensor).view([-1, 1]).data.to(self.device), 1)
             attack_output = self.attack_model(all_output, infer_input_one_hot)
             # get something like [[1], [1], [1], [0], [0], [0]]
-            att_labels = torch.cat([torch.unsqueeze(torch.ones(
-                train_data.shape[0]), 1), torch.unsqueeze(torch.zeros(train_data.shape[0]), 1)], dim=0).to(self.device)
+            att_labels = att_labels = torch.cat([torch.ones(
+                train_data.shape[0]), torch.zeros(train_data.shape[0])], dim=0).to(self.device)
             # att_labels = torch.cat([torch.ones(train_data.shape[0]), torch.zeros(
             #     train_data.shape[0])], dim=0).type(torch.LongTensor).to(self.device)
             # print(att_labels, train_target)
@@ -198,7 +129,7 @@ class TrainTargetAdvReg(Trainer):
     def train_target_privately(self, train_loader):
         self.model.train()
         self.attack_model.eval()
-        alpha = self.args.tau
+        tau= self.args.tau
 
         for batch_idx, (data, target) in enumerate(train_loader):
             data, target = data.to(self.device), target.to(self.device)
@@ -209,7 +140,7 @@ class TrainTargetAdvReg(Trainer):
                 torch.LongTensor).view([-1, 1]).data.to(self.device), 1)
 
             member_output = self.attack_model(output, target_one_hot_tr)
-            loss = self.criterion(output, target) + (alpha)*(torch.mean((member_output)) - 0.5)
+            loss = self.criterion(output, target) + (tau)*(torch.mean((member_output)) - 0.5)
             self.loss_num = loss.item()
             self.optimizer.zero_grad()
             loss.backward()
