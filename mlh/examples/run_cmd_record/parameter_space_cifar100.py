@@ -147,7 +147,7 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     kd_param ={
         "alpha": [1],
         "temp": [1],
-        "tau": [1,2,5,10,20,50,100],
+        "tau": [0.1, 0.5, 1,2,5,10,20,50,100],
         "gamma": [1]
     }
     mixupmmd_param ={
@@ -174,7 +174,8 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "temp": [1],
         #"tau": [3],
         "tau": [1],
-        "gamma": [1]
+        "gamma": [1],
+        "stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
     }
     
     dpsgd_param= {  

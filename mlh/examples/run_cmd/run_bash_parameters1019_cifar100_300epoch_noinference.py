@@ -1,3 +1,4 @@
+import copy
 import os
 import concurrent.futures
 import sys
@@ -15,7 +16,7 @@ def check_gpu_memory():
         Check the GPUs and return the IDs of the first two GPUs with less than 4MB memory used.
         """
         GPUs = GPUtil.getGPUs()
-        valid_gpus = [gpu.id for gpu in GPUs if gpu.memoryUsed < 100]
+        valid_gpus = [gpu.id for gpu in GPUs if gpu.memoryUsed < 200]
         if len(valid_gpus) >= 2:
             return valid_gpus[:2]
         return None
@@ -48,14 +49,18 @@ if __name__ == "__main__":
     "loss_adjust" : None,
     #"inference" : None,
     "gamma" :1,
-    "stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
+    #"stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
+    #"teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("Dropout","ce"),("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
-    
-    
+    methods = [("Dropout","ce")]
+               #("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
+    params_copy =copy.deepcopy(params)
+    #methods = [("NormalLoss", "concave_exp_one")]
+    #[("KnowledgeDistillation","ce")]
+    #[("EarlyStopping", "ce")]
     # ("MixupMMD","ce")
     #[("NormalLoss", "concave_exp_one")]
     #methods  = [("AdvReg","concave_exp"),("MixupMMD","concave_exp")]
@@ -65,11 +70,11 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 3
-    gpu1 = 4
+    gpu0 = 4
+    gpu1 = 6
     
     
-    #"""
+    """
     
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
@@ -86,12 +91,12 @@ if __name__ == "__main__":
         exit()
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
-    #"""
+    """
     
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     
-    
+    #"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for method, loss  in methods:
@@ -109,12 +114,14 @@ if __name__ == "__main__":
                             params["gamma"] = gamma
                             params["tau"] = tau
                             cmd1, cmd2 = generate_cmd_hup(params,gpu0,gpu1)
+                            """
                             futures.append(executor1.submit(run_command, cmd1))
                             futures.append(executor2.submit(run_command, cmd2))
+                            """
         
         
         concurrent.futures.wait(futures)
-    
+    #"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
         
         futures = []
@@ -132,8 +139,8 @@ if __name__ == "__main__":
                             params["temp"] = temp
                             params["gamma"] = gamma
                             params["tau"] = tau
-                            if params.get("stop_eps") is not None:
-                                for epoch in params["stop_eps"]:
+                            if param_dict.get("stop_eps") is not None:
+                                for epoch in param_dict["stop_eps"]:
                                     params["epochs"] = epoch
                             
                                     cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
@@ -143,13 +150,17 @@ if __name__ == "__main__":
                                     futures.append(executor1.submit(run_command, cmd4))
                                     futures.append(executor1.submit(run_command, cmd5))
                             else:
+                                params["epochs"] = params_copy["epochs"]
                                 cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                 cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                                 cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
+                                
+                                print(cmd3)
+                                #"""
                                 futures.append(executor1.submit(run_command, cmd3))
                                 futures.append(executor1.submit(run_command, cmd4))
                                 futures.append(executor1.submit(run_command, cmd5))
-                                
+                                #"""
         concurrent.futures.wait(futures)
         # tmux kill-session -t 1
         # tmux new -s 1

@@ -342,7 +342,7 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None):
         else:
             model.fc = nn.Linear(num_ftrs, num_classes)
     elif name == "densenet121":
-        model = torch.hub.load('pytorch/vision:v0.10.0', 'densenet121', pretrained=False)
+        model = torch.hub.load('pytorch/vision:v0.10.0', 'densenet121')
         num_ftrs = model.classifier.in_features
         if dropout is not None:
             model.classifier = nn.Sequential(
