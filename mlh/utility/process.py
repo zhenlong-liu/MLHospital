@@ -222,6 +222,11 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
                             #distribution = yaml.safe_load(f)
                             distribution = yaml_2.load(f)
                         data_config.update(distribution)
+                    #print(log_file_path)
+                    #print(distribution["loss_train_mean"])
+                    #print(type(distribution["loss_train_mean"]))
+                    
+                    
                     
                     if os.path.exists(mia_yaml):
                         with open(mia_yaml, 'r') as f:

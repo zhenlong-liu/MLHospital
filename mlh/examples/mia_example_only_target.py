@@ -143,10 +143,10 @@ if __name__ == "__main__":
         load_path_shadow = f'{generate_save_path(args, mode = "shadow")}/{args.model}.pth'
         save_path = generate_save_path(args, mode = "target")
     # load target/shadow model to conduct the attacks
-    target_model.load_state_dict(torch.load(load_path_target))
+    target_model.load_state_dict(torch.load(load_path_target, map_location=args.device))
     target_model = target_model.to(args.device)
     target_model.eval()
-    shadow_model.load_state_dict(torch.load(load_path_shadow))
+    shadow_model.load_state_dict(torch.load(load_path_shadow, map_location=args.device))
     shadow_model = shadow_model.to(args.device)
     shadow_model.eval()
     # generate attack dataset

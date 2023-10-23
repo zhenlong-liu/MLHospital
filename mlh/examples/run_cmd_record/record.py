@@ -44,12 +44,12 @@ def save_merged_dicts_to_yaml(params, loss_set, root, dataset ="cifar10"):
                     record[loss+method] = get_cifar100_parameter_set(loss)
                 
                 #record[loss] = get_cifar100_parameter_set(loss)
-    
-    for loss in loss_set:
-        if dataset.lower() == "cifar10":
-            record[loss] = get_cifar10_parameter_set(loss)
-        elif dataset.lower() == "cifar100":
-            record[loss] = get_cifar100_parameter_set(loss)
+    else:
+        for loss in loss_set:
+            if dataset.lower() == "cifar10":
+                record[loss] = get_cifar10_parameter_set(loss)
+            elif dataset.lower() == "cifar100":
+                record[loss] = get_cifar100_parameter_set(loss)
     # Define the filename based on the current month and day
     filename = current_time.strftime('%m-%d_%H') + '.yaml'
 

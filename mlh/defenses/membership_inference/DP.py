@@ -40,7 +40,7 @@ from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
 
 class TrainTargetDPSGD(TrainTargetNormalLoss):
     def __init__(self, model, args, delta=1e-5,momentum=0.9, weight_decay=5e-4, **kwargs):
-
+        
         super().__init__(model, args, **kwargs)
         
         self.noise_scale = args.alpha
