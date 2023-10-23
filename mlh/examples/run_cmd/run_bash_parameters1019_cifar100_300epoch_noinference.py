@@ -50,13 +50,13 @@ if __name__ == "__main__":
     #"inference" : None,
     "gamma" :1,
     #"stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
-    #"teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
+    "teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("Dropout","ce")]
-               #("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
+    methods = [("KnowledgeDistillation","ce")]
+               #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
     params_copy =copy.deepcopy(params)
     #methods = [("NormalLoss", "concave_exp_one")]
     #[("KnowledgeDistillation","ce")]
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
     gpu0 = 4
-    gpu1 = 6
+    gpu1 = 3
     
     
     """
@@ -114,10 +114,10 @@ if __name__ == "__main__":
                             params["gamma"] = gamma
                             params["tau"] = tau
                             cmd1, cmd2 = generate_cmd_hup(params,gpu0,gpu1)
-                            """
+                            
                             futures.append(executor1.submit(run_command, cmd1))
                             futures.append(executor2.submit(run_command, cmd2))
-                            """
+                            
         
         
         concurrent.futures.wait(futures)

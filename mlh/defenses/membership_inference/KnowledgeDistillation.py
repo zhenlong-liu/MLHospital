@@ -33,7 +33,7 @@ class TrainTargetKnowledgeDistillation(TrainTargetNormalLoss):
         
         self.teacher_model = teacher_model
         self.T = T
-        self.alpha = alpha
+        self.alpha = args.tau
         self.teacher_model.to(self.device)
         
     def compute_loss(self, student_logits, teacher_logits, labels):
