@@ -166,7 +166,7 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters1023_cifar10_300epoch_noinference.py
+        # python run_bash_parameters1024_cifar10_300epoch_noinference.py
         # 
         
         
