@@ -253,7 +253,7 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
                         data_config.update(mia_white_box)
                     if 'cross entropy loss test acc' in data_config:
                             data_config["p1"] = p_score(data_config["Test Acc"], data_config['cross entropy loss test acc'])
-                    print(mia_metrics_file)
+                    #print(mia_metrics_file)
                     
                     
                     data.append(data_config)

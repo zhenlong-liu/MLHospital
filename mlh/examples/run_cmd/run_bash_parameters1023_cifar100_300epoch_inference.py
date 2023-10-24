@@ -37,7 +37,7 @@ if __name__ == "__main__":
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
     'epochs': 300, # 100 300
-    "model": "resnet34",  # resnet18 # densenet121 # wide_resnet50 
+    "model": "resnet34",  # resnet18 # densenet121 # wide_resnet50 resnet34
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
@@ -55,7 +55,8 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("NormalLoss", "concave_exp_one")]
+    methods = [("NormalLoss", "ce")]
+    #[("NormalLoss", "concave_exp_one")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
                # ("KnowledgeDistillation","ce")(("AdvReg","ce"))
     params_copy =copy.deepcopy(params)
@@ -71,11 +72,11 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 2
+    gpu0 = 4
     gpu1 = 6
     
     
-    #"""
+    """
     
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
@@ -92,7 +93,7 @@ if __name__ == "__main__":
         exit()
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
-    #"""
+    """
     
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     

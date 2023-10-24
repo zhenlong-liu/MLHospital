@@ -188,8 +188,9 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     }
     
     concave_exp_one_param = {
-        "alpha": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
-        "temp": [0.01,0.02, 0.05, 0.1],
+        "alpha": [0.32, 0.35, 0.38,  0.42, 0.45, 0.47],
+        "temp":[0.05] ,
+            #[0.01,0.02, 0.05, 0.1],
         #"tau": [3],
         "tau": [1],
         "gamma": [1]
