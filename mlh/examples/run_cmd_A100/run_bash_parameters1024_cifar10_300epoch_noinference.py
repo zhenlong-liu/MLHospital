@@ -164,8 +164,8 @@ if __name__ == "__main__":
         concurrent.futures.wait(futures)
         # tmux kill-session -t 1
         # tmux new -s 1
-        # conda activate mlh
-        # cd mlh/examples/run_cmd/
+        # conda activate ml-hospital
+        # cd mlh/examples/run_cmd_A100/
         # python run_bash_parameters1024_cifar10_300epoch_noinference.py
         # 
         
