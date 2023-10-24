@@ -79,7 +79,7 @@ class TrainTargetEarlyStopping(TrainTargetNormalLoss):
             
             
             if e in list(set(self.stop_eps + [self.epochs])):
-                self.args_copy.epochs = e
+                self.args_copy.tau = e
                 log_path = generate_save_path(self.args_copy)
                 if not os.path.exists(log_path):
                     os.makedirs(log_path)

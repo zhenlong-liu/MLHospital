@@ -135,15 +135,9 @@ if __name__ == "__main__":
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
-                            params['training_type'] = method
-                            params["loss_type"] = loss
-                            params["alpha"] = alpha
-                            params["temp"] = temp
-                            params["gamma"] = gamma
-                            params["tau"] = tau
                             if param_dict.get("stop_eps") is not None:
                                 for epoch in param_dict["stop_eps"]:
-                                    params["epochs"] = epoch
+                                    params["tau"] = epoch
                             
                                     cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                     cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
@@ -162,13 +156,12 @@ if __name__ == "__main__":
                                 futures.append(executor1.submit(run_command, cmd3))
                                 futures.append(executor1.submit(run_command, cmd4))
                                 futures.append(executor1.submit(run_command, cmd5))
-                                #"""
         concurrent.futures.wait(futures)
         # tmux kill-session -t 1
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters1023_cifar100_300epoch_inference.py
+        # python run_bash_parameters1024_cifar100_300epoch_noinference.py
         # 
         
         

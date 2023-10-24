@@ -173,10 +173,11 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     early_param = {
         "alpha": [1],
         "temp": [1],
-        #"tau": [3],
         "tau": [1],
+        #"tau":[25, 50, 75 ,100, 125 ,150 ,175, 200 ,225, 250, 275],
         "gamma": [1],
-        "stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
+        "stop_eps":[25, 50, 75 ,100, 125 ,150 ,175, 200 ,225, 250, 275] 
+            #["25 50 75 100 125 150 175 200 225 250 275"]
     }
     
     dpsgd_param= {  
