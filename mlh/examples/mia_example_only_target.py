@@ -91,6 +91,27 @@ def check_loss_distr(save_path,file_name= "loss_distribution.yaml"):
             return not isinstance(distribution["loss_train_mean"], ScalarFloat)
     else:
         return True
+    
+    
+import torch
+
+def get_image_shape(dataloader):
+    try:
+        # Get a batch of data
+        data, labels = next(iter(dataloader))
+        
+        # Check the shape of a single image
+        image_shape = data[0].shape
+        
+        return image_shape
+    except StopIteration:
+        print("Data loader is empty or exhausted.")
+        return None
+
+
+
+
+
 
 if __name__ == "__main__":
 
@@ -163,16 +184,17 @@ if __name__ == "__main__":
         plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
     
     # attack_type = "metric-based"
-    
+    input_shape = get_image_shape(target_train_loader)
     if attack_type == "label-only":
         attack_model = LabelOnlyMIA(
             device=args.device,
             target_model=target_model.eval(), # 打开eval()模式
             shadow_model=shadow_model.eval(),
+            save_path = save_path,
             target_loader=(target_train_loader, target_test_loader),
             shadow_loader=(shadow_train_loader, shadow_test_loader),
-            input_shape=(3, 32, 32),
-            nb_classes=10)
+            input_shape=input_shape,
+            nb_classes=args.num_class)
         auc = attack_model.Infer()
         print(auc)
 

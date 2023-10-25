@@ -964,6 +964,7 @@ class LabelOnlyMIA(MembershipInferenceAttack):
             device,
             target_model,
             shadow_model,
+            save_path,
             target_loader=None,
             shadow_loader=None,
             input_shape=(3, 32, 32),
@@ -992,7 +993,7 @@ class LabelOnlyMIA(MembershipInferenceAttack):
 
         self.input_shape = input_shape
         self.nb_classes = nb_classes
-
+        self.save_path = save_path
     def SearchThreshold(self):
         ARTclassifier = PyTorchClassifier(
             model=self.shadow_model,
@@ -1040,11 +1041,28 @@ class LabelOnlyMIA(MembershipInferenceAttack):
         x_train_test = np.concatenate((x_train, x_test), axis=0)
         y_train_test = np.concatenate((y_train, y_test), axis=0)
         prediction = Attack.infer(x_train_test, y_train_test)
-   
+
         member_groundtruth = np.ones(int(len(x_train)))
         non_member_groundtruth = np.zeros(int(len(x_train)))
         groundtruth = np.concatenate((member_groundtruth, non_member_groundtruth))
+
+        
+
    
+   
+        binary_predictions = (prediction > 0.5).astype(int)
+
+        # 计算指标
+        recall = recall_score(groundtruth, binary_predictions)
+        precision = precision_score(groundtruth, binary_predictions)
+        f1 = f1_score(groundtruth, binary_predictions)
+        acc = accuracy_score(groundtruth, binary_predictions)
+        auc = roc_auc_score(groundtruth, prediction)
+        label_only_dict = {"label_only_acc": acc, "label_only_recall":recall, "label_only_acc_f1": f1,"label_only_precision": precision, "label_only_auc": auc}
+        
+        save_dict_to_yaml(label_only_dict, f"{self.save_path}/label_only_attacks.yaml")
+        
+        
         fpr, tpr, _ = roc_curve(groundtruth, prediction, pos_label=1, drop_intermediate=False)
         AUC = round(auc(fpr, tpr), 4)
         return AUC

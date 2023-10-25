@@ -110,6 +110,8 @@ if __name__ == "__main__":
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
+                            if param_dict.get("num_workers") is not None:
+                                params["num_workers"] = param_dict.get("num_workers")
                             params['training_type'] = method
                             params["loss_type"] = loss
                             params["alpha"] = alpha
@@ -125,6 +127,9 @@ if __name__ == "__main__":
         
         concurrent.futures.wait(futures)
     #"""
+    
+    params["num_workers"] =params_copy["num_workers"]
+    
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
         
         futures = []

@@ -83,6 +83,9 @@ if __name__ == "__main__":
                         cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                         cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
                         
+                        cmd6 = generate_mia_command(params, attack_type= "label-only", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
+                        print(cmd6)
+                        exit()
                         #print(data_config)
                         #isinstance(x, ScalarFloat)
                         log_file_path_train_log = os.path.join(subdir, "train_log.yaml")
@@ -126,6 +129,8 @@ if __name__ == "__main__":
                             futures.append(executor2.submit(run_command, cmd4))
                             
                         """
+                        
+                        """
                         if not os.path.exists(mia_wb_yaml):
                             
                             #print(cmd5)
@@ -139,7 +144,11 @@ if __name__ == "__main__":
                                 #print(cmd5)
                                 
                                 futures.append(executor1.submit(run_command, cmd5))
-                                
+                        """
+                        
+                        
+                        
+                        
         concurrent.futures.wait(futures)                
         # tmux kill-session -t 1
         # tmux new -s 1
