@@ -137,7 +137,8 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     advreg_param = {
         "alpha": [1],
         "temp": [1],
-        "tau": [0.01, 0.05, 0.1, 0.8, 1, 1.6, 3.2],
+        "tau": [0],
+            #0.01, 0.05, 0.1, 0.8, 1, 1.6, 3.2],
             #[0.01,0.02,0.05,0.1,0.2,0.4,0.6],
         # "tau": [0.8,1,1.2,1.4,1.6,1.8],
         "gamma": [1],
@@ -152,10 +153,11 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "gamma": [1]
     }
     mixupmmd_param ={
-        "alpha": [1],
-        "temp": [1],
+        "alpha": [0.4,0.5],
+        "temp": [0.05],
         #"tau": [3],
-        "tau": [1e-3,5e-3,16],
+        "tau":[1e-3,0.01, 0.02,0.05 ,0.1, 0.2, 0.5,1,2,4,8], 
+            #[1e-3,5e-3,16],
             #[1e-5,1e-4,1e-3,5e-3] ,
             #[0.01, 0.02,0.05 ,0.1, 0.2, 0.5,1,2,4,8],
         "gamma": [1]

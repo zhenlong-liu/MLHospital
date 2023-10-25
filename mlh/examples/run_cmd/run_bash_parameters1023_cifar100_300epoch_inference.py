@@ -49,16 +49,16 @@ if __name__ == "__main__":
     "loss_adjust" : None,
     #"inference" : None,
     "gamma" :1,
-    "stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
+    #"stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
     #"teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("EarlyStopping", "ce")]
+    methods = []
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
-               # ("KnowledgeDistillation","ce")(("AdvReg","ce"))
+               # ("KnowledgeDistillation","ce")(("AdvReg","ce")) 
     params_copy =copy.deepcopy(params)
     #methods = [("NormalLoss", "concave_exp_one")]
     #[("KnowledgeDistillation","ce")]

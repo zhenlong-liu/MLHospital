@@ -928,7 +928,15 @@ class FocalLoss(nn.Module):
 class PHuberCE(nn.Module):
     def __init__(self, tau=10):
         super(PHuberCE, self).__init__()
-        self.tau = tau
+        
+        try:
+            if tau == 0:
+                raise ValueError("tau should not be 0.")
+            self.tau = tau
+        except ValueError as e:
+            #print(e)
+            self.tau = 1e-10  # 
+        
 
         # Probability threshold for the clipping
         self.prob_thresh = 1 / self.tau

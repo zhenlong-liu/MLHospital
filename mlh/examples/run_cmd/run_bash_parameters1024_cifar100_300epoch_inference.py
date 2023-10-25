@@ -47,7 +47,7 @@ if __name__ == "__main__":
     'batch_size' : 128,
     "num_workers" : 8,
     "loss_adjust" : None,
-    #"inference" : None,
+    "inference" : None,
     "gamma" :1,
     #"stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
     #"teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
@@ -55,7 +55,8 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("MixupMMD","concave_exp_one")]# ("AdvReg","concave_exp_one")
+    methods = [("AdvReg","ce")]
+    #[("MixupMMD", "concave_exp_one")] 
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
                # ("KnowledgeDistillation","ce")(("AdvReg","ce"))
@@ -72,8 +73,8 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 4
-    gpu1 = 6
+    gpu0 = 2
+    gpu1 = 3
     
     
     """
@@ -161,7 +162,7 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters1024_cifar100_300epoch_noinference.py
+        # python run_bash_parameters1024_cifar100_300epoch_inference.py
         # 
         
         

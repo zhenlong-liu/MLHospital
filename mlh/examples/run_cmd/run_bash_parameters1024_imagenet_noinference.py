@@ -2,11 +2,14 @@ import copy
 import os
 import concurrent.futures
 import sys
+
 sys.path.append("..")
 sys.path.append("../..")
 from generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
 from mlh.examples.run_cmd_record.parameter_space_cifar100 import get_cifar100_parameter_set
 from run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
+
+from run_cmd_record.parameter_space_imagenet import get_imagenet_parameter_set
 
 from run_cmd_record.record import save_merged_dicts_to_yaml
 import GPUtil
@@ -30,13 +33,13 @@ if __name__ == "__main__":
     
     params = {
     'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
-    "dataset": "CIFAR100",
-    "num_class": 100,
+    "dataset": "Imagenet",
+    "num_class": 1000,
     'log_path': "../save_adj", #'../save_300_cosine', # '../save_p2' save_adj
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
-    'epochs': 300, # 100 300
+    'epochs': 90, # 100 300
     "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50 resnet34
     'optimizer' : "sgd",
     'seed' : 0,
@@ -45,7 +48,7 @@ if __name__ == "__main__":
     'scheduler' : 'multi_step',
     "temp" : 1,
     'batch_size' : 128,
-    "num_workers" : 8,
+    "num_workers" : 13,
     "loss_adjust" : None,
     #"inference" : None,
     "gamma" :1,
@@ -55,7 +58,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("MixupMMD","concave_exp_one")]# ("AdvReg","concave_exp_one")
+    methods = [("NormalLoss", "concave_exp_one")]
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
                # ("KnowledgeDistillation","ce")(("AdvReg","ce"))
@@ -72,8 +75,8 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 4
-    gpu1 = 6
+    gpu0 = 1
+    gpu1 = 7
     
     
     """
@@ -99,12 +102,12 @@ if __name__ == "__main__":
     
     
     #"""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         for method, loss  in methods:
-            param_dict = get_cifar100_parameter_set(method)
+            param_dict = get_imagenet_parameter_set(method)
             if param_dict == None:
-                param_dict = get_cifar100_parameter_set(loss)
+                param_dict = get_imagenet_parameter_set(loss)
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
@@ -128,9 +131,9 @@ if __name__ == "__main__":
         
         futures = []
         for method, loss  in methods:
-            param_dict = get_cifar100_parameter_set(method)
+            param_dict = get_imagenet_parameter_set(method)
             if param_dict == None:
-                param_dict = get_cifar100_parameter_set(loss)
+                param_dict = get_imagenet_parameter_set(loss)
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
@@ -151,7 +154,7 @@ if __name__ == "__main__":
                                 cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                                 cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                 
-                                print(cmd3)
+                                #print(cmd3)
                                 #"""
                                 futures.append(executor1.submit(run_command, cmd3))
                                 futures.append(executor1.submit(run_command, cmd4))
@@ -161,7 +164,7 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters1024_cifar100_300epoch_noinference.py
+        # python run_bash_parameters1024_imagenet_noinference.py
         # 
         
         
