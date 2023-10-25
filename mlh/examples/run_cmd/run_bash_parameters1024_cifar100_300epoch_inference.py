@@ -32,7 +32,7 @@ if __name__ == "__main__":
     'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
     "dataset": "CIFAR100",
     "num_class": 100,
-    'log_path': "../save_adj", #'../save_300_cosine', # '../save_p2' save_adj
+    'log_path': "../save_adj_inference", #'../save_300_cosine', # '../save_p2' save_adj
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
@@ -45,17 +45,18 @@ if __name__ == "__main__":
     'scheduler' : 'multi_step',
     "temp" : 1,
     'batch_size' : 128,
-    "num_workers" : 8,
+    "num_workers" : 1,
     "loss_adjust" : None,
     "inference" : None,
     "gamma" :1,
+    "checkpoint": None,
     #"stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
     #"teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("AdvReg","ce")]
+    methods = [("NormalLoss","ce")]
     #[("MixupMMD", "concave_exp_one")] 
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
@@ -73,8 +74,8 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 2
-    gpu1 = 3
+    gpu0 = 4
+    gpu1 = 6
     
     
     """
@@ -119,15 +120,15 @@ if __name__ == "__main__":
                             params["gamma"] = gamma
                             params["tau"] = tau
                             cmd1, cmd2 = generate_cmd_hup(params,gpu0,gpu1)
-                            
+                            print(cmd1)
                             futures.append(executor1.submit(run_command, cmd1))
                             futures.append(executor2.submit(run_command, cmd2))
                             
         
         
         concurrent.futures.wait(futures)
+    #
     #"""
-    
     params["num_workers"] =params_copy["num_workers"]
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
@@ -158,7 +159,7 @@ if __name__ == "__main__":
                                 cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                 
                                 print(cmd3)
-                                #"""
+                               
                                 futures.append(executor1.submit(run_command, cmd3))
                                 futures.append(executor1.submit(run_command, cmd4))
                                 futures.append(executor1.submit(run_command, cmd5))
@@ -170,4 +171,4 @@ if __name__ == "__main__":
         # python run_bash_parameters1024_cifar100_300epoch_inference.py
         # 
         
-        
+        #"""

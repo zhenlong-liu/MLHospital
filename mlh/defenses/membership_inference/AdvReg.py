@@ -82,7 +82,7 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
     def __init__(self, model, args, delta=1e-5,momentum=0.9, weight_decay=5e-4, **kwargs):
 
         super().__init__(model, args, **kwargs)
-        
+       
         self.attack_model = AttackAdvReg(self.num_classes, self.num_classes)
         self.attack_model.to(self.device)
         self.optimizer_adv = torch.optim.SGD(self.attack_model.parameters(
@@ -132,6 +132,7 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
         tau= self.args.tau
 
         for batch_idx, (data, target) in enumerate(train_loader):
+            self.model.zero_grad()
             data, target = data.to(self.device), target.to(self.device)
             output = self.model(data)
             one_hot_tr = torch.from_numpy((np.zeros((output.size(
@@ -140,9 +141,9 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
                 torch.LongTensor).view([-1, 1]).data.to(self.device), 1)
 
             member_output = self.attack_model(output, target_one_hot_tr)
-            loss = self.criterion(output, target) + (tau)*(torch.mean((member_output)) - 0.5)
+            loss = self.criterion(output, target) #+ (tau)*(torch.mean((member_output)) - 0.5)
             self.loss_num = loss.item()
-            self.optimizer.zero_grad()
+            #self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
             self.scheduler.step()
