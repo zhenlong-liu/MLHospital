@@ -161,7 +161,7 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
         # first train target model for 5 epochs
         for e in range(1, self.epochs+1):
 
-            if e < 100:
+            if e < 310:
                 self.train_target_privately(train_loader)
             else:
                 self.train_attack_advreg(train_loader, inference_loader)

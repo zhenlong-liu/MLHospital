@@ -53,7 +53,7 @@ if __name__ == "__main__":
     #"teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
-    #"RelaxLoss"
+    #"RelaxLoss"  
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
     methods = []
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
