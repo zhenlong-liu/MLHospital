@@ -143,6 +143,16 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "gamma": [1]
     } 
     
+    early_param = {
+        "alpha": [1],
+        "temp": [1],
+        "tau": [1],
+        #"tau":[25, 50, 75 ,100, 125 ,150 ,175, 200 ,225, 250, 275],
+        "gamma": [1],
+        "stop_eps":[25, 50, 75 ,100, 125 ,150 ,175, 200 ,225, 250, 275] 
+            #["25 50 75 100 125 150 175 200 225 250 275"]
+    }
+    
     loss_type_param_space = {
         "focal": focal_param,
         "gce": gce_param,
@@ -161,6 +171,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "KnowledgeDistillation": kd_param,
         "MixupMMD": mixupmmd_param,
         "RelaxLoss" :relaxloss_param,
+        "EarlyStopping": early_param,
         "DPSGD":dpsgd_param,
         "Dropout" : dropout_param,
     }

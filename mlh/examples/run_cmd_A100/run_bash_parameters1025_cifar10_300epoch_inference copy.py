@@ -47,15 +47,15 @@ if __name__ == "__main__":
     'batch_size' : 128,
     "num_workers" : 8,
     "loss_adjust" : None,
-    #"inference" : None,
+    "inference" : None,
     "gamma" :1,
-    "stop_eps": [25,50, 75, 100, 125, 150, 175, 200, 225, 250, 275]
+    #"stop_eps": [25,50, 75, 100, 125, 150, 175, 200, 225, 250, 275]
     }
     
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("EarlyStopping", "ce")]
+    methods = [("MixupMMD", "concave_exp_one")]
     #("NormalLoss","concave_exp_one") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
     params_copy =copy.deepcopy(params)
     #methods = [("NormalLoss", "concave_exp_one")]
