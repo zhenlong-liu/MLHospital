@@ -82,7 +82,7 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
     def __init__(self, model, args, delta=1e-5,momentum=0.9, weight_decay=5e-4, **kwargs):
 
         super().__init__(model, args, **kwargs)
-       
+        
         self.attack_model = AttackAdvReg(self.num_classes, self.num_classes)
         self.attack_model.to(self.device)
         self.optimizer_adv = torch.optim.SGD(self.attack_model.parameters(
@@ -93,11 +93,8 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
         """
         train the mia classifier to distinguish train and inference data
         """
-        
-        
         self.model.eval()
         self.attack_model.train()
-        
         
         for batch_idx, ((train_data, train_target), (inference_data, inference_target)) in enumerate(zip(train_loader, inference_loader)):
             train_data, train_target = train_data.to(
@@ -121,15 +118,15 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
             #     train_data.shape[0])], dim=0).type(torch.LongTensor).to(self.device)
             # print(att_labels, train_target)
             loss = torch.nn.functional.binary_cross_entropy(
-                attack_output, att_labels)
+                attack_output, att_labels)  
             self.attack_model.zero_grad()
             loss.backward()
             self.optimizer_adv.step()
-            self.scheduler_adv.step()
+        self.scheduler_adv.step()
     def train_target_privately(self, train_loader):
         self.model.train()
         self.attack_model.eval()
-        tau= self.args.tau
+        alpha = self.args.tau
 
         for batch_idx, (data, target) in enumerate(train_loader):
             self.model.zero_grad()
@@ -141,12 +138,12 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
                 torch.LongTensor).view([-1, 1]).data.to(self.device), 1)
 
             member_output = self.attack_model(output, target_one_hot_tr)
-            loss = self.criterion(output, target) #+ (tau)*(torch.mean((member_output)) - 0.5)
+            loss = self.criterion(output, target) + (alpha)*(torch.mean((member_output)) - 0.5)
             self.loss_num = loss.item()
-            #self.optimizer.zero_grad()
+            self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-            self.scheduler.step()
+        self.scheduler.step()
     def train(self, train_loader, inference_loader, test_loader):
 
         best_accuracy = 0
@@ -161,7 +158,7 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
         # first train target model for 5 epochs
         for e in range(1, self.epochs+1):
 
-            if e < 310:
+            if e < 5:
                 self.train_target_privately(train_loader)
             else:
                 self.train_attack_advreg(train_loader, inference_loader)
@@ -169,7 +166,7 @@ class TrainTargetAdvReg(TrainTargetNormalLoss):
 
             train_acc = self.eval(train_loader)
             test_acc = self.eval(test_loader)
-
+            
             logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
                 self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, self.loss_num, time.time() - t_start))
             

@@ -55,7 +55,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("MixupMMD","concave_exp_one")]# ("AdvReg","concave_exp_one")
+    methods = [("AdvReg","ce")]# ("AdvReg","concave_exp_one")
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
                # ("KnowledgeDistillation","ce")(("AdvReg","ce"))
@@ -135,6 +135,12 @@ if __name__ == "__main__":
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
+                            params['training_type'] = method
+                            params["loss_type"] = loss
+                            params["alpha"] = alpha
+                            params["temp"] = temp
+                            params["gamma"] = gamma
+                            params["tau"] = tau
                             if param_dict.get("stop_eps") is not None:
                                 for epoch in param_dict["stop_eps"]:
                                     params["tau"] = epoch

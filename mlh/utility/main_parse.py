@@ -2,7 +2,7 @@ import argparse
 import torch
 import yaml
 import os
-
+from datetime import datetime
 def add_argument_parameter(parser):
     parser.add_argument('--log_path', type=str,
                         default='./save', help='data_path')
@@ -76,6 +76,8 @@ def save_namespace_to_yaml(namespace, output_path):
     if isinstance(namespace, argparse.Namespace):
         config_data = vars(namespace)
     else: config_data = namespace
+    current_time = datetime.now()
+    config_data['current_time'] = current_time
     #output_yaml = f'{output_path}/config.yaml'
     output_yaml = output_path
     # Create the output directory if it doesn't exist

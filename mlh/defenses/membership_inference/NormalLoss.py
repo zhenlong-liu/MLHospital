@@ -90,7 +90,7 @@ class TrainTargetNormalLoss(Trainer):
         """Save configurations for better reproducibility and logging."""
         save_namespace_to_yaml(self.args, f'{self.log_path}/config.yaml')
         save_namespace_to_yaml(dict_str(get_init_args(self.criterion)), f'{self.log_path}/loss_config.yaml')
-
+        
     
     def check_point(self):
         checkpoint = f"{self.log_path}/{self.args.model}.pth"
@@ -168,6 +168,8 @@ class TrainTargetNormalLoss(Trainer):
             logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
                 self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, loss_num, time.time() - t_start))
             self.scheduler.step()
+            
+            
             if e == self.epochs:
                 log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
                             "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}

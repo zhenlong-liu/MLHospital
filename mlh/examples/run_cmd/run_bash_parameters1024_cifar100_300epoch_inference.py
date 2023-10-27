@@ -32,7 +32,7 @@ if __name__ == "__main__":
     'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
     "dataset": "CIFAR100",
     "num_class": 100,
-    'log_path': "../save_adj", #'../save_300_cosine', # '../save_p2' save_adj
+    'log_path': "../save_adj_inference", #'../save_300_cosine', # '../save_p2' save_adj
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
@@ -56,7 +56,8 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("AdvReg","ce")]
+    methods = [("AdvReg", "ce")]
+    # ("AdvReg","ce")
     #[("MixupMMD", "concave_exp_one")] 
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
@@ -74,8 +75,8 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 4
-    gpu1 = 6
+    gpu0 = 2
+    gpu1 = 3
     
     
     """
@@ -142,6 +143,13 @@ if __name__ == "__main__":
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
+                            params['training_type'] = method
+                            params["loss_type"] = loss
+                            params["alpha"] = alpha
+                            params["temp"] = temp
+                            params["gamma"] = gamma
+                            params["tau"] = tau
+                            
                             if param_dict.get("stop_eps") is not None:
                                 for epoch in param_dict["stop_eps"]:
                                     params["tau"] = epoch

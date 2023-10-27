@@ -1,5 +1,6 @@
 import os
 import sys
+from defenses.membership_inference.MixupMMDLoss import TrainTargetMixupMMDLoss
 
 sys.path.append("..")
 sys.path.append("../..")
@@ -205,7 +206,7 @@ if __name__ == "__main__":
         elif opt.mode == "shadow":
             train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_shadow_inference, shadow_inference_sorted
 
-        total_evaluator = TrainTargetMixupMMD(
+        total_evaluator = TrainTargetMixupMMDLoss(
             model=target_model, epochs=opt.epochs, log_path=save_pth)
         total_evaluator.train(train_loader, train_loader_ordered,
                               inference_loader_ordered, test_loader, starting_index, inference_sorted)
