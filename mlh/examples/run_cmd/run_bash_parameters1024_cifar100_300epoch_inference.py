@@ -32,7 +32,7 @@ if __name__ == "__main__":
     'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
     "dataset": "CIFAR100",
     "num_class": 100,
-    'log_path': "../save_adj_inference", #'../save_300_cosine', # '../save_p2' save_adj
+    'log_path': "../save_adj", #'../save_300_cosine', # '../save_p2' save_adj
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("AdvReg", "ce")]
+    methods = [("MixupMMD", "concave_exp_one")]
     # ("AdvReg","ce")
     #[("MixupMMD", "concave_exp_one")] 
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
@@ -75,8 +75,8 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 2
-    gpu1 = 3
+    gpu0 = 1
+    gpu1 = 4
     
     
     """

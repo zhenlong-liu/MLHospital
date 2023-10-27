@@ -75,7 +75,7 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 1
+    gpu0 = 6
     gpu1 = 7
     
     
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
     """
-    
+     
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     
@@ -138,6 +138,14 @@ if __name__ == "__main__":
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
+                            params['training_type'] = method
+                            params["loss_type"] = loss
+                            params["alpha"] = alpha
+                            params["temp"] = temp
+                            params["gamma"] = gamma
+                            params["tau"] = tau
+                            
+                            
                             if param_dict.get("stop_eps") is not None:
                                 for epoch in param_dict["stop_eps"]:
                                     params["tau"] = epoch

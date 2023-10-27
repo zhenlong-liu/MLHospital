@@ -153,10 +153,10 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "gamma": [1]
     }
     mixupmmd_param ={
-        "alpha": [0.4,0.5],
-        "temp": [0.05],
+        "alpha": [0.5],
+        "temp": [0.05,0.1],
         #"tau": [3],
-        "tau":[1e-3,0.01], 
+        "tau":[1e-3,0.01,0.1], 
             #[1e-3,0.01, 0.02,0.05 ,0.1, 0.2, 0.5,1,2,4,8], 
             #[1e-3,5e-3,16],
             #[1e-5,1e-4,1e-3,5e-3] ,
