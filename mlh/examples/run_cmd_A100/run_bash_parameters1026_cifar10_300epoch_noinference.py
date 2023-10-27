@@ -50,13 +50,15 @@ if __name__ == "__main__":
     #"inference" : None,
     "gamma" :1,
     #"stop_eps": [25,50, 75, 100, 125, 150, 175, 200, 225, 250, 275]
+    "teacher_path": "../save_adj/CIFAR10/resnet34/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/resnet34.pth"
     }
     
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("RelaxLoss","ce"),("KnowledgeDistillation","ce")]
-    #("NormalLoss","concave_exp_one") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
+    methods = [("KnowledgeDistillation","ce")]
+    # ("KnowledgeDistillation","ce")
+    #("NormalLoss","concave_exp_one") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")] ("NormalLoss","ce")
     params_copy =copy.deepcopy(params)
     #methods = [("NormalLoss", "concave_exp_one")]
     #[("KnowledgeDistillation","ce")]
@@ -74,7 +76,7 @@ if __name__ == "__main__":
     gpu1 = 0
     
     
-    """
+    
     
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
@@ -91,12 +93,12 @@ if __name__ == "__main__":
         exit()
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
-    """
+    
     
     save_merged_dicts_to_yaml(params, methods, "./A100_record", dataset= params.get("dataset"))
     
     
-    """
+    
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for method, loss  in methods:
@@ -121,7 +123,7 @@ if __name__ == "__main__":
         
         
         concurrent.futures.wait(futures)
-    """
+    
                             
         
         

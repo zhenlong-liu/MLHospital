@@ -45,7 +45,7 @@ if __name__ == "__main__":
     'scheduler' : 'multi_step',
     "temp" : 1,
     'batch_size' : 128,
-    "num_workers" : 8,
+    "num_workers" : 1,
     "loss_adjust" : None,
     "inference" : None,
     "gamma" :1,
@@ -55,7 +55,8 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("NormalLoss","ce"),("MixupMMD", "ce")]
+    methods = [("MixupMMD", "ce")]
+    #[("NormalLoss","ce"),("MixupMMD", "ce")]
     #("NormalLoss","concave_exp_one") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
     params_copy =copy.deepcopy(params)
     #methods = [("NormalLoss", "concave_exp_one")]
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     
     
     
-    
+    """
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
     while time.time() < end_time:
@@ -92,14 +93,14 @@ if __name__ == "__main__":
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
     
-    
+    """
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     
     #"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
-        for method, loss  in methods:
+        for method, loss in methods:
             param_dict = get_cifar10_parameter_set(method)
             if param_dict == None:
                 param_dict = get_cifar10_parameter_set(loss)

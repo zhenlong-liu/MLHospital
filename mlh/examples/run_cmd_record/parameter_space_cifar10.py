@@ -2,6 +2,14 @@
 
 def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar10", model ="resnet34"):
     
+    ce_param = {
+        "alpha": [1],
+        "temp": [1],
+        "tau": [1],
+        "gamma": [1],
+    }
+    
+    
     ncemae_param ={
         "alpha": [0.1, 0.5,1, 5, 10],
         "temp": [0.1, 0.5,1, 5,10],
@@ -96,7 +104,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
     advreg_param = {
         "alpha": [1],
         "temp": [1],
-        "tau": [0.8,1,1.2,1.4,1.6,1.8],
+        "tau": [0.01,0.1,0.8,1,1.2,1.4,1.6,1.8],
         "gamma": [1]}
     
     kd_param ={
@@ -154,6 +162,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
     }
     
     loss_type_param_space = {
+        "ce" : ce_param,
         "focal": focal_param,
         "gce": gce_param,
         "sce": sce_param,
