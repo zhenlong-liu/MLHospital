@@ -71,13 +71,13 @@ class TrainTargetNormalLoss(Trainer):
         self.log_path = log_path
         logx.initialize(logdir=self.log_path,
                         coolname=False, tensorboard=False)
-
+        
         logx.msg(f"optimizer:{args.optimizer}, learning rate:{args.learning_rate}, scheduler:{args.scheduler}, epoches:{self.epochs}")
         print(args.checkpoint)
         self.save_configs()
         if args.checkpoint:
             self.check_point()
-    
+
         
     def initialize_criterion(self):
         """Initialize the loss criterion."""

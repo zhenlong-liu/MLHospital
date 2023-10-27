@@ -102,7 +102,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
     kd_param ={
         "alpha": [1],
         "temp": [1],
-        "tau": [1,2,5,10,20,50,100],
+        "tau": [0.1,0.3,0.5,0.7,0.9],
         "gamma": [1]
     }
     

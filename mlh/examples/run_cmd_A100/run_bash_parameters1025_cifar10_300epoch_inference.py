@@ -55,7 +55,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("MixupMMD", "concave_exp_one")]
+    methods = [("NormalLoss","ce"),("MixupMMD", "ce")]
     #("NormalLoss","concave_exp_one") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
     params_copy =copy.deepcopy(params)
     #methods = [("NormalLoss", "concave_exp_one")]
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     gpu1 = 1
     
     
-    """
+    
     
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         exit()
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
-    """
+    
     
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
@@ -138,10 +138,17 @@ if __name__ == "__main__":
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
                         for tau in param_dict["tau"]:
+                            params['training_type'] = method
+                            params["loss_type"] = loss
+                            params["alpha"] = alpha
+                            params["temp"] = temp
+                            params["gamma"] = gamma
+                            params["tau"] = tau
+                            
                             if param_dict.get("stop_eps") is not None:
                                 for epoch in param_dict["stop_eps"]:
                                     params["tau"] = epoch
-                            
+                                    
                                     cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                     cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                                     cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
@@ -164,7 +171,7 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate ml-hospital
         # cd mlh/examples/run_cmd_A100/
-        # python run_bash_parameters1024_cifar10_300epoch_noinference.py
+        # python run_bash_parameters1025_cifar10_300epoch_inference.py
         # 
         
         
