@@ -362,15 +362,23 @@ class MetricBasedMIA(MembershipInferenceAttack):
                         == self.t_te_labels).astype(int)
 
         # prediction confidence
-        self.s_tr_conf = np.array(
-            [self.s_tr_outputs[i, self.s_tr_labels[i]] for i in range(len(self.s_tr_labels))])
-        self.s_te_conf = np.array(
-            [self.s_te_outputs[i, self.s_te_labels[i]] for i in range(len(self.s_te_labels))])
-        self.t_tr_conf = np.array(
-            [self.t_tr_outputs[i, self.t_tr_labels[i]] for i in range(len(self.t_tr_labels))])
-        self.t_te_conf = np.array(
-            [self.t_te_outputs[i, self.t_te_labels[i]] for i in range(len(self.t_te_labels))])
+        # self.s_tr_conf = np.array(
+        #     [self.s_tr_outputs[i, self.s_tr_labels[i]] for i in range(len(self.s_tr_labels))])
+        # self.s_te_conf = np.array(
+        #     [self.s_te_outputs[i, self.s_te_labels[i]] for i in range(len(self.s_te_labels))])
+        # self.t_tr_conf = np.array(
+        #     [self.t_tr_outputs[i, self.t_tr_labels[i]] for i in range(len(self.t_tr_labels))])
+        # self.t_te_conf = np.array(
+        #     [self.t_te_outputs[i, self.t_te_labels[i]] for i in range(len(self.t_te_labels))])
 
+        # prediction confidence
+        self.s_tr_conf = np.max(self.s_tr_outputs, axis=1)
+        self.s_te_conf = np.max(self.s_te_outputs, axis=1)
+        self.t_tr_conf = np.max(self.t_tr_outputs, axis=1)
+        self.t_te_conf = np.max(self.t_te_outputs, axis=1)
+
+        
+        
         # prediction entropy
         self.s_tr_entr = self._entr_comp(self.s_tr_outputs)
         self.s_te_entr = self._entr_comp(self.s_te_outputs)

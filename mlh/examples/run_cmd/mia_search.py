@@ -44,7 +44,7 @@ if __name__ == "__main__":
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
-    'epochs': 150, # 100 300
+    'epochs': 300, # 100 300
     "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50
     'optimizer' : "sgd",
     'seed' : 0,
@@ -63,13 +63,28 @@ if __name__ == "__main__":
     
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
+    end_time = time.time() + 24*60*60  # 24 hours from now
+    found_gpus = False
+    while time.time() < end_time:
+        gpu_ids = check_gpu_memory()
+        if gpu_ids:
+            print(f"Found suitable GPUs with IDs: {gpu_ids[0]} and {gpu_ids[1]}")
+            found_gpus = True
+            break
+        time.sleep(10*60)  # Wait for 10 minutes
 
+    if not found_gpus:
+        print("Did not find suitable GPUs within 24 hours. Exiting the program.")
+        exit()
+    gpu0 = gpu_ids[0]
+    gpu1 = gpu_ids[1]
+    gpu2 = gpu_ids[0]
+    toggle_executor = True
     
     
-    
-    gpu0 = 0
-    gpu1 = 1
-    gpu2 = 2
+    #gpu0 = 0
+    #gpu1 = 1
+    #gpu2 = 2
     root_dir = '../save_adj/CIFAR100/densenet121'
     #'../save_adj/CIFAR100/densenet121'
     #'../save_adj/CIFAR100/densenet121/MixupMMD/target/ce/epochs300/'
@@ -85,6 +100,9 @@ if __name__ == "__main__":
                         with open(log_file_path, 'r') as f:
                             data_config = yaml.safe_load(f)
                             #print(type(data_config))
+                            
+                        if data_config["epochs"] != 300:
+                            continue
                         if "gamma" not in data_config.keys():
                             data_config["gamma"] =1
                         
@@ -98,10 +116,13 @@ if __name__ == "__main__":
                         
                         
                         cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
-                        cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
-                        cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
+                        cmd32 = generate_mia_command(params, gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                         
-                        cmd6 = generate_mia_command(params, attack_type= "label-only", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
+                        
+                        # cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                        # cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
+                        
+                        # cmd6 = generate_mia_command(params, attack_type= "label-only", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
                         
                         #print(data_config)
                         #isinstance(x, ScalarFloat)
@@ -139,8 +160,12 @@ if __name__ == "__main__":
                             #print(data_train_log["Train Acc"])
                             #print(cmd3)
                             #exit()
-                        futures.append(executor1.submit(run_command, cmd3))
-                            
+                        if toggle_executor:
+                            futures.append(executor1.submit(run_command, cmd3))
+                        else:
+                            futures.append(executor2.submit(run_command, cmd32))
+                        
+                        toggle_executor = not toggle_executor 
                             
                             
                         # if not os.path.exists(mia_bb_yaml):
