@@ -55,7 +55,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("MixupMMD", "ce")]
+    methods = [("MixupMMD", "concave_exp_one")]
     #[("NormalLoss","ce"),("MixupMMD", "ce")]
     #("NormalLoss","concave_exp_one") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
     params_copy =copy.deepcopy(params)
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     gpu1 = gpu_ids[1]
     
     """
-    save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
+    save_merged_dicts_to_yaml(params, methods, "./A100_record", dataset= params.get("dataset"))
     
     
     #"""

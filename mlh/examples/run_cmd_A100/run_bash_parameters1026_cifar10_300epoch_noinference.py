@@ -128,7 +128,7 @@ if __name__ == "__main__":
         
         
     
-   
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
         
         futures = []
@@ -149,7 +149,7 @@ if __name__ == "__main__":
                             if param_dict.get("stop_eps") is not None:
                                 for epoch in param_dict["stop_eps"]:
                                     
-                                 
+                                
                                     cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                     cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                                     cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
@@ -162,7 +162,7 @@ if __name__ == "__main__":
                                 cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                                 cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                 
-                                print(cmd3)
+                                #print(cmd3)
                                 #"""
                                 futures.append(executor1.submit(run_command, cmd3))
                                 futures.append(executor1.submit(run_command, cmd4))
