@@ -56,7 +56,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("MixupMMD", "concave_exp_one")]
+    methods = [("AdvReg", "ce")]
     # ("AdvReg","ce")
     #[("MixupMMD", "concave_exp_one")] 
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
     gpu0 = 1
-    gpu1 = 4
+    gpu1 = 5
     
     
     """

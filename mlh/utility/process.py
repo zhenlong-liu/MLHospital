@@ -81,6 +81,21 @@ def extract_last_line_logging_info(log_file,df = False):
                             "Train Acc": train_acc, "Test Acc":test_acc}
                     return info_dict
                 return epoch, train_acc, test_acc
+            
+            else:
+                if "]" in last_line:
+                    log_str = last_line.split("] ")[1]  # 去掉前面的"[After MMD]"
+                    log_list = log_str.split(", ")
+                    log_dict = {}
+                    for item in log_list:
+                        key, value = item.split(": ")
+                        try:
+                            log_dict[key] = float(value) if '.' in value else int(value)
+                        except ValueError:
+                            log_dict[key] = value
+                    if "Test Acc" not in log_dict.keys():
+                        log_dict["Test Acc"]  = log_dict["Eval Acc"]
+                    return log_dict
     return None
 
 
@@ -184,7 +199,7 @@ def p_score(acc_t,acc_a):
     return 2*acc_t*(1-acc_a)/(acc_t +1-acc_a )
 
 
-def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataframe = False):
+def  process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataframe = False):
     yaml_2 = YAML()
     # sourcery skip: dict-assign-update-to-union
     output_folder = os.path.dirname(output_excel)
@@ -202,11 +217,14 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
                         data_config = yaml.safe_load(f)
                     log_file_path_train_log = os.path.join(subdir, "train_log.yaml")
                     if os.path.exists(log_file_path_train_log):
+                        
                         with open(log_file_path_train_log, 'r') as f:
                             data_train_log = yaml.safe_load(f)
                     else: 
+                        #print(111)
                         log_file = os.path.join(subdir, 'logging.log')
                         data_train_log=extract_last_line_logging_info(log_file,df = True)
+                        #print(data_train_log)
                     if data_train_log is not None:
                         data_config.update(data_train_log)
                     
@@ -240,7 +258,7 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
                         data_config.update(distribution)
                         
                         #`row_data.update(mia_metrics)` is a method that updates the `row_data` dictionary with the key-value pairs from the `mia_metrics` dictionary. 
-                        
+
                     # add black box mia   
                     if os.path.exists(mia_bb_yaml):
                         with open(mia_bb_yaml, 'r') as f:
@@ -252,7 +270,10 @@ def process_files_yaml(root_dir, output_excel, var= None, if_round = True, dataf
                             mia_white_box = yaml.safe_load(f)
                         data_config.update(mia_white_box)
                     if 'cross entropy loss test acc' in data_config:
-                            data_config["p1"] = p_score(data_config["Test Acc"], data_config['cross entropy loss test acc'])
+                        #if data_config.get("Test Acc") == None:
+                            #print(log_file_path_train_log)
+                            #exit()
+                        data_config["p1"] = p_score(data_config["Test Acc"], data_config['cross entropy loss test acc'])
                     #print(mia_metrics_file)
                     
                     

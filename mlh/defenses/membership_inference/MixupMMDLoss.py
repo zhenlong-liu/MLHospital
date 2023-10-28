@@ -174,7 +174,7 @@ class TrainTargetMixupMMDLoss(TrainTargetNormalLoss):
             if (abs(eval_acc - train_acc) < 3 or self.mmd_loss_lambda < 1e-5):
                 self.scheduler.step()
                 continue
-
+            
             # validation_label_in_training = []
             # validation_confidence_in_training = []
 
@@ -239,10 +239,10 @@ class TrainTargetMixupMMDLoss(TrainTargetNormalLoss):
                 e, len(train_loader.dataset), train_acc, eval_acc, test_acc, time.time() - t_start))
             self.scheduler.step()
             
-            if e == self.epochs:
-                log_dict = {"Train Epoch" : e, "Train Acc": train_acc, 
+          
+                
+    
+        log_dict = {"Train Epoch" : e, "Train Acc": train_acc, 
                             "Test Acc": test_acc, "Loss": loss_num, 
                             "Total Time" : time.time() - t_start}
-                save_dict_to_yaml(log_dict, f'{self.log_path}/train_log.yaml')
-    
-    
+        save_dict_to_yaml(log_dict, f'{self.log_path}/train_log.yaml')
