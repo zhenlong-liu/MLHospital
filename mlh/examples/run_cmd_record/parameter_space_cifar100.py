@@ -156,9 +156,10 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     }
     mixupmmd_param ={
         "alpha": [0.5],
-        "temp": [0.05,0.1,0.5,1],
+        "temp": [1],
         #"tau": [3],
-        "tau":[0.1,0.02,0.05,0.2], 
+        "tau":[0.01,0.5,1,2,4,8], 
+        #[ 0.1,0.02,0.05,0.2 ]
             #[1e-3,0.01, 0.02,0.05 ,0.1, 0.2, 0.5,1,2,4,8], 
             #[1e-3,5e-3,16],
             #[1e-5,1e-4,1e-3,5e-3] ,
@@ -194,7 +195,7 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     }
     
     concave_exp_one_param = {
-        "alpha": [0.32, 0.35, 0.38,  0.42, 0.45, 0.47],
+        "alpha": [0.39, 0.41,0.55, 0.65,0.75, 0.85, 0.9,0.95],
         "temp":[0.05] ,
             #[0.01,0.02, 0.05, 0.1],
         #"tau": [3],

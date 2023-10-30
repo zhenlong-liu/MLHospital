@@ -65,10 +65,10 @@ if __name__ == "__main__":
     
 
     
+    toggle_executor = True
     
-    
-    gpu0 = 0
-    gpu1 = 1
+    gpu0 = 1
+    gpu1 = 4
     gpu2 = 2
     root_dir = '../save_adj/CIFAR100/densenet121'
     #'../save_adj/CIFAR100/densenet121'
@@ -88,7 +88,9 @@ if __name__ == "__main__":
                         if "gamma" not in data_config.keys():
                             data_config["gamma"] =1
                         
-                        if data_config["loss_type"] == "concave_exp_one":
+                        
+                        
+                        if data_config["epochs"] != 300:
                             continue
                         update_dict1_from_dict2(params,data_config)
                         
@@ -98,6 +100,9 @@ if __name__ == "__main__":
                         
                         
                         cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
+                        cmd32 = generate_mia_command(params, gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                        
+                        
                         cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                         cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
                         
@@ -113,6 +118,9 @@ if __name__ == "__main__":
                         
                         if data_train_log["Train Acc"] < 100/data_config["num_class"]*1.5:
                             continue
+                        
+                        """
+                        
                         mia_yaml = os.path.join(subdir, 'mia_metric_based.yaml')
                         mia_bb_yaml = os.path.join(subdir, 'mia_black_box.yaml')
                         mia_wb_yaml = os.path.join(subdir, 'white_box_grid_attacks.yaml')
@@ -121,6 +129,7 @@ if __name__ == "__main__":
                         if os.path.exists(mia_loss):
                             with open(mia_loss, 'r') as f:
                                 data_loss_distribution = yaml.safe_load(f)
+                        """
                         #print(data_loss_distribution["loss_train_mean"])
                         #print(type(data_loss_distribution["loss_train_mean"]))
                         #continue
@@ -133,13 +142,18 @@ if __name__ == "__main__":
                             exit()
                         
                         """
+                        if toggle_executor:
+                            futures.append(executor1.submit(run_command, cmd3))
+                        else:
+                            futures.append(executor2.submit(run_command, cmd32))
                         
+                        toggle_executor = not toggle_executor 
                         
                         #if not os.path.exists(mia_yaml):
                             #print(data_train_log["Train Acc"])
                             #print(cmd3)
                             #exit()
-                        futures.append(executor1.submit(run_command, cmd3))
+                        #futures.append(executor1.submit(run_command, cmd3))
                             
                             
                             
