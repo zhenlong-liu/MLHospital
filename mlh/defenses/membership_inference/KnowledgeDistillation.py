@@ -32,7 +32,7 @@ class TrainTargetKnowledgeDistillation(TrainTargetNormalLoss):
         super().__init__(model, args, **kwargs)
         
         self.teacher_model = teacher_model
-        self.T = T
+        self.T = args.gamma
         self.alpha = args.tau
         self.teacher_model.to(self.device)
         

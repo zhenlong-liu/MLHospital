@@ -50,7 +50,7 @@ if __name__ == "__main__":
     #"inference" : None,
     "gamma" :1,
     #"stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
-    #"teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
+    "teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
@@ -72,8 +72,8 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 1
-    gpu1 = 2
+    gpu0 = 6
+    gpu1 = 7
     
     
     """
@@ -97,14 +97,16 @@ if __name__ == "__main__":
     
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
-    
+    #print(111)
     #"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for method, loss  in methods:
+            #print(111)
             param_dict = get_cifar100_parameter_set(method)
             if param_dict == None:
                 param_dict = get_cifar100_parameter_set(loss)
+                
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
@@ -116,7 +118,7 @@ if __name__ == "__main__":
                             params["gamma"] = gamma
                             params["tau"] = tau
                             cmd1, cmd2 = generate_cmd_hup(params,gpu0,gpu1)
-                            
+                            print(cmd1)
                             futures.append(executor1.submit(run_command, cmd1))
                             futures.append(executor2.submit(run_command, cmd2))
                             
