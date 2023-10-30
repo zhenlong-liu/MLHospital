@@ -4,7 +4,7 @@ sys.path.append('..')
 sys.path.append('../..')
 sys.path.append('../../..')
 import os
-from generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
+from run_cmd.generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
 from utility.plot import plot_acc_auc, plot_distribution_subplots, plot_scatter_with_lines
 
 from utility.process import df_files, process_files, process_files_yaml
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     
     
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
-    
+    """
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
     while time.time() < end_time:
@@ -79,16 +79,17 @@ if __name__ == "__main__":
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
     gpu2 = gpu_ids[0]
+    
+    """
     toggle_executor = True
     
     
-    #gpu0 = 0
-    #gpu1 = 1
-    #gpu2 = 2
-    root_dir = '../save_adj/CIFAR100/densenet121'
+    gpu0 = 0
+    gpu1 = 1
+    root_dir = '../save_adj/CIFAR10/resnet34'
     #'../save_adj/CIFAR100/densenet121'
     #'../save_adj/CIFAR100/densenet121/MixupMMD/target/ce/epochs300/'
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor2:
         futures = []
         for subdir, dirs, files in os.walk(root_dir):
             if any(file.endswith('.pth') for file in files):
@@ -106,8 +107,6 @@ if __name__ == "__main__":
                         if "gamma" not in data_config.keys():
                             data_config["gamma"] =1
                         
-                        if data_config["loss_type"] == "concave_exp_one":
-                            continue
                         update_dict1_from_dict2(params,data_config)
                         
                         params["specific_path"] = None
@@ -115,9 +114,9 @@ if __name__ == "__main__":
                         params["load_model_path"] = subdir
                         
                         
-                        cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
+                        cmd3 = generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                         cmd32 = generate_mia_command(params, gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
-                        
+                        print(cmd3)
                         
                         # cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                         # cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
@@ -126,6 +125,7 @@ if __name__ == "__main__":
                         
                         #print(data_config)
                         #isinstance(x, ScalarFloat)
+                        """
                         log_file_path_train_log = os.path.join(subdir, "train_log.yaml")
                         if os.path.exists(log_file_path_train_log):
                             with open(log_file_path_train_log, 'r') as f:
@@ -145,7 +145,7 @@ if __name__ == "__main__":
                         #print(data_loss_distribution["loss_train_mean"])
                         #print(type(data_loss_distribution["loss_train_mean"]))
                         #continue
-                        """
+                        
                         if not (isinstance(data_loss_distribution["loss_train_mean"], float)):
                             print(isinstance(data_loss_distribution["loss_train_mean"], ScalarFloat))
                             print(isinstance(data_loss_distribution["loss_train_mean"], float))
@@ -197,6 +197,6 @@ if __name__ == "__main__":
         concurrent.futures.wait(futures)                
         # tmux kill-session -t 1
         # tmux new -s 1
-        # conda activate mlh
-        # cd mlh/examples/run_cmd/
-        # CUDA_VISIBLE_DEVICES=1,3,4 python run_mia.py
+        # conda activate ml-hospital
+        # cd mlh/examples/run_cmd_A100/
+        # CUDA_VISIBLE_DEVICES=1,3,4 python mia_search.py

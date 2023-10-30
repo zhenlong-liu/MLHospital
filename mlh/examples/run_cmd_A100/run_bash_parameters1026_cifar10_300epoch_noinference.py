@@ -77,7 +77,7 @@ if __name__ == "__main__":
     
     
     
-    
+    """
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
     while time.time() < end_time:
@@ -93,7 +93,7 @@ if __name__ == "__main__":
         exit()
     gpu0 = gpu_ids[0]
     gpu1 = gpu_ids[1]
-    
+    """
     
     save_merged_dicts_to_yaml(params, methods, "./A100_record", dataset= params.get("dataset"))
     
