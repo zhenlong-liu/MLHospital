@@ -45,7 +45,7 @@ if __name__ == "__main__":
     'seed' : 0,
     "alpha" : 1,
     "tau" : 1,
-    'scheduler' : 'multi_step',
+    'scheduler' : 'multi_step_imagenet',
     "temp" : 1,
     'batch_size' : 128,
     "num_workers" : 13,
