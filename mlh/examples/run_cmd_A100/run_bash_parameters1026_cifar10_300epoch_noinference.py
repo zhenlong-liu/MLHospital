@@ -48,6 +48,7 @@ if __name__ == "__main__":
     "num_workers" : 8,
     "loss_adjust" : None,
     #"inference" : None,
+    "checkpoint":None,
     "gamma" :1,
     #"stop_eps": [25,50, 75, 100, 125, 150, 175, 200, 225, 250, 275]
     "teacher_path": "../save_adj/CIFAR10/resnet34/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/resnet34.pth"

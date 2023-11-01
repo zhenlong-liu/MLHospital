@@ -112,7 +112,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "temp": [1],
         "tau":[0.5], 
             #[0.1,0.3,0.5,0.7,0.9],
-        "gamma": [0.5, 1,2,5,10,20,100]
+        "gamma": [0.1,0.2, 0.5, 1,2,5,10,50]
     }
     
     mixupmmd_param ={
