@@ -5,7 +5,7 @@ import sys
 sys.path.append("..")
 sys.path.append("../..")
 from generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
-from mlh.examples.run_cmd_record.parameter_space_cifar100 import get_cifar100_parameter_set
+from mlh.examples.run_cmd_record.parameter_space_tinyimagenet import get_imagenet_parameter_set
 from run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
 
 from run_cmd_record.record import save_merged_dicts_to_yaml
@@ -30,19 +30,19 @@ if __name__ == "__main__":
     
     params = {
     'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
-    "dataset": "CIFAR100",
-    "num_class": 100,
-    'log_path': "../save_adj", #'../save_300_cosine', # '../save_p2' save_adj # ../save_adj/combine
+    "dataset": "tinyimagenet", # # imagenet tinyimagenet
+    "num_class": 200,
+    'log_path': "../save_adj/finetune/lr0.01", #'../save_300_cosine', # '../save_p2' save_adj
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
-    'learning_rate': 0.1,
-    'epochs': 300, # 100 300
-    "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50 resnet34
+    'learning_rate': 1e-2,
+    'epochs': 30, # 100 300
+    "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50 resnet34 
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
     "tau" : 1,
-    'scheduler' : 'multi_step',
+    'scheduler' : 'dummy',
     "temp" : 1,
     'batch_size' : 128,
     "num_workers" : 8,
@@ -50,12 +50,14 @@ if __name__ == "__main__":
     #"inference" : None,
     "gamma" :1,
     #"stop_eps": ["25 50 75 100 125 150 175 200 225 250 275"]
-    #"teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/concave_exp_one/epochs300/seed0/0.05/0.7/1/1/densenet121.pth"
+    "teacher_path": "../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/densenet121.pth",
+    "finetune" : None,
+    "data_path": "../../datasets"
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("NormalLoss","ce_ls"),("NormalLoss","ereg")]# ("AdvReg","concave_exp_one")
+    methods = [("NormalLoss","ce")]# ("AdvReg","concave_exp_one")
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
                # ("KnowledgeDistillation","ce")(("AdvReg","ce"))
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 =3
+    gpu0 = 3
     gpu1 = 2
     
     
@@ -99,13 +101,13 @@ if __name__ == "__main__":
     
     #print(111)
     #"""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
         futures = []
         for method, loss  in methods:
             #print(111)
-            param_dict = get_cifar100_parameter_set(method)
+            param_dict = get_imagenet_parameter_set(method)
             if param_dict == None:
-                param_dict = get_cifar100_parameter_set(loss)
+                param_dict = get_imagenet_parameter_set(loss)
                 
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
@@ -130,9 +132,9 @@ if __name__ == "__main__":
         
         futures = []
         for method, loss  in methods:
-            param_dict = get_cifar100_parameter_set(method)
+            param_dict = get_imagenet_parameter_set(method)
             if param_dict == None:
-                param_dict = get_cifar100_parameter_set(loss)
+                param_dict = get_imagenet_parameter_set(loss)
             for temp in param_dict["temp"]:
                 for alpha in param_dict["alpha"]:
                     for gamma in param_dict["gamma"]:
@@ -169,7 +171,7 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters1024_cifar100_300epoch_noinference.py
+        # python run_finetune1102_tinyimagenet_300epoch_noinference.py
         # 
         
         

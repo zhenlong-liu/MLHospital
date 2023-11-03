@@ -41,6 +41,8 @@ def add_argument_parameter(parser):
     
     parser.add_argument('--load_model_path', type=str, default="../save0/CIFAR100/densenet121/NormalLoss/target/ce/epochs150/seed0/1/1/1/1/densenet121.pth", help='load model path')
     
+    parser.add_argument('--finetune', action='store_true', default=False, help='whether finetune')
+  
 def save_namespace_to_yaml(namespace, output_path):
     """
     Save a Namespace object to a YAML file.

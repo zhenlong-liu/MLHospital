@@ -98,10 +98,10 @@ if __name__ == "__main__":
     gpu1 = gpu_ids[1]
     """
      
-    save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
+    #save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     
-    #"""
+    """
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         for method, loss  in methods:
@@ -126,8 +126,8 @@ if __name__ == "__main__":
         
         
         concurrent.futures.wait(futures)
-    #"""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
+    """
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1:
         
         futures = []
         for method, loss  in methods:

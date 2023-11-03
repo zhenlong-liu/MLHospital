@@ -131,6 +131,8 @@ def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t
     """
     if isinstance(optimizer, torch.optim.Adam):
         return DummyScheduler()
+    if scheduler_name.lower() == 'dummy':
+        return DummyScheduler()
     if scheduler_name.lower() == 'step':
         scheduler = lr_scheduler.StepLR(optimizer, step_size=30, gamma=decay_factor)
     elif scheduler_name.lower() == 'cosine':
@@ -280,9 +282,9 @@ import torchvision
 import torch.nn as nn
 import torch.hub
 
-def get_target_model(name="resnet18", num_classes=10, dropout=None):
+def get_target_model(name="resnet18", num_classes=10, dropout=None, fintune = False):
     if name == "resnet18":
-        model = torchvision.models.resnet18()
+        model = torchvision.models.resnet18(weights= fintune)
         num_ftrs = model.fc.in_features
         if dropout is not None:
             model.fc = nn.Sequential(
@@ -302,7 +304,7 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None):
             # )
             pass
     elif name == "resnet34":
-        model = torchvision.models.resnet34()
+        model = torchvision.models.resnet34(weights= fintune)
         num_ftrs = model.fc.in_features
         if dropout is not None:
             model.fc = nn.Sequential(
@@ -312,7 +314,7 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None):
         else:
             model.fc = nn.Linear(num_ftrs, num_classes)
     elif name == "resnet50":
-        model = torchvision.models.resnet50()
+        model = torchvision.models.resnet50(weights= fintune)
         num_ftrs = model.fc.in_features
         if dropout is not None:
             model.fc = nn.Sequential(
@@ -322,7 +324,7 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None):
         else:
             model.fc = nn.Linear(num_ftrs, num_classes)
     elif name == "vgg11":
-        model = torchvision.models.vgg11()
+        model = torchvision.models.vgg11(weights= fintune)
         num_ftrs = model.classifier[-1].in_features
         if dropout is not None:
             model.classifier[-1] = nn.Sequential(
@@ -332,7 +334,7 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None):
         else:
             model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
     elif name == "wide_resnet50":
-        model = torch.hub.load('pytorch/vision:v0.10.0', 'wide_resnet50_2', pretrained=False)
+        model = torchvision.models.wide_resnet50_2(weights= fintune)
         num_ftrs = model.fc.in_features
         if dropout is not None:
             model.fc = nn.Sequential(
@@ -342,7 +344,7 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None):
         else:
             model.fc = nn.Linear(num_ftrs, num_classes)
     elif name == "densenet121":
-        model = torch.hub.load('pytorch/vision:v0.10.0', 'densenet121')
+        model = torchvision.models.densenet121(weights= fintune)
         num_ftrs = model.classifier.in_features
         if dropout is not None:
             model.classifier = nn.Sequential(

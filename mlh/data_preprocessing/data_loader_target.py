@@ -56,6 +56,11 @@ class GetDataLoaderTarget(object):
             dataset =  image_datasets['train'] + image_datasets['val'] +image_datasets['test']
             return dataset
         
+        if dataset.lower() == "imagenet_r":
+            self.data_path = "/data/dataset/imagenet-rendition/imagenet-r/"
+            dataset = torchvision.datasets.ImageFolder(root=self.data_path, transform=train_transform)
+            return dataset
+        
         if dataset in configs.SUPPORTED_IMAGE_DATASETS: # 定义了几个支持的数据集
             _loader = getattr(datasets, dataset)
             if dataset != "EMNIST":
@@ -99,8 +104,8 @@ class GetDataLoaderTarget(object):
 
     def get_data_transform(self, dataset, use_transform="simple"):
         
-        if dataset.lower() in ["imagenet", "tinyimagenet"]:
-            transform_list = [transforms.Resize(256),transforms.CenterCrop(224)]
+        if dataset.lower() in ["imagenet", "tinyimagenet", "imagenet_r"]:
+            transform_list = [transforms.RandomResizedCrop(224)]
             if use_transform == "simple":
                 transform_list += [transforms.RandomHorizontalFlip()]
                 print("add simple data augmentation!")

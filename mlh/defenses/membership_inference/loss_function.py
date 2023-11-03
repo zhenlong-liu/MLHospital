@@ -79,6 +79,39 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_loss": ConcaveLoss(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5),
         "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device)
     }
+    
+    Imagenet_R_CONFIG = {
+        "ce": nn.CrossEntropyLoss(),
+        "ce_ls": nn.CrossEntropyLoss(label_smoothing= 0.1*args.temp, reduction = reduction),
+        "ereg": EntropyRegularizedLoss(alpha = 0.1*args.temp, reduction = reduction),
+        "focal": FocalLoss(gamma=0.5),
+        "mae": MAELoss(num_classes=num_classes),
+        "gce": GCE(device, alpha = 0.1, q=0.2,k=num_classes),
+        "sce": SCE(alpha=0.1, beta=0.1, num_classes=100),
+        "ldam": LDAMLoss(device=device),
+        "logit_clip": LogitClipLoss(device, threshold=args.temp),
+        "logit_norm": LogitNormLoss(device, args.temp, p=args.lp),
+        "normreg": NormRegLoss(device, args.temp, p=args.lp),
+        "tlnorm": TLogitNormLoss(device, args.temp, m=100),
+        "cnorm": CNormLoss(device, args.temp),
+        # "nlnl": NLNL(device, train_loader=train_loader, num_classes=num_classes),
+        "nce": NCELoss(num_classes=num_classes),
+        "ael": AExpLoss(num_classes=100, a=2.5),
+        "aul": AUELoss(num_classes=100, a=5.5, q=3),
+        "phuber": PHuberCE(tau=30),
+        "taylor": TaylorCE(device=device, series=args.series),
+        "cores": CoresLoss(device=device),
+        "ncemae": NCEandMAE(alpha=50*args.alpha, beta=1*args.temp, num_classes=100),
+        "ngcemae": NGCEandMAE(alpha=50*args.alpha, beta=1*args.temp, num_classes=100),
+        "ncerce": NGCEandMAE(alpha=50, beta=1.0, num_classes=100),
+        "nceagce": NCEandAGCE(alpha=50*args.alpha, beta=0.1*args.temp, a=1.8, q=3.0, num_classes=100),
+        "flood": FloodLoss(device=device, t = 0.1*args.temp, reduction = reduction),
+        "concave_exp": ConcaveExpLoss(alpha= 0.05, beta =0.05 ),
+        "concave_log": ConcaveLogLoss(alpha= 0.05, beta =0.05, gamma = 1),
+        "concave_loss": ConcaveLoss(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5),
+        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device)
+    }
+    
     Imagenet_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
         "ce_ls": nn.CrossEntropyLoss(label_smoothing= 0.1*args.temp, reduction = reduction),
@@ -217,6 +250,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         return Imagenet_CONFIG[loss_type]
     elif args.dataset.lower() == "tinyimagenet":
         return TinyImagenet_CONFIG[loss_type]
+    elif args.dataset.lower() == "imagenet_r":
+        return Imagenet_R_CONFIG[loss_type]
     else:
         raise ValueError("Dataset not implemented yet :P")
 

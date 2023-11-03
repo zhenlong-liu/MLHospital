@@ -115,6 +115,20 @@ def load_teacher_model(model,teacher_path ,device):
 
     return model_copy
 
+def freeze_except_last_layer(model):
+    """
+    Freeze the parameters of all layers in the model except the last one.
+
+    Args:
+        model (nn.Module): The model to freeze the parameters of.
+    """
+    # Freeze all layers
+    for param in model.parameters():
+        param.requires_grad = False
+
+    # Unfreeze the last layer
+    for param in list(model.children())[-1].parameters():
+        param.requires_grad = True
 
 
 if __name__ == "__main__":
@@ -148,10 +162,17 @@ if __name__ == "__main__":
     temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
     
     if opt.training_type == "Dropout":
-        target_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout = opt.tau)
+        target_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout = opt.tau,finetune= opt.fintune)
     else: 
-        target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
+        target_model = get_target_model(name=opt.model, num_classes=opt.num_class, fintune= opt.finetune)
 
+    if opt.finetune:
+        freeze_except_last_layer(target_model)
+    
+    
+    
+    
+    
     save_pth = generate_save_path(opt)
     #save_pth = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}/{opt.mode}/{opt.loss_type}/epochs{opt.epochs}/seed{seed}/{temp_save}'
 
