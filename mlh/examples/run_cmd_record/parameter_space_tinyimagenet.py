@@ -145,6 +145,12 @@ def get_imagenet_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "tau": [1],
         "gamma": [1]
     }
+    concave_qua = {
+        "alpha": [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+        "temp": [1],
+        "tau": [1],
+        "gamma": [1],
+    }
     loss_type_param_space = {
         "ce": ce_param,
         "ce_ls":ce_ls_param,
@@ -166,6 +172,7 @@ def get_imagenet_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "relax" :relaxloss_param,
         "kd": kd_param,
         "concave_exp_one": concave_exp_one_param,
+        "concave_qua":concave_qua,
     }
     
     

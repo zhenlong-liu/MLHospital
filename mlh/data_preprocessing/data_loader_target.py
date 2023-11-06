@@ -104,7 +104,7 @@ class GetDataLoaderTarget(object):
 
     def get_data_transform(self, dataset, use_transform="simple"):
         
-        if dataset.lower() in ["imagenet", "tinyimagenet", "imagenet_r"]:
+        if dataset.lower() in ["imagenet", "imagenet_r"]:
             transform_list = [transforms.RandomResizedCrop(224)]
             if use_transform == "simple":
                 transform_list += [transforms.RandomHorizontalFlip()]
@@ -113,8 +113,14 @@ class GetDataLoaderTarget(object):
             transform_ = transforms.Compose(transform_list)
             return transform_
         
-        
-        
+        if dataset.lower() in ["tinyimagenet"]:
+            transform_list = [transforms.RandomResizedCrop(224)]
+            if use_transform == "simple":
+                transform_list += [transforms.RandomHorizontalFlip()]
+                print("add simple data augmentation for tinyimagenet!")
+            transform_list+= [transforms.ToTensor(), transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])]
+            transform_ = transforms.Compose(transform_list)
+            return transform_
         transform_list = [transforms.Resize(
             (self.input_shape[0], self.input_shape[0])), ]
         

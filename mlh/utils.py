@@ -27,13 +27,14 @@ import yaml
 from models.resnet import resnet20
 import torch.nn as nn
 import torchvision
-
+from transformers import ViTForImageClassification
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 import torch, gc
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import argparse
+from transformers import AdamW
 sys.path.append("..")
 sys.path.append("../..")
 def store_dict_to_yaml(my_dict, save_path, file_name):
@@ -106,6 +107,8 @@ def get_optimizer(optimizer_name, model_parameters, learning_rate=0.1, momentum=
         optimizer = optim.SGD(model_parameters, lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
     elif optimizer_name.lower() == 'adam':
         optimizer = optim.Adam(model_parameters, lr=learning_rate, weight_decay=weight_decay)
+    elif optimizer_name.lower() == "adamw":
+        optimizer = AdamW(model_parameters, lr=learning_rate)
     else:
         raise ValueError("'sgd' or 'adam'.")
 
@@ -353,6 +356,21 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None, fintune = Fa
             )
         else:
             model.classifier = nn.Linear(num_ftrs, num_classes)
+            
+    elif name == "vit":
+        if fintune:
+            model = torchvision.models.vit_b_16(weights='IMAGENET1K_V1')
+        else: model = torchvision.models.vit_b_16()
+        num_ftrs = model.heads.head.in_features
+        if dropout is not None:
+            model.heads.head = nn.Sequential(
+                nn.Linear(num_ftrs, num_classes),
+                nn.Dropout(dropout)
+            )
+        else:
+            model.heads.head = nn.Linear(num_ftrs, num_classes)
+            
+            
     else:
         raise ValueError("Model not implemented yet :P")
 

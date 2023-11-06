@@ -75,7 +75,7 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "alpha": [1],
         #0.01,0.02,0.04,0.08,0.1,0.16, 0.2
         
-        "temp": [0.01,0.02,0.04,0.08,0.1,0.16, 0.2,0.25, 0.3, 0.4,0.8,1.6,3.2, 4, 6.4],
+        "temp": [0.01,0.02,0.04,0.08,0.1,0.16, 0.2,0.25, 0.3, 0.4,0.5, 0.8,1, 1.6,3.2],
         "tau": [1],
         "gamma": [1],
     }
@@ -132,7 +132,7 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     relaxloss_param = {
         "alpha": [0.1,0.3,0.5,0.6,0.7,0.9,1],
             #[0.001,0.005, 0.01, 0.04, 0.1, 0.16, 0.2, 0.4, 0.8,1.6, 3.2],
-        # [0.01,0.02,0.04,0.08,0.1,0.16, 0.2,0.25, 0.3, 0.4,0.5, 0.8,1.6,3.2],
+        # [0.01,0.02,0.04,0.08,0.1,0.16, 0.2,0.25, 0.3, 0.4,0.5, 0.8,1, 1.6,3.2],
         "temp": [1],
         "tau": [1],
         "gamma": [1]
@@ -214,7 +214,14 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "tau": [1],
         "gamma": [1]
     }
-    
+    concave_qua = {
+        "alpha":[0.51,0.52,0.53,0.54,0.55,0.56,0.57,0.58,0.59], 
+            #[0.3,0.4,0.5,0.6,0.7,0.8],
+            #[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+        "temp": [0.05],
+        "tau": [1],
+        "gamma": [1],
+    }
     
     loss_type_param_space = {
         "ce":ce_param,
@@ -242,6 +249,7 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "EarlyStopping": early_param,
         "concave_exp_one": concave_exp_one_param,
         "DPSGD" : dpsgd_param,
+        "concave_qua":concave_qua,
     }
     
     

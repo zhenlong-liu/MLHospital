@@ -289,6 +289,7 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "mixup_py": MixupPy(alpha= args.alpha, beta =args.temp, gamma = args.gamma, tau = args.tau, device = args.device),
         "gce_mixup": GCE(device, alpha = args.alpha, q=args.temp, k=num_classes, mixup_beta = args.tau, mixup= True),
         "concave_exp_one": ConcaveExpOneLoss(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
+        "concave_qua":ConcaveQ(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
     }
 
     return CIFAR100_CONFIG[loss_type]
@@ -1086,7 +1087,20 @@ class ConcaveLoss(nn.Module):
         self.reduction = reduction
     def forward(self, input, target):
         return ce_concave_loss(F.cross_entropy(input, target, reduction="none"), self.alpha, self.beta, self.gamma, self.tau, reduction = self.reduction)
+def ce_concave_quadratic_loss(input_values, alpha, gamma =1, reduction="mean"):
+    """Computes the focal loss"""
+    p = torch.exp(-input_values)
+    
+    loss = (1-alpha) * input_values -  alpha*torch.pow(p, 2)
 
+    if reduction == "none":
+        return loss
+    elif reduction == "mean":
+        return loss.mean()
+    elif reduction == "sum":
+        return loss.sum()
+    else:
+        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
 
 
 def ce_concave_exp_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
@@ -1125,7 +1139,19 @@ class ConcaveExpOneLoss(nn.Module):
     def forward(self, input, target):
         return self.beta*ce_concave_exp_loss(F.cross_entropy(input, target, reduction="none"), self.alpha, (1-self.alpha), self.gamma, reduction = self.reduction)
 
-
+class ConcaveQ(nn.Module):
+    def __init__(self, alpha = 1, beta = 1, gamma=1.0, tau =1,reduction='mean'):
+        super(ConcaveQ, self).__init__()
+        assert gamma >= 1e-7
+        self.gamma = gamma
+        self.alpha = alpha
+        self.beta = beta
+        self.reduction = reduction
+    def forward(self, input, target):
+        return self.beta*ce_concave_quadratic_loss(F.cross_entropy(input, target, reduction="none"),self.alpha)
+    
+    
+    
 class ConcaveLogLoss(nn.Module):
     def __init__(self, alpha = 1, beta = 1, gamma=1.0,reduction='mean'):
         super(ConcaveLogLoss, self).__init__()

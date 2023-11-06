@@ -161,7 +161,12 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "stop_eps":[25, 50, 75 ,100, 125 ,150 ,175, 200 ,225, 250, 275] 
             #["25 50 75 100 125 150 175 200 225 250 275"]
     }
-    
+    concave_qua = {
+        "alpha": [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+        "temp": [1],
+        "tau": [1],
+        "gamma": [1],
+    }
     loss_type_param_space = {
         "ce" : ce_param,
         "focal": focal_param,
@@ -184,6 +189,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "EarlyStopping": early_param,
         "DPSGD":dpsgd_param,
         "Dropout" : dropout_param,
+        "concave_qua":concave_qua,
     }
     
     
