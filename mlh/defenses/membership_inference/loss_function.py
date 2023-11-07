@@ -46,7 +46,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_exp": ConcaveExpLoss(alpha= 1, beta =1 ) ,
         "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
-        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device)
+        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
+        "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
     }
     CIFAR100_CONFIG = {
         "ce": nn.CrossEntropyLoss(),
@@ -77,7 +78,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_exp": ConcaveExpLoss(alpha= 0.05, beta =0.05 ),
         "concave_log": ConcaveLogLoss(alpha= 0.05, beta =0.05, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5),
-        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device)
+        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
+        "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
     }
     
     Imagenet_R_CONFIG = {
@@ -109,7 +111,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_exp": ConcaveExpLoss(alpha= 0.05, beta =0.05 ),
         "concave_log": ConcaveLogLoss(alpha= 0.05, beta =0.05, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5),
-        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device)
+        "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
+        "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
     }
     
     Imagenet_CONFIG = {
@@ -141,6 +144,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
         "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
+        "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
     }
     
     TinyImagenet_CONFIG = {
@@ -172,6 +176,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
         "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
+        "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
     }
     
     WEB_CONFIG = {
@@ -200,6 +205,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
         "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
+        "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
     }
     
     FashionMNIST = {
@@ -236,7 +242,8 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
         "concave_log": ConcaveLogLoss(alpha= 1, beta =1, gamma = 1),
         "concave_loss": ConcaveLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
         "mixup_py": MixupPy(alpha= 0.05, beta =0.05, gamma = 1, tau = 0.5,device = args.device),
-        "concave_exp_one": ConcaveExpOneLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5)
+        "concave_exp_one": ConcaveExpOneLoss(alpha= 1, beta =1, gamma = 1, tau = 0.5),
+        "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
     }
     if args.dataset.lower() == "cifar10":
         return CIFAR10_CONFIG[loss_type]
@@ -290,6 +297,7 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "gce_mixup": GCE(device, alpha = args.alpha, q=args.temp, k=num_classes, mixup_beta = args.tau, mixup= True),
         "concave_exp_one": ConcaveExpOneLoss(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
         "concave_qua":ConcaveQ(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
+        "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau)
     }
 
     return CIFAR100_CONFIG[loss_type]
@@ -1102,7 +1110,22 @@ def ce_concave_quadratic_loss(input_values, alpha, gamma =1, reduction="mean"):
     else:
         raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
 
-
+def ce_concave_quadratic_loss(input_values, alpha, gamma =1, reduction="mean"):
+    """Computes the focal loss"""
+    p = torch.exp(-input_values)
+    
+    loss = (1-alpha) * input_values -  alpha*torch.pow(p, 2)
+     
+    if reduction == "none":
+        return loss
+    elif reduction == "mean":
+        return loss.mean()
+    elif reduction == "sum":
+        return loss.sum()
+    else:
+        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+    
+    
 def ce_concave_exp_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
     """Computes the focal loss"""
     p = torch.exp(-input_values)
@@ -1150,7 +1173,23 @@ class ConcaveQ(nn.Module):
     def forward(self, input, target):
         return self.beta*ce_concave_quadratic_loss(F.cross_entropy(input, target, reduction="none"),self.alpha)
     
-    
+class ConcaveTaylor(nn.Module):
+    def __init__(self, alpha = 1, beta = 1, gamma=2, tau =1,reduction='mean'):
+        super(ConcaveTaylor, self).__init__()
+        #assert gamma >= 1e-7
+        self.gamma = 2
+        self.alpha = alpha
+        self.beta = beta
+        self.reduction = reduction
+    def forward(self, input, target):
+        ce = F.cross_entropy(input, target, reduction="none")
+        p = torch.exp(-ce)
+        
+        loss = self.alpha * ce 
+        for n in range(self.gamma):
+            loss = loss - (1-self.alpha)*(torch.pow(p , n+1))
+        
+        return loss.mean()
     
 class ConcaveLogLoss(nn.Module):
     def __init__(self, alpha = 1, beta = 1, gamma=1.0,reduction='mean'):

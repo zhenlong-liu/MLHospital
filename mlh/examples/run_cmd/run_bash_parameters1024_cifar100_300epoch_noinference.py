@@ -54,11 +54,11 @@ if __name__ == "__main__":
     }
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
-    #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("NormalLoss", "concave_qua")]# ("AdvReg","concave_exp_one")
+    #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber", concave_qua]
+    methods = [("NormalLoss", "concave_taylor")]# ("AdvReg","concave_exp_one")
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")，("NormalLoss","ce_ls"),("NormalLoss","ereg")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
-               # ("KnowledgeDistillation","ce")(("AdvReg","ce"))
+               # ("KnowledgeDistillation","ce")(("AdvReg","ce") )
     params_copy =copy.deepcopy(params)
     #methods = [("NormalLoss", "concave_exp_one")]
     #[("KnowledgeDistillation","ce")]
