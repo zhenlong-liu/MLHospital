@@ -163,7 +163,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
     }
     concave_qua = {
         "alpha": [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
-        "temp": [1],
+        "temp": [0.05,0.1,0.5,1],
         "tau": [1],
         "gamma": [1],
     }

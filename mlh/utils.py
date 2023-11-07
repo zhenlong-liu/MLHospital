@@ -27,14 +27,14 @@ import yaml
 from models.resnet import resnet20
 import torch.nn as nn
 import torchvision
-from transformers import ViTForImageClassification
+#from transformers import ViTForImageClassification
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 import torch, gc
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import argparse
-from transformers import AdamW
+#from transformers import AdamW
 sys.path.append("..")
 sys.path.append("../..")
 def store_dict_to_yaml(my_dict, save_path, file_name):

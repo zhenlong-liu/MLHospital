@@ -57,7 +57,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("KnowledgeDistillation","ce")]
+    methods = [("NormalLoss","concave_qua")]
     # ("KnowledgeDistillation","ce")
     #("NormalLoss","concave_exp_one") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")] ("NormalLoss","ce")
     params_copy =copy.deepcopy(params)
