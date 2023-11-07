@@ -57,8 +57,8 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("NormalLoss","concave_qua")]
-    # ("KnowledgeDistillation","ce")
+    methods = [("DPSGD","ce")]
+    # ("KnowledgeDistillation","ce")("NormalLoss","concave_qua")
     #("NormalLoss","concave_exp_one") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")] ("NormalLoss","ce")
     params_copy =copy.deepcopy(params)
     #methods = [("NormalLoss", "concave_exp_one")]
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     
     
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         for method, loss  in methods:
             param_dict = get_cifar10_parameter_set(method)

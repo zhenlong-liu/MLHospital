@@ -222,6 +222,6 @@ if __name__ == "__main__":
             "opt.training_type should be Normal, LabelSmoothing, AdvReg, DP, MixupMMD, PATE")
     
     torch.save(target_model.state_dict(),
-               os.path.join(save_pth, f"{opt.model}.pth"))
+            os.path.join(save_pth, f"{opt.model}.pth"))
     print("Finish Training")
 

@@ -137,7 +137,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "gamma": [1]
     }
     dpsgd_param = {
-        "alpha": [0.1, 0.2,0.4,0.8,1.6,3.2,6.4,12.8],#[0.1, 0.2,0.4,0.8,1.6,3.2,6.4,12.8],
+        "alpha": [0.1,0.5,1,1.2,1.4],#[0.1, 0.2,0.4,0.8,1.6,3.2,6.4,12.8],
         "temp": [1],
         #"tau": [3],
         "tau": [1],

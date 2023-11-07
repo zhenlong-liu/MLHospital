@@ -223,11 +223,11 @@ if __name__ == "__main__":
         total_evaluator.train(train_loader, inference_loader, test_loader)
         #model = total_evaluator.model
 
-    elif opt.training_type == "DP":
-        total_evaluator = TrainTargetDP(
-            model=target_model, args=opt, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
-
+    # elif opt.training_type == "DP":
+    #     total_evaluator = TrainTargetDP(
+    #         model=target_model, args=opt, log_path=save_pth)
+    #     total_evaluator.train(train_loader, test_loader)
+    
     elif opt.training_type == "DPSGD":
         total_evaluator = TrainTargetDPSGD(
             model=target_model, args=opt, log_path=save_pth)

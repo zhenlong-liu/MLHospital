@@ -54,27 +54,9 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
         
         # self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         #    self.optimizer, T_max=self.epochs)
-
+        
     def train(self, train_loader, test_loader):
         
-        """
-        privacy_engine = PrivacyEngine(
-            self.model,
-        batch_size=self.batch_size,
-        sample_size=len(train_loader.dataset),
-        alphas=[1 + x / 10.0 for x in range(1, 100)] + list(range(12, 64)),
-        noise_multiplier=self.noise_scale,
-        max_grad_norm=self.grad_norm,
-    )
-        privacy_engine.attach(self.optimizer)
-        
-        """
-        
-        
-        
-        privacy_engine = PrivacyEngine()
-
-
         """    
         self.model, self.optimizer, train_loader =privacy_engine.make_private(
             module=self.model,
@@ -86,8 +68,7 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
             poisson_sampling= False
         )
         """
-        
-        
+        privacy_engine = PrivacyEngine()
         self.model, self.optimizer, train_loader = privacy_engine.make_private(
             module=self.model,
             optimizer=self.optimizer,
@@ -95,6 +76,10 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
             noise_multiplier=self.noise_scale,
             max_grad_norm=self.grad_norm,
         )
+       
+        
+        self.scheduler = get_scheduler(scheduler_name = self.args.scheduler, optimizer =self.optimizer, t_max=self.epochs)
+        
         
         """
         
@@ -126,7 +111,7 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
         # check whether path exist
         if not os.path.exists(self.log_path):
             os.makedirs(self.log_path)
-
+        losses = []
         for e in range(1, self.epochs+1):
             batch_n = 0
             self.model.train()
@@ -140,18 +125,18 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
                 logits = self.model(img)
                 loss = self.criterion(logits, label)
                 loss.backward()
-                loss_num = loss.item()
+                losses.append(loss.item())
                 self.optimizer.step()
 
             train_acc = self.eval(train_loader)
             test_acc = self.eval(test_loader)
             # print("epoch:%d\ttrain_acc:%.3f\ttest_acc:%.3f\ttotal_time:%.3fs" % (e, train_acc, test_acc, time.time() - t_start))
             logx.msg('Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
-                e, len(train_loader.dataset), train_acc, test_acc, loss_num, time.time() - t_start))
+                e, len(train_loader.dataset), train_acc, test_acc, np.mean(losses), time.time() - t_start))
 
             # print dp params
-            epsilon = privacy_engine.get_epsilon(self.delta)
-            logx.msg('eps: %.5f, delta:%.5f' % (epsilon, self.delta))
+            # epsilon = privacy_engine.get_epsilon(self.delta)
+            # logx.msg('eps: %.5f, delta:%.5f' % (epsilon, self.delta))
 
             self.scheduler.step()
             if e == self.epochs:
