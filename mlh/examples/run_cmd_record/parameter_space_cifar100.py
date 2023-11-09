@@ -222,12 +222,21 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "tau": [1],
         "gamma": [1],
     }
-    concave_taylor ={"alpha":[0.2,0.3,0.4,0.5,0.55,0.6,0.7,0.8], 
+    concave_taylor ={
+        "alpha":[0.2,0.3,0.4,0.5,0.55,0.6,0.7,0.8], 
         "temp": [0.05,0.1,1],
         "tau": [1],
-        "gamma": [1],}
+        "gamma": [1],
+        }
     
     
+    concave_taylor_n ={
+        "alpha":[0.2,0.3,0.4,0.5,0.55,0.6,0.7,0.8], 
+        "temp": [0.05,0.1,1],
+        "tau": [1],
+        "gamma": [2],
+        }
+        
     loss_type_param_space = {
         "ce":ce_param,
         "ce_ls":ce_ls_param,
@@ -255,7 +264,8 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "concave_exp_one": concave_exp_one_param,
         "DPSGD" : dpsgd_param,
         "concave_qua":concave_qua,
-        "concave_taylor":concave_taylor
+        "concave_taylor":concave_taylor,
+        "concave_taylor_n":concave_taylor_n,
     }
     
     

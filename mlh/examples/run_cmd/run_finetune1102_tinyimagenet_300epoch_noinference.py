@@ -45,7 +45,7 @@ if __name__ == "__main__":
     'scheduler' : 'dummy',
     "temp" : 1,
     'batch_size' : 128,
-    "num_workers" : 8,
+    "num_workers" : 4,
     "loss_adjust" : None,
     #"inference" : None,
     "gamma" :1,
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     #print(111)
-    #"""
+    """
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         for method, loss  in methods:
@@ -128,8 +128,8 @@ if __name__ == "__main__":
         
         
         concurrent.futures.wait(futures)
-    #"""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
+    """
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1:
         
         futures = []
         for method, loss  in methods:
@@ -165,8 +165,8 @@ if __name__ == "__main__":
                                 print(cmd3)
                                 #"""
                                 futures.append(executor1.submit(run_command, cmd3))
-                                futures.append(executor1.submit(run_command, cmd4))
-                                futures.append(executor1.submit(run_command, cmd5))
+                                #futures.append(executor1.submit(run_command, cmd4))
+                                #futures.append(executor1.submit(run_command, cmd5))
         concurrent.futures.wait(futures)
         # tmux kill-session -t 1
         # tmux new -s 1

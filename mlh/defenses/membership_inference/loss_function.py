@@ -297,7 +297,8 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "gce_mixup": GCE(device, alpha = args.alpha, q=args.temp, k=num_classes, mixup_beta = args.tau, mixup= True),
         "concave_exp_one": ConcaveExpOneLoss(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
         "concave_qua":ConcaveQ(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
-        "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau)
+        "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
+        "concave_taylor_n":ConcaveTaylorN(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau)
     }
 
     return CIFAR100_CONFIG[loss_type]
@@ -1140,6 +1141,10 @@ def ce_concave_exp_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
         return loss.sum()
     else:
         raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+    
+
+    
+    
 class ConcaveExpLoss(nn.Module):
     def __init__(self, alpha = 1, beta = 1, gamma=1.0,reduction='mean'):
         super(ConcaveExpLoss, self).__init__()
@@ -1187,10 +1192,46 @@ class ConcaveTaylor(nn.Module):
         
         loss = self.alpha * ce 
         for n in range(self.gamma):
-            loss = loss - (1-self.alpha)*(torch.pow(p , n+1))
+            loss = self.alpha*loss - (1-self.alpha)*(torch.pow(p , n+1))
         
+        return self.beta*loss.mean()
+
+
+def taylor_exp(input_values, alpha, beta, gamma =1, reduction="mean"):
+    """Computes the focal loss"""
+    gamma = int(gamma)
+    p = torch.exp(-input_values)
+    loss = alpha*input_values
+    for n in range(gamma):
+        loss = loss - (1-alpha)*(torch.pow(p , n+1))/math.factorial(n+1)
+
+    if reduction == "none":
+        return loss
+    elif reduction == "mean":
         return loss.mean()
-    
+    elif reduction == "sum":
+        return loss.sum()
+    else:
+        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+
+class ConcaveTaylorN(nn.Module):
+    def __init__(self, alpha = 1, beta = 1, gamma=2, tau =1,reduction='mean'):
+        super(ConcaveTaylorN, self).__init__()
+        #assert gamma >= 1e-7
+        self.gamma = gamma
+        self.alpha = alpha
+        self.beta = beta
+        self.reduction = reduction
+    def forward(self, input, target):
+        
+        
+        loss = taylor_exp(F.cross_entropy(input, target, reduction="none"),self.alpha, self.beta, self.gamma) 
+        
+        
+        return self.beta*loss
+
+
+
 class ConcaveLogLoss(nn.Module):
     def __init__(self, alpha = 1, beta = 1, gamma=1.0,reduction='mean'):
         super(ConcaveLogLoss, self).__init__()
