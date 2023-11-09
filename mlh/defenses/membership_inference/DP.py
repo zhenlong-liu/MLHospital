@@ -141,5 +141,12 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
             self.scheduler.step()
             if e == self.epochs:
                 log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
-                            "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}
+                            "Train Acc": train_acc, "Test Acc": test_acc, "Loss": np.mean(losses), "Total Time" : time.time() - t_start}
                 save_dict_to_yaml(log_dict, f'{self.log_path}/train_log.yaml')
+                
+        try:
+            model_path = os.path.join(self.log_path, f"{self.args.model}.pth")
+            torch.save(self.model.state_dict(), model_path)
+            print(f"Model successfully saved at {model_path}")
+        except Exception as e:
+            print(f"An error occurred while saving the model: {e}")
