@@ -32,11 +32,11 @@ if __name__ == "__main__":
     'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
     "dataset": "CIFAR10",
     "num_class": 10,
-    'log_path': "../save_test", #'../save_300_cosine', # '../save_p2' save_adj
+    'log_path': "../save_adj", #'../save_300_cosine', # '../save_p2' save_adj
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
-    'epochs': 5, # 100 300
+    'epochs': 300, # 100 300
     "model": "resnet34",  # resnet18 # densenet121 # wide_resnet50
     'optimizer' : "sgd",
     'seed' : 0,

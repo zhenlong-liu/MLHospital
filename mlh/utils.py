@@ -307,7 +307,10 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None, fintune = Fa
             # )
             pass
     elif name == "resnet34":
-        model = torchvision.models.resnet34(weights= fintune)
+        if fintune:
+            model = torchvision.models.resnet34(weights= "default")
+        else:
+            model = torchvision.models.resnet34(weights= None)
         num_ftrs = model.fc.in_features
         if dropout is not None:
             model.fc = nn.Sequential(
@@ -347,7 +350,10 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None, fintune = Fa
         else:
             model.fc = nn.Linear(num_ftrs, num_classes)
     elif name == "densenet121":
-        model = torchvision.models.densenet121(weights= fintune)
+        if fintune:
+            model = torchvision.models.densenet121(weights= "default")
+        else:
+            model = torchvision.models.densenet121(weights= None)
         num_ftrs = model.classifier.in_features
         if dropout is not None:
             model.classifier = nn.Sequential(
