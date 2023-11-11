@@ -219,7 +219,7 @@ def  process_files_yaml(root_dir, output_excel, var= None, if_round = True, data
                     if os.path.exists(log_file_path_train_log):
                         
                         with open(log_file_path_train_log, 'r') as f:
-                            data_train_log = yaml.safe_load(f)
+                            data_train_log = yaml.unsafe_load(f)
                     else: 
                         #print(111)
                         log_file = os.path.join(subdir, 'logging.log')

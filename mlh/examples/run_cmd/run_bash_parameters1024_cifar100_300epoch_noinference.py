@@ -55,7 +55,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber", concave_qua, "concave_taylor", "concave_taylor_n"]
-    methods = [("NormalLoss", "concave_taylor_n")]# ("AdvReg","concave_exp_one") 
+    methods = [("NormalLoss", "concave_taylor_n")]# ("AdvReg","concave_exp_one")  ("NormalLoss", "concave_taylor_n")
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")，("NormalLoss","ce_ls"),("NormalLoss","ereg")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
                # ("KnowledgeDistillation","ce")(("AdvReg","ce") )
@@ -72,8 +72,8 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 =6
-    gpu1 =7
+    gpu0 =7
+    gpu1 =6
     
     
     """
@@ -159,7 +159,7 @@ if __name__ == "__main__":
                                 cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                                 cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                 
-                                print(cmd3)
+                                #print(cmd3)
                                 #"""
                                 futures.append(executor1.submit(run_command, cmd3))
                                 futures.append(executor1.submit(run_command, cmd4))
