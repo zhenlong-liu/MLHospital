@@ -7,7 +7,6 @@ sys.path.append("../..")
 from run_cmd.generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
 from mlh.examples.run_cmd_record.parameter_space_cifar100 import get_cifar100_parameter_set
 from run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
-
 from run_cmd_record.record import save_merged_dicts_to_yaml
 import GPUtil
 import time
@@ -45,7 +44,7 @@ if __name__ == "__main__":
     'scheduler' : 'multi_step',
     "temp" : 1,
     'batch_size' : 128,
-    "num_workers" : 8,
+    "num_workers" : 12,
     "loss_adjust" : None,
     #"inference" : None,
     "checkpoint":None,
@@ -99,7 +98,7 @@ if __name__ == "__main__":
     save_merged_dicts_to_yaml(params, methods, "./A100_record", dataset= params.get("dataset"))
     
     
-    
+    #"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         for method, loss  in methods:
@@ -125,7 +124,7 @@ if __name__ == "__main__":
         
         concurrent.futures.wait(futures)
     
-                            
+        #"""                    
         
         
     

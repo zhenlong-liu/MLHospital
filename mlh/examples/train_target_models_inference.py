@@ -232,6 +232,8 @@ if __name__ == "__main__":
         total_evaluator = TrainTargetDPSGD(
             model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
+        print("Finish Training")
+        exit()
 
     elif opt.training_type == "Mixup":
         total_evaluator = TrainTargetMixup(

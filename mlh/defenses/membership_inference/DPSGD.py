@@ -31,7 +31,7 @@ from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
 from runx.logx import logx
 from defenses.membership_inference.trainer import Trainer
 from opacus import PrivacyEngine
-from opacus.validators import ModuleValidator
+#from opacus.validators import ModuleValidator
 from tqdm import tqdm
 from utils import get_optimizer, get_scheduler, get_init_args, dict_str
 from defenses.membership_inference.loss_function import get_loss

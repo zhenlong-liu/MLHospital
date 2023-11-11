@@ -120,7 +120,7 @@ class ModelParser():
         all_stats_w = {name: [] for name in names}
 
         # iterate over batches
-        for batch_idx, (inputs, targets) in enumerate(tqdm(dataloader)):
+        for batch_idx, (inputs, targets) in enumerate(dataloader):
             inputs, targets = inputs.to(self.device), targets.to(self.device)
             inputs.requires_grad = True  # Enable gradient computation w.r.t inputs
 

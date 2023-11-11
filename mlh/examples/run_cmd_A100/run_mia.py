@@ -52,7 +52,7 @@ if __name__ == "__main__":
     gpu0 = 0
     gpu1 = 1
     gpu2 = 0
-    root_dir = '../save_adj/CIFAR10/resnet34'
+    root_dir = '../save_adj/CIFAR10/resnet34/DPSGD'
     #'../save_adj/CIFAR100/densenet121'
     #'../save_adj/CIFAR100/densenet121/MixupMMD/target/ce/epochs300/'
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor2:

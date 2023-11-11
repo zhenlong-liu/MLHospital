@@ -16,7 +16,7 @@ import torch.nn.functional as F
 from data_preprocessing.data_loader import GetDataLoader
 from data_preprocessing.data_loader_target import GetDataLoaderTarget
 from torchvision import datasets
-
+#from opacus.validators import ModuleValidator
 from utils import add_new_last_layer, get_dropout_fc_layers, get_target_model, plot_celoss_distribution_together, plot_entropy_distribution_together, generate_save_path_1, generate_save_path_2, generate_save_path
 import torchvision.transforms as transforms
 import argparse
@@ -152,6 +152,11 @@ if __name__ == "__main__":
         shadow_model = get_target_model(name= args.model, num_classes=args.num_class)
     
     
+
+    
+    
+    
+    
     temp_save = str(args.temp).rstrip('0').rstrip('.') if '.' in str(args.temp) else str(args.temp)
 
     
@@ -159,15 +164,36 @@ if __name__ == "__main__":
         load_path_target = f"{args.load_model_path}/{args.model}.pth"
         load_path_shadow = load_path_target.replace("/target/", "/shadow/")
         save_path = args.load_model_path
+    elif args.training_type == "DPSGD":
+        # load_path_target = f'{generate_save_path(args, mode = "target")}/{args.model}.pth'
+        # load_path_shadow = f'{generate_save_path(args, mode = "shadow")}/{args.model}.pth'
+        
+        load_path_target = f'{generate_save_path(args, mode = "target")}/{args.model}.pt'
+        load_path_shadow = f'{generate_save_path(args, mode = "shadow")}/{args.model}.pt'
+        save_path = generate_save_path(args, mode = "target")
+        
     else:
         load_path_target = f'{generate_save_path(args, mode = "target")}/{args.model}.pth'
         load_path_shadow = f'{generate_save_path(args, mode = "shadow")}/{args.model}.pth'
         save_path = generate_save_path(args, mode = "target")
     # load target/shadow model to conduct the attacks
-    target_model.load_state_dict(torch.load(load_path_target, map_location=args.device))
+    
+    if args.training_type == "DPSGD":
+        
+        #target_model = ModuleValidator.fix(target_model)
+        #shadow_model = ModuleValidator.fix(shadow_model)
+        
+        # target_model.load_state_dict(torch.load(load_path_target, map_location=args.device))
+        # shadow_model.load_state_dict(torch.load(load_path_shadow, map_location=args.device))
+        target_model = torch.load(load_path_target)
+        shadow_model = torch.load(load_path_shadow)
+    else:
+        target_model.load_state_dict(torch.load(load_path_target, map_location=args.device))
+        shadow_model.load_state_dict(torch.load(load_path_shadow, map_location=args.device))
+    
+
     target_model = target_model.to(args.device)
     target_model.eval()
-    shadow_model.load_state_dict(torch.load(load_path_shadow, map_location=args.device))
     shadow_model = shadow_model.to(args.device)
     shadow_model.eval()
     # generate attack dataset

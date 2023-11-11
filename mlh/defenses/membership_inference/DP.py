@@ -45,7 +45,7 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
         
         self.noise_scale = args.alpha
         self.grad_norm = args.temp
-        self.delta = delta
+        self.delta = delta 
         self.model = ModuleValidator.fix(self.model)
         self.model = self.model.to(self.device)
         self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, weight_decay)
@@ -56,6 +56,17 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
         #    self.optimizer, T_max=self.epochs)
         
     def train(self, train_loader, test_loader):
+        
+        # privacy_engine = PrivacyEngine(
+        #     self.model,
+        #     batch_size=self.args.batch_size,
+        #     sample_size=len(train_loader.dataset),  # overall training set size
+        #     alphas=[1 + x / 10.0 for x in range(1, 100)] + list(range(12, 64)),
+        #     noise_multiplier=self.noise_scale,  # sigma
+        #     max_grad_norm=self.grad_norm,  # this is from dp-sgd paper
+        # )
+        # privacy_engine.attach(self.optimizer)
+        
         
         """    
         self.model, self.optimizer, train_loader =privacy_engine.make_private(
@@ -94,17 +105,7 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
         )
         """
         """
-        privacy_engine = PrivacyEngine(
-            self.model,
-            batch_size=self.batch_size,
-            sample_size=len(train_loader.dataset),  # overall training set size
-            sample_rate=0.01,
-            params for renyi dp
-            alphas=[1 + x / 10.0 for x in range(1, 100)] + list(range(12, 64)),
-            noise_multiplier=self.noise_scale,  # sigma
-            max_grad_norm=self.grad_norm,  # this is from dp-sgd paper
-        )
-        privacy_engine.attach(self.optimizer)
+        
         """
         t_start = time.time()
 
@@ -145,8 +146,11 @@ class TrainTargetDPSGD(TrainTargetNormalLoss):
                 save_dict_to_yaml(log_dict, f'{self.log_path}/train_log.yaml')
                 
         try:
-            model_path = os.path.join(self.log_path, f"{self.args.model}.pth")
-            torch.save(self.model.state_dict(), model_path)
+            # model_path = os.path.join(self.log_path, f"{self.args.model}.pth")
+            # torch.save(self.model.state_dict(),model_path)
+            # print(f"Model successfully saved at {model_path}")
+            model_path = os.path.join(self.log_path, f"{self.args.model}.pt")
+            torch.save(self.model, os.path.join(self.log_path, f"{self.args.model}.pt"))
             print(f"Model successfully saved at {model_path}")
         except Exception as e:
             print(f"An error occurred while saving the model: {e}")
