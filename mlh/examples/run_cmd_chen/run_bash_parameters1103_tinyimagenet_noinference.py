@@ -40,13 +40,13 @@ if __name__ == "__main__":
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
-    'epochs': 120, # 100 300
+    'epochs': 150, # 100 300
     "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50 resnet34
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
     "tau" : 1,
-    'scheduler' : 'multi_step2',
+    'scheduler' : 'multi_step150', # multi_step2()
     "temp" : 1,
     'batch_size' : 128,
     "num_workers" : 8,
@@ -77,8 +77,8 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 7
-    gpu1 = 7
+    gpu0 = 5
+    gpu1 = 5
     
     
     """

@@ -143,6 +143,9 @@ def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t
     elif scheduler_name.lower() == "multi_step":
         decay_epochs = [150, 225]
         scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
+    elif scheduler_name.lower() == "multi_step150":
+        decay_epochs = [50, 100]
+        scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
     elif scheduler_name.lower() == "multi_step2":
         decay_epochs = [40, 80]
         scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
