@@ -50,7 +50,8 @@ class GetDataLoaderTarget(object):
             return dataset
         
         if dataset.lower() == "tinyimagenet":
-            self.data_path = f'{self.data_path}/data_tinyimagenet/tiny-imagenet-200/'
+            #self.data_path = "/data1/lzl/tiny-imagenet-200/"
+            self.data_path = f'{self.data_path}/tiny-imagenet-200/'
             image_datasets = {x: datasets.ImageFolder(os.path.join(self.data_path, x), transform=train_transform) 
                   for x in ['train', 'val','test']}
             dataset =  image_datasets['train'] + image_datasets['val'] +image_datasets['test']
@@ -114,7 +115,9 @@ class GetDataLoaderTarget(object):
             return transform_
         
         if dataset.lower() in ["tinyimagenet"]:
-            transform_list = [transforms.RandomResizedCrop(224)]
+            if self.args.finetune:
+                transform_list = [transforms.RandomResizedCrop(224)]
+            else: transform_list = [transforms.RandomResizedCrop(64)]
             if use_transform == "simple":
                 transform_list += [transforms.RandomHorizontalFlip()]
                 print("add simple data augmentation for tinyimagenet!")

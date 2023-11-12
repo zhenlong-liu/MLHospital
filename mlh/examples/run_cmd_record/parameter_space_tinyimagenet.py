@@ -2,7 +2,7 @@
 
 
 
-def get_imagenet_parameter_set(loss_type, dataset = "cifar100", model ="wideresnet"):
+def get_tinyimagenet_parameter_set(loss_type, dataset = "cifar100", model ="wideresnet"):
     
     ce_param ={
         "alpha": [1],
@@ -151,6 +151,23 @@ def get_imagenet_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "tau": [1],
         "gamma": [1],
     }
+    concave_taylor ={
+        "alpha":[0.6,0.7,0.8],
+            #[], 
+        "temp": [0.1],
+        "tau": [1],
+        "gamma": [1],
+        }
+    
+    
+    concave_taylor_n ={
+        "alpha":[0.45,0.55,0.65,0.75,0.85,0.9,0.95],
+            #[0.32,0.33,0.34,0.35,0.36,0.37,0.38], 
+        "temp": [0.05],
+        "tau": [1],
+        "gamma": [2],
+        }
+    
     loss_type_param_space = {
         "ce": ce_param,
         "ce_ls":ce_ls_param,
@@ -173,6 +190,8 @@ def get_imagenet_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
         "kd": kd_param,
         "concave_exp_one": concave_exp_one_param,
         "concave_qua":concave_qua,
+        "concave_taylor":concave_taylor,
+        "concave_taylor_n":concave_taylor_n,
     }
     
     
