@@ -196,8 +196,8 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     }
     
     dpsgd_param= {  
-        "alpha": [1e-4,1e-3,1e-2,0.1, 0.5, 1],
-        "temp": [0.5,1,2,4],
+        "alpha": [0.1],#[1e-4,1e-3,1e-2,0.1, 0.5, 1],
+        "temp": [0.1,0.2,0.5,1,2,4,8,16],#[0.5,1,2,4],
         #"tau": [3],
         "tau": [1],
         "gamma": [1]

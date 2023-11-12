@@ -55,7 +55,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber", concave_qua, "concave_taylor", "concave_taylor_n"]
-    methods = [("NormalLoss", "concave_taylor_n")]# ("AdvReg","concave_exp_one")  ("NormalLoss", "concave_taylor_n")
+    methods = [("DPSGD", "ce")]# ("AdvReg","concave_exp_one")  ("NormalLoss", "concave_taylor_n")
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")，("NormalLoss","ce_ls"),("NormalLoss","ereg")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
                # ("KnowledgeDistillation","ce")(("AdvReg","ce") )
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     
     #print(111)
     #"""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:
         futures = []
         for method, loss  in methods:
             #print(111)
@@ -169,7 +169,7 @@ if __name__ == "__main__":
         # tmux new -s 1
         # conda activate mlh
         # cd mlh/examples/run_cmd/
-        # python run_bash_parameters1024_cifar100_300epoch_noinference.py
+        # python run_bash_DPSGD.py
         # 
         
         
