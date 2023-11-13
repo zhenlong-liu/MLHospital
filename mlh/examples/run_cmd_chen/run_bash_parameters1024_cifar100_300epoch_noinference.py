@@ -32,10 +32,10 @@ if __name__ == "__main__":
     'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
     "dataset": "CIFAR100",
     "num_class": 100,
-    'log_path': "../save_adj", #'../save_300_cosine', # '../save_p2' save_adj # ../save_adj/combine
+    'log_path': "../save_adj/lr0.001", #'../save_300_cosine', # '../save_p2' save_adj # ../save_adj/combine
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
-    'learning_rate': 0.1,
+    'learning_rate': 0.001,
     'epochs': 300, # 100 300
     "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50 resnet34
     'optimizer' : "sgd",
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber", concave_qua, "concave_taylor", "concave_taylor_n"]
-    methods = [("NormalLoss", "concave_taylor")]# ("AdvReg","concave_exp_one")  ("NormalLoss", "concave_taylor_n")
+    methods = [("NormalLoss", "ce")]# ("AdvReg","concave_exp_one")  ("NormalLoss", "concave_taylor_n")
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")，("NormalLoss","ce_ls"),("NormalLoss","ereg")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
                # ("KnowledgeDistillation","ce")(("AdvReg","ce") )
@@ -72,8 +72,8 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 =5
-    gpu1 =6
+    gpu0 =7
+    gpu1 =7
     
     
     """
