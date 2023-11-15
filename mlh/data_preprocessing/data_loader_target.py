@@ -42,7 +42,7 @@ class GetDataLoaderTarget(object):
     def parse_dataset(self, dataset, train_transform, test_transform):
 
         if dataset.lower() == "imagenet":
-            self.data_path = '/data/dataset/imagenet/images/'
+            self.data_path = f'{self.data_path}/images/'
             train_dataset = torchvision.datasets.ImageFolder(root=self.data_path + 'train', transform=train_transform)
             test_dataset = torchvision.datasets.ImageFolder(root=self.data_path + 'val', transform=test_transform)
             dataset = train_dataset + test_dataset
