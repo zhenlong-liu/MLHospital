@@ -72,7 +72,7 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 =5
+    gpu0 =7
     gpu1 =6
     
     
