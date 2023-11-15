@@ -1183,7 +1183,7 @@ class ConcaveTaylor(nn.Module):
         return self.beta*loss.mean()
 
 
-def taylor_exp(input_values, alpha, beta, gamma =1, reduction="mean"):
+def taylor_exp(input_values, alpha, beta, gamma =2, reduction="mean"):
     """Computes the focal loss"""
     gamma = int(gamma)
     p = torch.exp(-input_values)
