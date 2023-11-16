@@ -19,7 +19,7 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     }
     
     gce_param = {
-        "alpha": [0.01],
+        "alpha": [0.01,0.1,1],
             #[0.01, 0.1, 1],
         "temp": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
         "tau": [1],   
@@ -57,8 +57,8 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
     }
 
     sce_param = {
-        "alpha": [0.1],
-        "temp": [1,2,4,8,16,32],
+        "alpha": [0.01, 0.1,1],
+        "temp": [0.01, 0.02,  0.05, 0.1,0.5,1, 5],
         # 0.01, 0.02,  0.05, 0.1, 0.2, 0.4, 0.8
         "tau": [1],
         "gamma": [1],
@@ -119,7 +119,8 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         "alpha": [1],
         "temp": [1],
         "tau": [1],
-        "gamma":[2,4,8,16,20,32,40,50,64,128, 256,400, 512,700, 800, 900, 1024],
+        "gamma":[2,4,8,16,32,64,128,256]
+            #[2,4,8,16,20,32,40,50,64,128, 256,400, 512,700, 800, 900, 1024],
         # [8,16,20,32,40,50,64,128]
     }
     concave_loss_param ={
