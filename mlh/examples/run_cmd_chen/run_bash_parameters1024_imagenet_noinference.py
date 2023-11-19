@@ -14,6 +14,10 @@ from run_cmd_record.parameter_space_imagenet import get_imagenet_parameter_set
 from run_cmd_record.record import save_merged_dicts_to_yaml
 import GPUtil
 import time
+import subprocess
+import re
+
+
 def check_gpu_memory():
         """
         Check the GPUs and return the IDs of the first two GPUs with less than 4MB memory used.
@@ -23,6 +27,20 @@ def check_gpu_memory():
         if len(valid_gpus) >= 2:
             return valid_gpus[:2]
         return None
+    
+def get_gpu_memory_usage(gpu_id):
+    result = subprocess.run(['nvidia-smi', '--query-gpu=memory.used', '--format=csv', '-i', str(gpu_id)], stdout=subprocess.PIPE)
+    memory_used = int(re.search(r'\d+', result.stdout.decode('utf-8')).group())
+    return memory_used
+
+def check_specific_gpu_memory(gpu_list):
+        
+        for gpu_id in gpu_list:
+            if get_gpu_memory_usage(gpu_id) >= 2000:
+                return False
+            return True
+
+
 
 
 def run_command(cmd):
@@ -59,7 +77,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber"]
-    methods = [("RelaxLoss","ce")]
+    methods = [("NormalLoss","concave_taylor_n")]
     #[("NormalLoss", "concave_taylor_n")]
     #[("NormalLoss", "concave_exp_one")("NormalLoss", "ce")]
                #("Dropout","ce") ("KnowledgeDistillation","ce"),("EarlyStopping", "ce")]
@@ -73,7 +91,7 @@ if __name__ == "__main__":
     #methods  = [("AdvReg","concave_exp"),("MixupMMD","concave_exp")]
     #[("NormalLoss", "concave_exp")]
     # ("RelaxLoss","ce")
-    #methods =[("RelaxLoss","ce"),("NormalLoss", "concave_exp")]
+    #methods =[("RelaxLoss","ce"),("Norm alLoss", "concave_exp")]
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
@@ -81,26 +99,39 @@ if __name__ == "__main__":
     gpu1 = 4
     
     
-    """
     
-    end_time = time.time() + 24*60*60  # 24 hours from now
-    found_gpus = False
-    while time.time() < end_time:
-        gpu_ids = check_gpu_memory()
-        if gpu_ids:
-            print(f"Found suitable GPUs with IDs: {gpu_ids[0]} and {gpu_ids[1]}")
-            found_gpus = True
+    gpu_list = [6,7]
+    while True:
+        if check_specific_gpu_memory(gpu_list):
+            # Perform your desired operation here when all GPUs are below the threshold
+            print("All GPUs are below the memory usage threshold. Performing operations...")
+            gpu0 = gpu_list[0]
+            gpu1 = gpu_list[1]
             break
-        time.sleep(10*60)  # Wait for 10 minutes
+        else:
+            # Wait if at least one GPU is above the threshold
+            print("Waiting, at least one GPU is above the memory usage threshold...")
+            time.sleep(600)  # Wait for 10 minutes
+    
+    
+    # end_time = time.time() + 24*60*60  # 24 hours from now
+    # found_gpus = False
+    # while time.time() < end_time:
+    #     gpu_ids = check_gpu_memory()
+    #     if gpu_ids:
+    #         print(f"Found suitable GPUs with IDs: {gpu_ids[0]} and {gpu_ids[1]}")
+    #         found_gpus = True
+    #         break
+    #     time.sleep(10*60)  # Wait for 10 minutes
 
-    if not found_gpus:
-        print("Did not find suitable GPUs within 24 hours. Exiting the program.")
-        exit()
-    gpu0 = gpu_ids[0]
-    gpu1 = gpu_ids[1]
-    """
+    # if not found_gpus:
+    #     print("Did not find suitable GPUs within 24 hours. Exiting the program.")
+    #     exit()
+    # gpu0 = gpu_ids[0]
+    # gpu1 = gpu_ids[1]
+    
      
-    #save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
+    save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     
     #"""

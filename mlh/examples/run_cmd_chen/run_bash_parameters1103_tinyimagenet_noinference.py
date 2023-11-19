@@ -100,7 +100,7 @@ if __name__ == "__main__":
     gpu1 = gpu_ids[1]
     """
      
-    #save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
+    save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     
     

@@ -7,7 +7,7 @@ sys.path.append("..")
 sys.path.append("../..")
 from run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
 from run_cmd_record.parameter_space_cifar100 import get_cifar100_parameter_set
-
+from run_cmd_record.parameter_space_imagenet import get_imagenet_parameter_set
 # mlh.examples.run_cmd_record.
 
 def save_merged_dicts_to_yaml(params, loss_set, root, dataset ="cifar10"):
@@ -42,6 +42,11 @@ def save_merged_dicts_to_yaml(params, loss_set, root, dataset ="cifar10"):
                 
                 if record[loss+method] == None:
                     record[loss+method] = get_cifar100_parameter_set(loss)
+            if dataset.lower() == "imagenet":
+                record[loss+method] = get_imagenet_parameter_set(method)
+                
+                if record[loss+method] == None:
+                    record[loss+method] = get_imagenet_parameter_set(loss)
                 
                 #record[loss] = get_cifar100_parameter_set(loss)
     else:
