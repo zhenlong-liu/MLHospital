@@ -105,32 +105,38 @@ if __name__ == "__main__":
     
     #print(111)
     #"""
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
-        futures = []
-        for method, loss  in methods:
-            #print(111)
-            param_dict = get_cifar100_parameter_set(method)
-            if param_dict == None:
-                param_dict = get_cifar100_parameter_set(loss)
-                
-            for temp in param_dict["temp"]:
-                for alpha in param_dict["alpha"]:
-                    for gamma in param_dict["gamma"]:
-                        for tau in param_dict["tau"]:
-                            params['training_type'] = method
-                            params["loss_type"] = loss
-                            params["alpha"] = alpha
-                            params["temp"] = temp
-                            params["gamma"] = gamma
-                            params["tau"] = tau
-                            cmd1, cmd2 = generate_cmd_hup(params,gpu0,gpu1)
-                            print(cmd1)
-                            futures.append(executor1.submit(run_command, cmd1))
-                            futures.append(executor2.submit(run_command, cmd2))
-                            
+    gpu_list = ['gpu0', 'gpu1', 'gpu2']  # Example GPU list
+    n = 3  # Number of commands per GPU
+
+    # Create a list of ThreadPoolExecutors, one for each GPU
+    executors = [concurrent.futures.ThreadPoolExecutor(max_workers=n) for _ in gpu_list]
+
+    futures = []
+    for method, loss in methods:
+        param_dict = get_cifar100_parameter_set(method) or get_cifar100_parameter_set(loss)
         
-        
-        concurrent.futures.wait(futures)
+        for temp in param_dict["temp"]:
+            for alpha in param_dict["alpha"]:
+                for gamma in param_dict["gamma"]:
+                    for tau in param_dict["tau"]:
+                        params['training_type'] = method
+                        params["loss_type"] = loss
+                        params["alpha"] = alpha
+                        params["temp"] = temp
+                        params["gamma"] = gamma
+                        params["tau"] = tau
+
+                        # Generate commands for each GPU and submit to corresponding executor
+                        for i, gpu in enumerate(gpu_list):
+                            cmd = generate_cmd_hup(params, gpu)  # Adjust this function as needed
+                            print(cmd)
+                            futures.append(executors[i % len(executors)].submit(run_command, cmd))
+
+    # Wait for all futures to complete
+    for executor in executors:
+        executor.shutdown(wait=True)
+
+    concurrent.futures.wait(futures)
     #"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
         

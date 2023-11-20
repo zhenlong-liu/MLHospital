@@ -162,9 +162,9 @@ if __name__ == "__main__":
     temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
     
     if opt.training_type == "Dropout":
-        target_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout = opt.tau,finetune= opt.fintune)
+        target_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout = opt.tau)
     else: 
-        target_model = get_target_model(name=opt.model, num_classes=opt.num_class, fintune= opt.finetune)
+        target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
 
     if opt.finetune:
         freeze_except_last_layer(target_model)
