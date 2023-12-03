@@ -235,6 +235,8 @@ def  process_files_yaml(root_dir, output_excel, var= None, if_round = True, data
                     mia_bb_yaml = os.path.join(subdir, 'mia_black_box.yaml')
                     mia_wb_yaml = os.path.join(subdir, 'white_box_grid_attacks.yaml')
                     loss_distribution = os.path.join(subdir, 'loss_distribution.yaml')
+                    mia_data_augmentation_rotation = os.path.join(subdir, 'mia_data_augmentation_rotation.yaml')
+                    mia_data_augmentation_translation = os.path.join(subdir, 'mia_data_augmentation_translation.yaml')
                     if os.path.exists(loss_distribution):
                         with open(loss_distribution, 'r') as f:
                             #distribution = yaml.safe_load(f)
@@ -258,7 +260,15 @@ def  process_files_yaml(root_dir, output_excel, var= None, if_round = True, data
                         data_config.update(distribution)
                         
                         #`row_data.update(mia_metrics)` is a method that updates the `row_data` dictionary with the key-value pairs from the `mia_metrics` dictionary. 
-
+                    if os.path.exists(mia_data_augmentation_rotation):
+                        with open(mia_data_augmentation_rotation, "r") as f:
+                            mia_da_r = yaml.safe_load(f)
+                        data_config.update(mia_da_r)
+                    if os.path.exists(mia_data_augmentation_translation):
+                        with open(mia_data_augmentation_translation, "r") as f:
+                            mia_da_t = yaml.safe_load(f)
+                        data_config.update(mia_da_t)
+                            
                     # add black box mia   
                     if os.path.exists(mia_bb_yaml):
                         with open(mia_bb_yaml, 'r') as f:

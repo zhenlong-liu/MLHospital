@@ -214,7 +214,7 @@ class GetDataLoaderTarget(object):
         
 
         return target_train_loader, target_test_loader
-    def get_data_supervised_inference(self, batch_size=128, num_workers=8, select_num=None):
+    def get_data_supervised_inference(self, batch_size=128, num_workers=8, select_num=None, if_dataset =False):
         # inference 1/5
         # self.args.dataset default CIFAR10
         train_transform = self.get_data_transform(self.args.dataset)
@@ -225,6 +225,11 @@ class GetDataLoaderTarget(object):
         target_train, target_test,inference, shadow_train, shadow_test = prepare_dataset_inference(
             dataset, select_num=select_num)
 
+        if if_dataset:
+            print("Return inference dataset")
+            return target_train, target_test, inference, shadow_train, shadow_test
+        
+        
         print("Preparing dataloader!")
         print("dataset: ", len(dataset))
         print("target_train: %d \t target_test: %s inference_dataset: %s"  %
@@ -249,7 +254,12 @@ class GetDataLoaderTarget(object):
 
         return target_train_loader, target_test_loader,inference_data_loader, shadow_train_loader, shadow_test_loader
     
-    def get_data_supervised_ni(self, batch_size=128, num_workers=2, select_num=None):
+    
+    
+    
+    
+    
+    def get_data_supervised_ni(self, batch_size=128, num_workers=2, select_num=None, if_dataset = False):
         # 没有inference
         # self.args.dataset 默认为CIFAR10
         train_transform = self.get_data_transform(self.args.dataset)
@@ -259,7 +269,9 @@ class GetDataLoaderTarget(object):
 
         target_train, target_test, shadow_train, shadow_test = prepare_dataset_ni(
             dataset, select_num=select_num)
-
+        if if_dataset:
+            print("Return dataset")
+            return target_train, target_test, shadow_train, shadow_test
         print("Preparing dataloader!")
         print("dataset: ", len(dataset))
         print("target_train: %d \t target_test: %s" %

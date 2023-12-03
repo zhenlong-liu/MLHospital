@@ -1,10 +1,11 @@
 import torchvision
 import sys
+
 sys.path.append("..")
 sys.path.append("../..")
 sys.path.append("../../..")
 from mlh.utility.main_parse import add_argument_parameter
-
+from attacks.membership_inference.data_augmentation_attack import AugemtaionAttackDataset, DataAugmentationMIA
 #sys.path.append('/home/liuzhenlong/MIA/MLHospital/')
 #sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
 from defenses.membership_inference.loss_function import get_loss
@@ -134,15 +135,25 @@ if __name__ == "__main__":
     
     
     if args.inference:
-        target_train_loader, target_test_loader, _,shadow_train_loader, shadow_test_loader  = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers)
+        if args.attack_type == "augmentation":
+            target_train, target_test, _, shadow_train, shadow_test = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+        else:
+            target_train_loader, target_test_loader, _,shadow_train_loader, shadow_test_loader  = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers)
         
     else:
-        target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers)
+        if args.attack_type == "augmentation":
+            target_train, target_test, shadow_train, shadow_test = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+        else:
+            target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers)
     #target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
+
+
+
+
+
 
     target_model = get_target_model(name= args.model, num_classes=args.num_class)
     
-
     
     if args.training_type == "Dropout":
         target_model = get_target_model(name=args.model, num_classes=args.num_class, dropout = args.tau)
@@ -199,18 +210,19 @@ if __name__ == "__main__":
     # generate attack dataset
     # or "black-box, black-box-sorted", "black-box-top3", "metric-based", and "label-only"
     attack_type = args.attack_type
-
+    
     # save_path = f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}'
     
     
     # check whether there exits loss distribtion
-    if check_loss_distr:
-        plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
+    # if check_loss_distr:
+    #     plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
 
-        plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
+    #     plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
     
     # attack_type = "metric-based"
-    input_shape = get_image_shape(target_train_loader)
+    if attack_type != "augmentation":
+        input_shape = get_image_shape(target_train_loader)
     if attack_type == "label-only":
         attack_model = LabelOnlyMIA(
             device=args.device,
@@ -223,7 +235,14 @@ if __name__ == "__main__":
             nb_classes=args.num_class)
         auc = attack_model.Infer()
         print(auc)
-
+    elif attack_type == "augmentation":
+        attack_dataset_rotation = AugemtaionAttackDataset( args, "rotation" , target_model, shadow_model,
+                                        target_train, target_test, shadow_train, shadow_test,device)
+        
+        attack_dataset_translation =AugemtaionAttackDataset( args, "translation" , target_model, shadow_model,
+                                        target_train, target_test, shadow_train, shadow_test,device)
+        print(attack_dataset_rotation.attack_train_dataset.data.shape[1])
+        print("Attack datasets are ready")
     else:
         attack_dataset = AttackDataset(args, attack_type, target_model, shadow_model,
                                         target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader)
@@ -231,35 +250,58 @@ if __name__ == "__main__":
 
         # train attack model
 
-        if "black-box" in attack_type:
-            attack_model = BlackBoxMIA(
-                num_class=args.num_class,
-                device=args.device,
-                attack_type=attack_type,
-                attack_train_dataset=attack_dataset.attack_train_dataset,
-                attack_test_dataset=attack_dataset.attack_test_dataset,
-                save_path = save_path,
-                batch_size=128)
-        elif "metric-based" in attack_type:
+    if "black-box" in attack_type:
+        attack_model = BlackBoxMIA(
+            num_class=args.num_class,
+            device=args.device,
+            attack_type=attack_type,
+            attack_train_dataset=attack_dataset.attack_train_dataset,
+            attack_test_dataset=attack_dataset.attack_test_dataset,
+            save_path = save_path,
+            batch_size=128)
+    elif "metric-based" in attack_type:
 
-            attack_model = MetricBasedMIA(
-                args = args,
-                num_class=args.num_class,
-                device=args.device,
-                attack_type=attack_type,
-                attack_train_dataset=attack_dataset.attack_train_dataset,
-                attack_test_dataset=attack_dataset.attack_test_dataset,
-                train_loader = target_train_loader,
-                save_path = save_path,
-                batch_size=128)
-        elif "white_box" in attack_type:
-            attack_model = MetricBasedMIA(
-                args = args,
-                num_class=args.num_class,
-                device=args.device,
-                attack_type=attack_type,
-                attack_train_dataset=attack_dataset.attack_train_dataset,
-                attack_test_dataset=attack_dataset.attack_test_dataset,
-                train_loader = target_train_loader,
-                save_path = save_path,
-                batch_size=128)
+        attack_model = MetricBasedMIA(
+            args = args,
+            num_class=args.num_class,
+            device=args.device,
+            attack_type=attack_type,
+            attack_train_dataset=attack_dataset.attack_train_dataset,
+            attack_test_dataset=attack_dataset.attack_test_dataset,
+            #train_loader = target_train_loader,
+            save_path = save_path,
+            batch_size=128)
+    elif "white_box" in attack_type:
+        attack_model = MetricBasedMIA(
+            args = args,
+            num_class=args.num_class,
+            device=args.device,
+            attack_type=attack_type,
+            attack_train_dataset=attack_dataset.attack_train_dataset,
+            attack_test_dataset=attack_dataset.attack_test_dataset,
+            #train_loader = target_train_loader,
+            save_path = save_path,
+            batch_size=128)
+    elif "augmentation" in attack_type:
+        print("Begin attack")
+        
+        
+        
+        attack_model = DataAugmentationMIA(
+            
+            num_class = attack_dataset_rotation.attack_train_dataset.data.shape[1],
+            device = args.device, 
+            attack_type= "rotation",
+            attack_train_dataset=attack_dataset_rotation.attack_train_dataset,  
+            attack_test_dataset= attack_dataset_rotation.attack_train_dataset,  
+            save_path= save_path, 
+            batch_size= 128)
+        attack_model = DataAugmentationMIA(
+            num_class = attack_dataset_translation.attack_train_dataset.data.shape[1],
+            device = args.device, 
+            attack_type= "translation",
+            attack_train_dataset=attack_dataset_translation.attack_train_dataset,  
+            attack_test_dataset= attack_dataset_translation.attack_test_dataset,
+            save_path= save_path, 
+            batch_size= 128)
+    else: raise ValueError("No attack is executed")

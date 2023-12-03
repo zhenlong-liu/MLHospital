@@ -7,7 +7,7 @@ sys.path.append("../..")
 from generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
 from mlh.examples.run_cmd_record.parameter_space_cifar100 import get_cifar100_parameter_set
 from run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
-
+import itertools
 from run_cmd_record.record import save_merged_dicts_to_yaml
 import GPUtil
 import time
@@ -24,6 +24,20 @@ def check_gpu_memory():
 
 def run_command(cmd):
     os.system(cmd)
+
+def cyclic_generator(lst):
+    """
+    A generator function that yields elements from a given list in a cyclic manner.
+    When it reaches the end of the list, it starts over from the beginning.
+    
+    :param lst: List of elements to iterate over cyclically.
+    """
+    while True:  # Infinite loop to keep cycling through the list
+        for element in lst:
+            yield element
+
+
+
 
 if __name__ == "__main__":
     
@@ -109,7 +123,7 @@ if __name__ == "__main__":
     n = 3  # Number of commands per GPU
 
     # Create a list of ThreadPoolExecutors, one for each GPU
-    executors = [concurrent.futures.ThreadPoolExecutor(max_workers=n) for _ in gpu_list]
+    executors = [concurrent.futures.ThreadPoolExecutor(max_workers=3) for _ in gpu_list]
 
     futures = []
     for method, loss in methods:

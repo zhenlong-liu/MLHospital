@@ -399,7 +399,6 @@ class MetricBasedMIA(MembershipInferenceAttack):
             attack_type,
             attack_train_dataset,
             attack_test_dataset,
-            train_loader,
             save_path,
             batch_size=128):
         # traget train load 
@@ -840,11 +839,13 @@ class BlackBoxMIA(MembershipInferenceAttack):
         else:
             raise ValueError("Not implemented yet")
 
-        self.attack_model = self.attack_model.to(self.device)
+        self.attack_model = self.attack_model.to(self.device).float()
         self.criterion = nn.CrossEntropyLoss()
         self.train(self.attack_train_loader)
 
     def train(self, dataloader, train_epoch=100):
+        print(torch.get_default_dtype())  # Check default data type
+        torch.set_default_dtype(torch.float)  # Set default to float if needed
         self.attack_model.train()
         self.optimizer = torch.optim.Adam(
             self.attack_model.parameters(), lr=0.001)

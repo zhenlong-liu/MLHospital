@@ -37,7 +37,7 @@ if __name__ == "__main__":
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
     'epochs': 300, # 100 300
-    "model": "wide_resnet50",  # resnet18 # densenet121 # wide_resnet50 resnet34
+    "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50 resnet34
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
@@ -55,7 +55,8 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber", concave_qua, "concave_taylor", "concave_taylor_n"]
-    methods = [("NormalLoss", "ce"),("NormalLoss","concave_taylor_n"),("RelaxLoss","ce")]
+    methods = [("NormalLoss", "ce")]
+               #("NormalLoss","concave_taylor_n"),("RelaxLoss","ce")]
     #[("Dropout","ce"),("NormalLoss","taylor"),("NormalLoss","ncemae")] # 
     
     
@@ -101,10 +102,10 @@ if __name__ == "__main__":
     gpu1 = gpu_ids[1]
     """
     
-    save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
+    #save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     #print(111)
-    #"""
+    """
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for method, loss  in methods:
@@ -131,7 +132,10 @@ if __name__ == "__main__":
         
         
         concurrent.futures.wait(futures)
-    #"""
+    """
+    
+    #exit()
+    
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
         
         futures = []
@@ -156,6 +160,7 @@ if __name__ == "__main__":
                                     cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                     cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                                     cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
+                                    cmd6 = generate_mia_command(params, attack_type= "augmentation", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                     futures.append(executor1.submit(run_command, cmd3))
                                     futures.append(executor1.submit(run_command, cmd4))
                                     futures.append(executor1.submit(run_command, cmd5))
@@ -164,8 +169,9 @@ if __name__ == "__main__":
                                 cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
                                 cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                                 cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
-                                
-                                #print(cmd3)
+                                cmd6 = generate_mia_command(params, attack_type= "augmentation", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
+                                print(cmd6)
+                                exit()
                                 #"""
                                 futures.append(executor1.submit(run_command, cmd3))
                                 futures.append(executor1.submit(run_command, cmd4))
@@ -176,6 +182,6 @@ if __name__ == "__main__":
         # conda activate mlh
         # cd mlh/examples/run_cmd/
         # python run_bash_parameters1024_cifar100_300epoch_noinference.py
-        # 
+        # python run_bash_parameters1024_cifar100_300epoch_noinference.py
         
         

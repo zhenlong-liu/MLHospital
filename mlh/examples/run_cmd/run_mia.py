@@ -8,7 +8,7 @@ from generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
 from utility.plot import plot_acc_auc, plot_distribution_subplots, plot_scatter_with_lines
 
 from utility.process import df_files, process_files, process_files_yaml
-
+import itertools
 import pandas as pd
 import yaml
 from ruamel.yaml import YAML
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     'training_type': "NoramlLoss", #'EarlyStopping', # 
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
-    'epochs': 150, # 100 300
+    'epochs': 300, # 100 300
     "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50
     'optimizer' : "sgd",
     'seed' : 0,
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     'batch_size' : 128,
     "num_workers" : 8,
     "loss_adjust" : None,
-    #"inference" : None,
+    "inference" : None,
     "gamma" :1,
     #"stop_eps": "25 50 75 100 125 150 175 200 225 250 275"
     }
@@ -66,13 +66,20 @@ if __name__ == "__main__":
 
     
     toggle_executor = True
+    gpu_list = [3,4,5,6]
     
+    gpu_iter = itertools.cycle(gpu_list)
     gpu0 = 1
     gpu1 = 4
     gpu2 = 2
     root_dir = '../save_adj/CIFAR100/densenet121'
     #'../save_adj/CIFAR100/densenet121'
     #'../save_adj/CIFAR100/densenet121/MixupMMD/target/ce/epochs300/'
+    
+    
+    executors = [concurrent.futures.ThreadPoolExecutor(max_workers=n) for _ in gpu_list]
+    
+    
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for subdir, dirs, files in os.walk(root_dir):
@@ -106,7 +113,7 @@ if __name__ == "__main__":
                         cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                         cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
                         
-                        cmd6 = generate_mia_command(params, attack_type= "label-only", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
+                        cmd6 = generate_mia_command(params, attack_type= "augmentation", gpu = next(gpu_iter),  nohup = False, mia = "../mia_example_only_target.py")
                         
                         #print(data_config)
                         #isinstance(x, ScalarFloat)
@@ -116,8 +123,24 @@ if __name__ == "__main__":
                                 data_train_log = yaml.safe_load(f)
                         else: continue
                         
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                         if data_train_log["Train Acc"] < 100/data_config["num_class"]*1.5:
                             continue
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                         
                         """
                         
@@ -142,12 +165,12 @@ if __name__ == "__main__":
                             exit()
                         
                         """
-                        if toggle_executor:
-                            futures.append(executor1.submit(run_command, cmd3))
-                        else:
-                            futures.append(executor2.submit(run_command, cmd32))
+                        # if toggle_executor:
+                        #     futures.append(executor1.submit(run_command, cmd3))
+                        # else:
+                        #     futures.append(executor2.submit(run_command, cmd32))
                         
-                        toggle_executor = not toggle_executor 
+                        # toggle_executor = not toggle_executor 
                         
                         #if not os.path.exists(mia_yaml):
                             #print(data_train_log["Train Acc"])

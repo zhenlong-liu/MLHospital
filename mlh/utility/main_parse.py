@@ -27,6 +27,9 @@ def add_argument_parameter(parser):
     
     parser.add_argument('--alpha', type=float, default=1, help='adjust parameter')
     
+    parser.add_argument('--augment_kwarg_translation', type=int, default=1, help='translation parameter')
+    parser.add_argument('--augment_kwarg_rotation', type=int, default=4, help='rotation parameter')
+    
     parser.add_argument('--noise_scale', type=float, default=100, help='noise scale for DPSGD')
     parser.add_argument('--beta', type=float, default=0, help='Dropout rate')
     parser.add_argument('--gamma', type=float, default=1, help='adjust parameter')
@@ -42,7 +45,10 @@ def add_argument_parameter(parser):
     parser.add_argument('--load_model_path', type=str, default="../save0/CIFAR100/densenet121/NormalLoss/target/ce/epochs150/seed0/1/1/1/1/densenet121.pth", help='load model path')
     
     parser.add_argument('--finetune', action='store_true', default=False, help='whether finetune')
-  
+    
+    
+    
+    
 def save_namespace_to_yaml(namespace, output_path):
     """
     Save a Namespace object to a YAML file.
