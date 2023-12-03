@@ -504,8 +504,11 @@ class MetricBasedMIA(MembershipInferenceAttack):
         self.print_result("cross entropy loss train", train_tuple4)
         self.print_result("cross entropy loss test", test_tuple4)
 
-        
-        
+        train_tuple5, test_tuple5, test_results5 =   self._mem_inf_thre(
+            "likelihood ratio",self.shadow_train_likelihood_ratio,self.shadow_test_likelihood_ratio ,self.target_train_likelihood_ratio , self.target_test_likelihood_ratio)
+        self.print_result("likelihood ratio train", train_tuple5)
+        self.print_result("likelihood ratio test", test_tuple5)
+
         
         mia_dict = {"correct train": train_tuple0, 
                     "correct test" : test_tuple0,
@@ -517,6 +520,8 @@ class MetricBasedMIA(MembershipInferenceAttack):
                     "modified entropy test": test_tuple3,
                     "cross entropy loss train": train_tuple4,
                     "cross entropy loss test": test_tuple4,
+                    "likelihood ratio train" :train_tuple5,
+                    "likelihood ratio test": test_tuple5
                     }
         name_list = [" acc", " precision" , " recall", " f1", " auc"]
         #print(aa)
@@ -639,8 +644,9 @@ class MetricBasedMIA(MembershipInferenceAttack):
         self.target_train_celoss =cross_entropy(self.t_tr_outputs, self.t_tr_labels)
         self.target_test_celoss = cross_entropy(self.t_te_outputs, self.t_te_labels)
 
-        
-        
+        # likelihood ratio attack
+        self._likelihood_ratio_data()
+
         
 
     def _log_value(self, probs, small_value=1e-30):
@@ -660,7 +666,54 @@ class MetricBasedMIA(MembershipInferenceAttack):
         modified_log_probs[range(true_labels.size), true_labels] = log_probs[range(
             true_labels.size), true_labels]
         return np.sum(np.multiply(modified_probs, modified_log_probs), axis=1)
+    
+    
+    
+    def _phi_stable_batch_epsilon(self,posterior_probs,labels,epsilon= 1e-10):
+        
+        posterior_probs = posterior_probs +epsilon
+        one_hot_labels = np.zeros_like(posterior_probs)
+        
+        one_hot_labels[np.arange(len(labels)), labels] = 1
 
+        # Calculate the log likelihood for the correct labels
+        log_likelihood_correct = np.log(posterior_probs[np.arange(len(labels)), labels])
+
+        # Calculate the sum of posterior probabilities for all incorrect labels
+        sum_incorrect = np.sum(posterior_probs * (1 - one_hot_labels), axis=1)
+
+        # Replace any zero values with a very small number to prevent division by zero in log
+        # Calculate the log likelihood for the incorrect labels
+        log_likelihood_incorrect = np.log(sum_incorrect)
+
+        # Calculate phi_stable for each example
+        phi_stable = log_likelihood_correct - log_likelihood_incorrect
+
+        return phi_stable
+    
+    def _likelihood_ratio(self,x,mu_in,sigma_in,mu_out,sigma_out):
+        
+        return norm.pdf(x , loc=mu_in, scale=sigma_in)/norm.pdf(x,loc=mu_out, scale=sigma_out )
+    
+    
+    def _likelihood_ratio_data(self):
+        phi_shadow_train = self._phi_stable_batch_epsilon(self.s_tr_outputs, self.s_tr_labels)
+        phi_shadow_test = self._phi_stable_batch_epsilon(self.s_te_outputs, self.s_te_labels)
+        phi_target_train =self._phi_stable_batch_epsilon(self.t_tr_outputs, self.t_tr_labels)
+        phi_target_test = self._phi_stable_batch_epsilon(self.t_te_outputs, self.t_te_labels)
+        
+        
+        mean_shadow_train = np.mean(phi_shadow_train)
+        sigma_shadow_train = np.sqrt(np.var(phi_shadow_train))
+        mean_shadow_test = np.mean(phi_shadow_test)
+        sigma_target_test = np.sqrt(np.var(phi_shadow_test))
+        
+        self.shadow_train_likelihood_ratio = self._likelihood_ratio(phi_shadow_train, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
+        self.shadow_test_likelihood_ratio = self._likelihood_ratio(phi_shadow_test, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
+        self.target_train_likelihood_ratio = self._likelihood_ratio(phi_target_train, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
+        self.target_test_likelihood_ratio = self._likelihood_ratio(phi_target_test, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
+
+    
     def _thre_setting(self, tr_values, te_values):
         value_list = np.concatenate((tr_values, te_values))
         thre, max_acc = 0, 0

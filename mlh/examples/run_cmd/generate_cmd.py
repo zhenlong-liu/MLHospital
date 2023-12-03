@@ -55,6 +55,8 @@ def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type 
             args_command += f"--{key} "
         elif value is True:
             args_command += f"--{key} "
+        elif value is False:
+            continue
         elif isinstance(value, list):
             value = ' '.join(map(str, value))
             args_command +=f"--{key} {value} "

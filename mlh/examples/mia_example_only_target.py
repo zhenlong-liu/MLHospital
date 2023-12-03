@@ -42,17 +42,14 @@ torch.cuda.manual_seed_all(0)#多卡模式下，让所有显卡生成的随机�
 
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
-
     parser.add_argument('--batch_size', type=int, default=512,
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=10,
                         help='num of workers to use')
-
     parser.add_argument('--epochs', type=int, default=100,
                         help='number of training epochs')
     parser.add_argument('--gpu', type=int, default=5,
                         help='gpu index used for training')
-
     # model dataset
     parser.add_argument('--model', type=str, default='resnet18')
     parser.add_argument('--load-pretrained', type=str, default='no')
@@ -71,8 +68,6 @@ def parse_args():
                         help='data_path')
     parser.add_argument('--input-shape', type=str, default="32,32,3",
                         help='comma delimited input shape input')
-    
-    
     add_argument_parameter(parser)
     
     args = parser.parse_args()
@@ -288,7 +283,6 @@ if __name__ == "__main__":
         
         
         attack_model = DataAugmentationMIA(
-            
             num_class = attack_dataset_rotation.attack_train_dataset.data.shape[1],
             device = args.device, 
             attack_type= "rotation",
