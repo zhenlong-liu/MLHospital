@@ -245,6 +245,40 @@ def plot_entropy_distribution_together(target_train_loader, target_test_loader, 
     plt.close()
     gc.collect()
     torch.cuda.empty_cache()
+    
+def plot_phi_distribution_together(data_in, data_out, save_path,name ="phi_distribution_target_comparison"):
+    # Calculate entropies for target_train_loader and target_test_loader
+    #target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
+    #target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
+    
+
+    train_mean = np.mean(data_in)
+    train_variance = np.var(data_in)
+    test_mean = np.mean(data_out)
+    test_variance = np.var(data_out)
+    dict_sta = {"phi_train_mean":train_mean, "phi_train_variance": train_variance,
+            "phi_test_mean": test_mean, "phi_test_variance" :test_variance}
+    
+    store_dict_to_yaml(dict_sta, save_path,"phi_distribution.yaml")
+    
+    print(f'Phi: train_mean:{train_mean: .3f} train_variance:{train_variance: .3f} test_mean:{test_mean: .3f} test_variance:{test_variance: .3f}')
+    
+    # Plot the distribution of entropies 
+    plt.figure(figsize=(8, 6))
+    plt.hist(data_in, bins=50, alpha=0.5,range= (-10,15), label=f'Train phi\nMean: {train_mean:.2f}\nVariance: {train_variance:.2f}', color='blue')
+    plt.hist(data_out, bins=50, alpha=0.5,range= (-10,15), label=f'Test phi\nMean: {test_mean:.2f}\nVariance: {test_variance:.2f}', color='red')
+    plt.xlabel(r'$\phi(p_y)$') 
+    plt.ylabel('Frequency')
+    plt.title(r'$\phi(p_y)$ distribution for target data')
+    plt.legend()
+    plt.grid(True)
+    save_path = f'{save_path}/{name}.png'
+    # Save the plot to the specified path
+    plt.savefig(save_path)
+    plt.close()
+    gc.collect()
+    
+    
 def plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device):
     # Calculate loss for target_train_loader and target_test_loader
     #target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]

@@ -142,13 +142,7 @@ if __name__ == "__main__":
             target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers)
     #target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
 
-
-
-
-
-
     target_model = get_target_model(name= args.model, num_classes=args.num_class)
-    
     
     if args.training_type == "Dropout":
         target_model = get_target_model(name=args.model, num_classes=args.num_class, dropout = args.tau)
@@ -156,13 +150,7 @@ if __name__ == "__main__":
     else: 
         target_model = get_target_model(name=args.model, num_classes=args.num_class)
         shadow_model = get_target_model(name= args.model, num_classes=args.num_class)
-    
-    
 
-    
-    
-    
-    
     temp_save = str(args.temp).rstrip('0').rstrip('.') if '.' in str(args.temp) else str(args.temp)
 
     
@@ -208,13 +196,13 @@ if __name__ == "__main__":
     
     # save_path = f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}'
     
-    
+    #plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
     # check whether there exits loss distribtion
     # if check_loss_distr:
     #     plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
 
     #     plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
-    
+
     # attack_type = "metric-based"
     if attack_type != "augmentation":
         input_shape = get_image_shape(target_train_loader)

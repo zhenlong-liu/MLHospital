@@ -45,7 +45,7 @@ from art.attacks.inference.membership_inference import LabelOnlyDecisionBoundary
 import abc
 from mlh.models.attack_model import MLP_BLACKBOX
 from mlh.defenses.membership_inference.loss_function import get_loss
-from utils import cross_entropy
+from utils import cross_entropy, plot_phi_distribution_together
 
 
 
@@ -531,7 +531,11 @@ class MetricBasedMIA(MembershipInferenceAttack):
         #exit()
         save_dict_to_yaml(self.tuple_to_dict(name_list, mia_dict), f"{self.save_path}/mia_metric_based.yaml")
         
-        #mia_dict
+        
+        if self.args.plot_distribution:
+            plot_phi_distribution_together(self.phi_target_train, self.phi_target_test,self.save_path)
+            plot_phi_distribution_together(self.phi_shadow_train, self.phi_shadow_test,self.save_path,"phi_distribution_shadow_comparison")
+        #mia_dict # phi_distribution_shadow_comparison
 
     def print_result(self, name, given_tuple):
         print("%s" % name, "acc:%.3f, precision:%.3f, recall:%.3f, f1:%.3f, auc:%.3f" % given_tuple)
@@ -697,21 +701,21 @@ class MetricBasedMIA(MembershipInferenceAttack):
     
     
     def _likelihood_ratio_data(self):
-        phi_shadow_train = self._phi_stable_batch_epsilon(self.s_tr_outputs, self.s_tr_labels)
-        phi_shadow_test = self._phi_stable_batch_epsilon(self.s_te_outputs, self.s_te_labels)
-        phi_target_train =self._phi_stable_batch_epsilon(self.t_tr_outputs, self.t_tr_labels)
-        phi_target_test = self._phi_stable_batch_epsilon(self.t_te_outputs, self.t_te_labels)
+        self.phi_shadow_train = self._phi_stable_batch_epsilon(self.s_tr_outputs, self.s_tr_labels)
+        self.phi_shadow_test = self._phi_stable_batch_epsilon(self.s_te_outputs, self.s_te_labels)
+        self.phi_target_train =self._phi_stable_batch_epsilon(self.t_tr_outputs, self.t_tr_labels)
+        self.phi_target_test = self._phi_stable_batch_epsilon(self.t_te_outputs, self.t_te_labels)
         
         
-        mean_shadow_train = np.mean(phi_shadow_train)
-        sigma_shadow_train = np.sqrt(np.var(phi_shadow_train))
-        mean_shadow_test = np.mean(phi_shadow_test)
-        sigma_target_test = np.sqrt(np.var(phi_shadow_test))
+        mean_shadow_train = np.mean(self.phi_shadow_train)
+        sigma_shadow_train = np.sqrt(np.var(self.phi_shadow_train))
+        mean_shadow_test = np.mean(self.phi_shadow_test)
+        sigma_target_test = np.sqrt(np.var(self.phi_shadow_test))
         
-        self.shadow_train_likelihood_ratio = self._likelihood_ratio(phi_shadow_train, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
-        self.shadow_test_likelihood_ratio = self._likelihood_ratio(phi_shadow_test, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
-        self.target_train_likelihood_ratio = self._likelihood_ratio(phi_target_train, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
-        self.target_test_likelihood_ratio = self._likelihood_ratio(phi_target_test, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
+        self.shadow_train_likelihood_ratio = self._likelihood_ratio(self.phi_shadow_train, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
+        self.shadow_test_likelihood_ratio = self._likelihood_ratio(self.phi_shadow_test, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
+        self.target_train_likelihood_ratio = self._likelihood_ratio(self.phi_target_train, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
+        self.target_test_likelihood_ratio = self._likelihood_ratio(self.phi_target_test, mean_shadow_train, sigma_shadow_train, mean_shadow_test, sigma_target_test)
 
     
     def _thre_setting(self, tr_values, te_values):

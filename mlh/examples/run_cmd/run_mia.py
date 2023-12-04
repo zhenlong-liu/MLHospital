@@ -200,8 +200,10 @@ if __name__ == "__main__":
         concurrent.futures.wait(futures)                
         # tmux kill-session -t 1
         # tmux new -s 1
-        # conda activate mlh
+        # conda activate mlh 
         # cd mlh/examples/run_cmd/
         # CUDA_VISIBLE_DEVICES=1,3,4 python run_mia.py
         
         # python ../mia_example_only_target.py --dataset CIFAR100 --num_class 100 --log_path ../save_adj --training_type NormalLoss --loss_type ce --learning_rate 0.1 --epochs 300 --model densenet121 --optimizer sgd --seed 0 --alpha 1.0 --tau 1.0 --temp 1.0 --batch_size 128 --num_workers 8 --loss_adjust --gamma 1.0 --specific_path --load_model_path ../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1 --attack_type metric-based --gpu 1 > ../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/mia_metric-based.log
+        
+        # python ../mia_example_only_target.py --dataset CIFAR100 --num_class 100 --log_path ../save_adj --training_type NormalLoss --loss_type ce --learning_rate 0.1 --epochs 300 --model densenet121 --optimizer sgd --seed 0 --alpha 1.0 --tau 1.0 --temp 1.0 --batch_size 128 --num_workers 8 --loss_adjust --gamma 1.0 --specific_path --load_model_path ../save_adj/CIFAR100/densenet121/NormalLoss/target/ce/epochs300/seed0/1/1/1/1 --attack_type metric-based --gpu 1 --plot_distribution

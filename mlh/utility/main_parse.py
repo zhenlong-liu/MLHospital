@@ -46,7 +46,7 @@ def add_argument_parameter(parser):
     
     parser.add_argument('--finetune', action='store_true', default=False, help='whether finetune')
     
-    
+    parser.add_argument('--plot_distribution', action='store_true', default=False, help='whether finetune')
     
     
 def save_namespace_to_yaml(namespace, output_path):
