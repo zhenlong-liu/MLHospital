@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     
     toggle_executor = True
-    gpu_list = [0,1,2,3,4,5,6,7]
+    gpu_list = [1,3,5,6]
     gpu_tuple = zip(range(len(gpu_list)),gpu_list)
     gpu_iter = itertools.cycle(gpu_tuple)
     gpu0 = 1
@@ -104,17 +104,17 @@ if __name__ == "__main__":
                     params["load_model_path"] = subdir
                     
                     
-                    cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
-                    cmd32 = generate_mia_command(params, gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                    
+                    # cmd32 = generate_mia_command(params, gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
                     
                     
-                    cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
-                    cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
+                    # cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                    # cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
                     
                     
                     index, gpu =next(gpu_iter)
-                    
-                    cmd6 = generate_mia_command(params, attack_type= "augmentation", gpu = gpu,  nohup = False, mia = "../mia_example_only_target.py")
+                    cmd3 =generate_mia_command(params, gpu = gpu,  nohup = False, mia = "../mia_example_only_target.py")
+                    #cmd6 = generate_mia_command(params, attack_type= "augmentation", gpu = gpu,  nohup = False, mia = "../mia_example_only_target.py")
                     
                     
                     if not data_config["inference"]:
@@ -140,7 +140,7 @@ if __name__ == "__main__":
                     
                     
                     
-                    futures.append(executors[index].submit(run_command, cmd6))
+                    futures.append(executors[index].submit(run_command, cmd3))
                     
                     
     concurrent.futures.wait(futures)                    
