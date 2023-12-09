@@ -181,3 +181,5 @@ data_tinyimagenet
 .yaml
 A100_record
 4090_record
+
+.idea/
