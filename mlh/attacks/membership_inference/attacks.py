@@ -186,23 +186,7 @@ class ModelParser():
             
         
         return {"targets": target_list, "posteriors": posteriors_list}
-
         #targets :1-10
-        
-    """
-    def get_losses(self, dataloader):
-        #Auxiliary function to compute per-sample losses
-
-        all_losses = [] 
-        for inputs, targets in dataloader:
-            inputs, targets = inputs.to(self.device), targets.to(self.device)
-
-            logits = self.model(inputs)
-            losses = self.criterion(logits, targets).numpy(force=True)
-            all_losses.extend(iter(losses))
-        return {"loss" :np.array(all_losses).tolist()}
-         
-    """    
         
     def parse_info_whitebox(self, dataloader, layers):
         info = {}
