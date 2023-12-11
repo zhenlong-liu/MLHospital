@@ -2,7 +2,7 @@ import sys
 sys.path.append('..')
 sys.path.append('../..')
 sys.path.append('../../..')
-from attacks.membership_inference.attacks_past import MembershipInferenceAttack
+from attacks.membership_inference.MembershipInferenceAttack import MembershipInferenceAttack
 from mlh.utility.main_parse import save_dict_to_yaml
 import torch
 import torch.nn as nn
