@@ -9,7 +9,7 @@ from attacks.membership_inference.data_augmentation_attack import AugemtaionAtta
 #sys.path.append('/home/liuzhenlong/MIA/MLHospital/')
 #sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
 from defenses.membership_inference.loss_function import get_loss
-from attacks.membership_inference.attacks import AttackDataset, BlackBoxMIA, MetricBasedMIA, LabelOnlyMIA
+from attacks.membership_inference.attacks_past import AttackDataset, BlackBoxMIA, MetricBasedMIA, LabelOnlyMIA
 from tqdm import tqdm
 import torch
 import torch.nn as nn
