@@ -33,7 +33,7 @@ class BlackBoxMIA(MembershipInferenceAttack):
         self.attack_test_loader = torch.utils.data.DataLoader(
             attack_test_dataset, batch_size=batch_size, shuffle=False)
         self.save_path = save_path
-        if self.attack_type == "black-box":
+        if self.attack_type in ["black-box","black_box"]:
             self.attack_model = MLP_BLACKBOX(dim_in=self.num_class)
         elif self.attack_type == "black-box-sorted":
             self.attack_model = MLP_BLACKBOX(dim_in=self.num_class)

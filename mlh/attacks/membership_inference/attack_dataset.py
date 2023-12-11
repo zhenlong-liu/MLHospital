@@ -193,7 +193,7 @@ class AttackDataset:
         mem_label = [label] * len(info["targets"])
         original_label = info["targets"]
         parse_type = self.attack_type
-        if parse_type == "black-box":
+        if parse_type in ["black-box","black_box"]:
             mem_data = info["posteriors"]
         elif parse_type == "black-box-sorted":
             mem_data = [sorted(row, reverse=True)

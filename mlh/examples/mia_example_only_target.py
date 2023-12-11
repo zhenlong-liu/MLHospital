@@ -219,7 +219,7 @@ if __name__ == "__main__":
 
         # train attack model
 
-    if "black-box" in attack_type:
+    if "black_box" in attack_type or "black-box" in attack_type:
         attack_model = BlackBoxMIA(
             num_class=args.num_class,
             device=args.device,
@@ -252,10 +252,6 @@ if __name__ == "__main__":
             save_path = save_path,
             batch_size=128)
     elif "augmentation" in attack_type:
-        print("Begin attack")
-        
-        
-        
         attack_model = DataAugmentationMIA(
             num_class = attack_dataset_rotation.attack_train_dataset.data.shape[1],
             device = args.device, 
