@@ -3,26 +3,12 @@ sys.path.append('..')
 sys.path.append('../..')
 sys.path.append('../../..')
 from attacks.membership_inference.attacks_past import MembershipInferenceAttack
-from mlh.utility.main_parse import save_dict_to_yaml, save_namespace_to_yaml
-# from mlh.models.utils import FeatureExtractor, VerboseExecution
-from scipy.stats import norm, kurtosis, skew
+from mlh.utility.main_parse import save_dict_to_yaml
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data.dataset import Dataset
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, roc_curve, auc, classification_report
-
-from tqdm import tqdm
-import numpy as np
-import os
-from art.attacks.evasion import HopSkipJump
-from art.utils import compute_success
-from art.estimators.classification.pytorch import PyTorchClassifier
-from art.attacks.inference.membership_inference import LabelOnlyDecisionBoundary
-import abc
 from mlh.models.attack_model import MLP_BLACKBOX
-from mlh.defenses.membership_inference.loss_function import get_loss
-from utils import cross_entropy, plot_phi_distribution_together
 
 class BlackBoxMIA(MembershipInferenceAttack):
     def __init__(

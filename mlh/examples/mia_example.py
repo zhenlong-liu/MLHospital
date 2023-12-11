@@ -1,25 +1,16 @@
 import torchvision
-
-import sys
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/')
-sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
-
-from mlh.attacks.membership_inference.attacks_past import AttackDataset, BlackBoxMIA, MetricBasedMIA, LabelOnlyMIA
-from tqdm import tqdm
+from mlh.attacks.membership_inference.attack_dataset import AttackDataset
+from mlh.attacks.membership_inference.black_box_attack import BlackBoxMIA
+from mlh.attacks.membership_inference.label_only_attack import LabelOnlyMIA
+from mlh.attacks.membership_inference.metric_based_attack import MetricBasedMIA
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from mlh.data_preprocessing.data_loader import GetDataLoader
-from torchvision import datasets
-import torchvision.transforms as transforms
 import argparse
 import numpy as np
-import torch.optim as optim
 torch.manual_seed(0)
 np.random.seed(0)
 torch.set_num_threads(1)
-
-
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
 
@@ -33,7 +24,6 @@ def parse_args():
     parser.add_argument('--gpu', type=int, default=0,
                         help='gpu index used for training')
 
-    # model dataset
     parser.add_argument('--model', type=str, default='resnet18')
     parser.add_argument('--load-pretrained', type=str, default='no')
     parser.add_argument('--dataset', type=str, default='CIFAR10',
@@ -42,7 +32,6 @@ def parse_args():
                         help='number of classes')
     parser.add_argument('--training_type', type=str, default="Normal",
                         help='Normal, LabelSmoothing, AdvReg, DP, MixupMMD, PATE')
-    #--training type there is used for specifying path to load model
     parser.add_argument('--inference-dataset', type=str, default='CIFAR10',
                         help='if yes, load pretrained attack model to inference')
     parser.add_argument('--attack_type', type=str, default='black-box',
@@ -53,15 +42,10 @@ def parse_args():
                         help='comma delimited input shape input')
     parser.add_argument('--log_path', type=str,
                         default='./save', help='')
-
     parser.add_argument('--temp', type=float, default=1,
                         help='temperature')
     parser.add_argument('--loss_type', type=str, default="ce", help = "Loss function")
-    
     args = parser.parse_args()
-
-    
-    
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
     args.device = 'cuda:%d' % args.gpu if torch.cuda.is_available() else 'cpu'
 
@@ -159,7 +143,3 @@ if __name__ == "__main__":
                 attack_train_dataset=attack_dataset.attack_train_dataset,
                 attack_test_dataset=attack_dataset.attack_test_dataset,
                 batch_size=128)
-
-
-#self.target_gird_x, self.target_gird_w =  self.target_model_parser.combined_gradient_attack(target_train_dataloader)
- #       self.shadow_grid_x, self.shadow_grid_w =  self.shadow_model_parser.combined_gradient_attack(target_train_dataloader)

@@ -1,42 +1,28 @@
 import torchvision
 import sys
-
 sys.path.append("..")
 sys.path.append("../..")
 sys.path.append("../../..")
 from mlh.utility.main_parse import add_argument_parameter
 from attacks.membership_inference.data_augmentation_attack import AugemtaionAttackDataset, DataAugmentationMIA
-#sys.path.append('/home/liuzhenlong/MIA/MLHospital/')
-#sys.path.append('/home/liuzhenlong/MIA/MLHospital/mlh/')
-from defenses.membership_inference.loss_function import get_loss
-from attacks.membership_inference.attacks_past import AttackDataset, BlackBoxMIA, MetricBasedMIA, LabelOnlyMIA
-from tqdm import tqdm
+from mlh.attacks.membership_inference.attack_dataset import AttackDataset
+from mlh.attacks.membership_inference.black_box_attack import BlackBoxMIA
+from mlh.attacks.membership_inference.label_only_attack import LabelOnlyMIA
+from mlh.attacks.membership_inference.metric_based_attack import MetricBasedMIA
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from data_preprocessing.data_loader import GetDataLoader
 from data_preprocessing.data_loader_target import GetDataLoaderTarget
-from torchvision import datasets
-#from opacus.validators import ModuleValidator
-from utils import add_new_last_layer, get_dropout_fc_layers, get_target_model, plot_celoss_distribution_together, plot_entropy_distribution_together, generate_save_path_1, generate_save_path_2, generate_save_path
-import torchvision.transforms as transforms
+from utils import get_target_model, generate_save_path
 import argparse
 import numpy as np
-import torch.optim as optim
 import os
 torch.set_num_threads(1)
-import torch
-import torch.nn.functional as F
-import matplotlib.pyplot as plt
-import yaml
 from ruamel.yaml import YAML
 from ruamel.yaml.scalarfloat import ScalarFloat
-"""
+
 torch.manual_seed(0)
 np.random.seed(0)
-torch.cuda.manual_seed(0)#让显卡产生的随机数一致
-torch.cuda.manual_seed_all(0)#多卡模式下，让所有显卡生成的随机数一致？这个待验证
-"""
+torch.cuda.manual_seed(0)
+torch.cuda.manual_seed_all(0)
 
 
 
