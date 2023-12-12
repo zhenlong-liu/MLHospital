@@ -47,8 +47,12 @@ def add_argument_parameter(parser):
     parser.add_argument('--finetune', action='store_true', default=False, help='whether finetune')
     
     parser.add_argument('--plot_distribution', action='store_true', default=False, help='whether finetune')
-    
-    
+
+    parser.add_argument('--shadow_split_num', type=int, default=16, help='number of shadow models')
+
+    parser.add_argument('--shadow_datapoint_num', type=int, default=15000, help='number of datapoints for shadow models')
+
+
 def save_namespace_to_yaml(namespace, output_path):
     """
     Save a Namespace object to a YAML file.

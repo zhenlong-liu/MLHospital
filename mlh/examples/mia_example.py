@@ -5,7 +5,7 @@ from mlh.attacks.membership_inference.label_only_attack import LabelOnlyMIA
 from mlh.attacks.membership_inference.metric_based_attack import MetricBasedMIA
 import torch
 import torch.nn as nn
-from mlh.data_preprocessing.data_loader import GetDataLoader
+from mlh.data_preprocessing.data_loader_target import BuildDataLoader
 import argparse
 import numpy as np
 torch.manual_seed(0)
@@ -79,7 +79,7 @@ def evaluate(model, dataloader):
 if __name__ == "__main__":
 
     args = parse_args()
-    s = GetDataLoader(args)
+    s = BuildDataLoader(args)
     target_train_loader, target_inference_loader, target_test_loader, shadow_train_loader, shadow_inference_loader, shadow_test_loader = s.get_data_supervised()
 
     target_model = get_target_model(name="resnet18", num_classes=10)

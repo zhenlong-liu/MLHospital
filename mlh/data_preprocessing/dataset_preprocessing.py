@@ -25,6 +25,9 @@ import numpy as np
 from PIL import Image
 import torch
 import os
+
+from torch.utils.data import Subset
+
 torch.manual_seed(0)
 
 
@@ -139,6 +142,32 @@ def prepare_dataset_target(dataset, select_num=None):
     target_train, target_test= torch.utils.data.random_split(
         dataset, select_num)
     return target_train, target_test
+
+def prepare_dataset_shadow_splits(dataset, num_splits, split_size):
+    """
+    Randomly splits the dataset into a specified number of splits with a given size.
+    Note: Some samples might be missing or repeated across the splits due to random selection.
+
+    Args:
+        dataset: The dataset to be split.
+        num_splits: The number of splits to create.
+        split_size: The size of each split.
+
+    Returns:
+        A list of dataset splits.
+    """
+    total_length = len(dataset)
+    splits = []
+
+    # Generate random indices for each split, with possible repetition.
+    for _ in range(num_splits):
+        indices = torch.randint(0, total_length, (split_size,))
+        split = Subset(dataset, indices)
+        splits.append(split)
+
+    return splits
+
+
 
 
 def get_target_shadow_dataset(dataset, target_size=None, shadow_size=None):

@@ -24,7 +24,8 @@ import torchvision.transforms as transforms
 import torch
 import numpy as np
 from io import RawIOBase
-from data_preprocessing.dataset_preprocessing import prepare_dataset, cut_dataset, prepare_dataset_ni, prepare_inference_dataset, prepare_dataset_target, prepare_dataset_inference
+from data_preprocessing.dataset_preprocessing import prepare_dataset, cut_dataset, prepare_dataset_ni, \
+    prepare_inference_dataset, prepare_dataset_target, prepare_dataset_inference, prepare_dataset_shadow_splits
 from torchvision import datasets
 from PIL import Image
 from tqdm import tqdm
@@ -33,7 +34,7 @@ import torchvision
 torch.manual_seed(0)
 
 
-class GetDataLoaderTarget(object):
+class BuildDataLoader(object):
     def __init__(self, args):
         self.args = args
         self.data_path = args.data_path
@@ -52,7 +53,7 @@ class GetDataLoaderTarget(object):
         if dataset.lower() == "tinyimagenet":
             #self.data_path = "/data1/lzl/tiny-imagenet-200/"
             self.data_path = f'{self.data_path}/tiny-imagenet-200/'
-            image_datasets = {x: datasets.ImageFolder(os.path.join(self.data_path, x), transform=train_transform) 
+            image_datasets = {x: torchvision.datasets.ImageFolder(os.path.join(self.data_path, x), transform=train_transform)
                   for x in ['train', 'val','test']}
             dataset =  image_datasets['train'] + image_datasets['val'] +image_datasets['test']
             return dataset
@@ -253,8 +254,48 @@ class GetDataLoaderTarget(object):
             shadow_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
 
         return target_train_loader, target_test_loader,inference_data_loader, shadow_train_loader, shadow_test_loader
-    
-    
+
+    def get_split_data_supervised_inference(self, batch_size=128, num_workers=8, select_num=None, if_dataset=False):
+        # inference 1/5
+        # self.args.dataset default CIFAR10
+        train_transform = self.get_data_transform(self.args.dataset)
+        test_transform = self.get_data_transform(self.args.dataset)
+
+        dataset = self.get_dataset(train_transform, test_transform)
+
+        target_train, target_test, inference, shadow_train, shadow_test = prepare_dataset_inference(
+            dataset, select_num=select_num)
+
+        shadow_list = prepare_dataset_shadow_splits(dataset = shadow_train+ shadow_test, num_splits= 15,split_size= len(shadow_train))
+
+
+
+
+        if if_dataset:
+            print("Return inference dataset")
+            return target_train, target_test, inference, shadow_train, shadow_test
+
+        print("Preparing dataloader!")
+        print("dataset: ", len(dataset))
+        print("target_train: %d \t target_test: %s inference_dataset: %s" %
+              (len(target_train), len(target_test), len(inference)))
+
+        target_train_loader = torch.utils.data.DataLoader(
+            target_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+
+        target_test_loader = torch.utils.data.DataLoader(
+            target_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+
+        inference_data_loader = torch.utils.data.DataLoader(
+            inference, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+
+        shadow_train_loader = torch.utils.data.DataLoader(
+            shadow_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+
+        shadow_test_loader = torch.utils.data.DataLoader(
+            shadow_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+
+        return target_train_loader, target_test_loader, inference_data_loader, shadow_train_loader, shadow_test_loader
     
     
     
@@ -641,3 +682,4 @@ class AlltoSingleTrans:
 
     def __call__(self, y):
         return self.tar_label
+

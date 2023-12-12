@@ -4,53 +4,33 @@ import sys
 sys.path.append("..")
 sys.path.append("../..")
 from utility.main_parse import add_argument_parameter
-
-from defenses.membership_inference.NormalRelaxLoss import TrainTargetNormalRelaxLoss
 from mlh.defenses.membership_inference.Mixup_no_inf import TrainTargetMixup
 import copy
-import torchvision
-import utils
-from defenses.membership_inference.loss_function import get_loss
 from defenses.membership_inference.AdvReg import TrainTargetAdvReg
-from defenses.membership_inference.DPSGD import TrainTargetDP # origin
 from defenses.membership_inference.DP import TrainTargetDPSGD # new
 from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothing
-from defenses.membership_inference.MixupMMD import TrainTargetMixupMMD
 from defenses.membership_inference.MixupMMDLoss import TrainTargetMixupMMDLoss
-
 from defenses.membership_inference.PATE import TrainTargetPATE
 from defenses.membership_inference.Normal import TrainTargetNormal
 from defenses.membership_inference.KnowledgeDistillation import TrainTargetKnowledgeDistillation
-from defenses.membership_inference.logit_norm import LogitNormLoss
-
-from defenses.membership_inference.LogitClip import TrainTargetLogitClip
-
 from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
 from defenses.membership_inference.EarlyStopping import TrainTargetEarlyStopping
 from defenses.membership_inference.RelaxLoss import TrainTargetRelaxLoss
-
-from tqdm import tqdm
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from data_preprocessing.data_loader import GetDataLoader
-from data_preprocessing.data_loader_target import GetDataLoaderTarget
-from torchvision import datasets
-import torchvision.transforms as transforms
+from data_preprocessing.data_loader_target import BuildDataLoader
 import argparse
 import numpy as np
-import torch.optim as optim
 
 # `torch.set_num_threads(1)` is setting the number of OpenMP threads used for parallelizing CPU
 # operations to 1. This means that only one thread will be used for CPU operations, which can be
 # useful in cases where parallelization may cause issues or when you want to limit the number of
 # threads used for performance reasons.
 torch.set_num_threads(1)
-from utils import add_new_last_layer, get_dropout_fc_layers, get_target_model, generate_save_path
+from utils import get_target_model, generate_save_path
 
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
-
     parser.add_argument('--batch_size', type=int, default=128,
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=10,
@@ -81,15 +61,8 @@ def parse_args():
                         help='data_path')
     parser.add_argument('--input_shape', type=str, default="32,32,3",
                         help='comma delimited input shape input')
-    
-    
     add_argument_parameter(parser)
-    
-    
-    
-    
     args = parser.parse_args()
-
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
     args.device = 'cuda:%d' % args.gpu if torch.cuda.is_available() else 'cpu'
 
@@ -137,9 +110,9 @@ if __name__ == "__main__":
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)    
+    torch.cuda.manual_seed_all(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
-    s = GetDataLoaderTarget(opt)
+    s = BuildDataLoader(opt)
     #split_num = [0.25,0,0.25,0.25,0,0.25]
     
     

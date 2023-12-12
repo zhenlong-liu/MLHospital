@@ -10,7 +10,7 @@ from mlh.attacks.membership_inference.black_box_attack import BlackBoxMIA
 from mlh.attacks.membership_inference.label_only_attack import LabelOnlyMIA
 from mlh.attacks.membership_inference.metric_based_attack import MetricBasedMIA
 import torch
-from data_preprocessing.data_loader_target import GetDataLoaderTarget
+from data_preprocessing.data_loader_target import BuildDataLoader
 from utils import get_target_model, generate_save_path
 import argparse
 import numpy as np
@@ -96,24 +96,15 @@ def get_image_shape(dataloader):
 
 
 if __name__ == "__main__":
-
     args = parse_args()
-    s = GetDataLoaderTarget(args)
     device = args.device
-    
     seed = args.seed
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
-    torch.cuda.manual_seed_all(seed)
-    
-    
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
     torch.cuda.manual_seed_all(seed)    
     os.environ['PYTHONHASHSEED'] = str(seed)
-    
+    s = BuildDataLoader(args)
     
     if args.inference:
         if args.attack_type == "augmentation":
