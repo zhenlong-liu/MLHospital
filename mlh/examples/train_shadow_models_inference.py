@@ -108,88 +108,64 @@ if __name__ == "__main__":
     os.environ['PYTHONHASHSEED'] = str(seed)
     s = BuildDataLoader(opt)
     #split_num = [0.25,0,0.25,0.25,0,0.25]
-    
-    
-    if opt.inference:  
-        s.get_split_shadow_dataset_inference(num_splits= opt.shadow_split_num) # generate self.shadow_dataset_list
-        inference_loader, train_loader, test_loader =s.get_split_shadow_dataloader_inference(batch_size =opt.batch_size, num_workers =opt.num_workers,index=opt.shadow_model_index)
+    if opt.inference:
+        s.get_split_shadow_dataset_inference(num_splits=opt.shadow_split_num)
+        # generate self.shadow_dataset_list
     else:
-        s.get_split_shadow_dataset_ni(num_splits= opt.shadow_split_num)
-        train_loader, test_loader  = s.get_split_shadow_dataloader_inference(batch_size =opt.batch_size, num_workers =opt.num_workers,index=opt.shadow_model_index)
+        s.get_split_shadow_dataset_ni(num_splits=opt.shadow_split_num)
 
-    # train_loader is a dataloader, using next(), feature shape is [128,3,32,32], label shape [128]
-    if opt.training_type == "Dropout":
-        target_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout = opt.tau)
-    else: 
-        target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
-    if opt.finetune:
-        freeze_except_last_layer(target_model)
-    save_pth = generate_save_path(opt, f"shadow_{opt.shadow_model_index}")
+        # train_loader is a dataloader, using next(), feature shape is [128,3,32,32], label shape [128]
+    training_type_to_class = {
+        "NormalLoss": TrainTargetNormalLoss,
+        "RelaxLoss": TrainTargetRelaxLoss,
+        "Dropout": TrainTargetNormalLoss,
+        "Mixup": TrainTargetMixup,
+        "KnowledgeDistillation": TrainTargetKnowledgeDistillation,
+        "AdvReg": TrainTargetAdvReg,
+        "DPSGD": TrainTargetDPSGD,
+        "MixupMMD": TrainTargetMixupMMDLoss,
+        "PATE": TrainTargetPATE,
+        "EarlyStopping": TrainTargetEarlyStopping
+    }
+    for index in range(opt.num_shadow_models):
 
-    if opt.training_type == "NormalLoss":
-        total_evaluator = TrainTargetNormalLoss(
-            model=target_model, args=opt, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
+        #
+        if opt.inference:
+            inference_loader, train_loader, test_loader = s.get_split_shadow_dataloader_inference(
+                batch_size=opt.batch_size, num_workers=opt.num_workers, index=index)
+        else:
+            train_loader, test_loader = s.get_split_shadow_dataloader_inference(batch_size=opt.batch_size,
+                                                                                num_workers=opt.num_workers,
+                                                                                 index=index)
+        if opt.training_type == "Dropout":
+            shadow_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout=opt.tau)
+        else:
+            shadow_model = get_target_model(name=opt.model, num_classes=opt.num_class)
+        if opt.finetune:
+            freeze_except_last_layer(shadow_model)
+        save_pth = generate_save_path(opt, f"shadow_{index}")
+        evaluator_class = training_type_to_class.get(opt.training_type)
 
-    elif opt.training_type == "RelaxLoss":
-        
-        total_evaluator = TrainTargetRelaxLoss(
-            model=target_model, args=opt,log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
-    elif opt.training_type == "Dropout":
-        total_evaluator = TrainTargetNormalLoss(
-            model=target_model, args=opt, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
-    elif opt.training_type == "Mixup":
-        total_evaluator = TrainTargetMixup(
-            model=target_model, args=opt, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
-    elif opt.training_type == "KnowledgeDistillation":
-        teacher_model = load_teacher_model(target_model, opt.teacher_path, opt.device)
-        total_evaluator = TrainTargetKnowledgeDistillation(model= target_model,teacher_model =teacher_model ,args=opt,log_path=save_pth, T= opt.tau)
-        total_evaluator.train(train_loader, test_loader)
-
-    elif opt.training_type == "AdvReg":
-        total_evaluator = TrainTargetAdvReg(
-            model=target_model, args = opt,  log_path=save_pth)
-        total_evaluator.train(train_loader, inference_loader, test_loader)
-
-    elif opt.training_type == "DPSGD":
-        total_evaluator = TrainTargetDPSGD(
-            model=target_model, args=opt, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
+        if evaluator_class:
+            if opt.training_type == "KnowledgeDistillation":
+                teacher_model = load_teacher_model(shadow_model, opt.teacher_path, opt.device)
+                total_evaluator = evaluator_class(model=shadow_model, teacher_model=teacher_model, args=opt, log_path=save_pth, T=opt.tau)
+            elif opt.training_type == "MixupMMD":
+                sorted_loaders = s.get_sorted_data_mixup_mmd_one_inference()
+                mode_loaders = sorted_loaders[0:4] if opt.mode == "target" else sorted_loaders[4:8]
+                train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = mode_loaders
+                total_evaluator = evaluator_class(model=shadow_model, args=opt, log_path=save_pth)
+                total_evaluator.train(train_loader, train_loader_ordered, inference_loader_ordered, test_loader, starting_index, inference_sorted)
+            else:
+                total_evaluator = evaluator_class(model=shadow_model, args=opt, log_path=save_pth)
+                total_evaluator.train(train_loader, test_loader)
+        else:
+            raise ValueError("opt.training_type has not been implemented yet")
+        if opt.training_type in ["DPSGD", "EarlyStopping"]:
+            exit()
+        torch.save(shadow_model.state_dict(), os.path.join(save_pth, f"{opt.model}.pth"))
         print("Finish Training")
-        exit()
-    elif opt.training_type == "MixupMMD":
-        (target_train_sorted_loader, target_inference_sorted_loader, shadow_train_sorted_loader,
-         shadow_inference_sorted_loader, start_index_target_inference, start_index_shadow_inference, target_inference_sorted,
-         shadow_inference_sorted) = s.get_sorted_data_mixup_mmd_one_inference()
-        if opt.mode == "target":
-            train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = target_train_sorted_loader, target_inference_sorted_loader, start_index_target_inference, target_inference_sorted
-        elif opt.mode == "shadow":
-            train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_shadow_inference, shadow_inference_sorted
-        total_evaluator = TrainTargetMixupMMDLoss(
-            model=target_model, args=opt, log_path=save_pth)
-        total_evaluator.train(train_loader, train_loader_ordered,
-                              inference_loader_ordered, test_loader, starting_index, inference_sorted)
 
-    elif opt.training_type == "PATE":
-        total_evaluator = TrainTargetPATE(
-            model=target_model, args = opt, log_path=save_pth)
-        total_evaluator.train(train_loader, inference_loader, test_loader)
-        
-    elif opt.training_type == "EarlyStopping":
-        total_evaluator = TrainTargetEarlyStopping(
-            model=target_model, args = opt, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
-        print("Finish Training")
-        exit()
-        
-    else:
-        raise ValueError(
-            "opt.training_type has not been implemented yet")
-    
-    torch.save(target_model.state_dict(),
-               os.path.join(save_pth, f"{opt.model}.pth"))
-    print("Finish Training")
+
+
 
