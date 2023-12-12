@@ -138,32 +138,34 @@ def prepare_dataset_target(dataset, select_num=None):
     if select_num is None:
         select_num = [0.5, 0.5]
     # print(dataset.category_label_index_dict)
-    torch.manual_seed(0)
     target_train, target_test= torch.utils.data.random_split(
         dataset, select_num)
     return target_train, target_test
 
-def prepare_dataset_shadow_splits(dataset, num_splits, split_size):
+def prepare_dataset_shadow_splits(dataset, num_splits, split_size = None, train_size_ratio =0.5):
     """
-    Randomly splits the dataset into a specified number of splits with a given size.
-    Note: Some samples might be missing or repeated across the splits due to random selection.
+    Randomly splits the dataset into train and test parts multiple times, based on the given ratio.
 
     Args:
         dataset: The dataset to be split.
-        num_splits: The number of splits to create.
-        split_size: The size of each split.
+        num_splits: The number of times the dataset should be split.
+        train_size_ratio: The proportion of the dataset to include in the train split.
 
     Returns:
-        A list of dataset splits.
+        A list of tuples, each containing a train and test dataset split.
     """
-    total_length = len(dataset)
+    if split_size is None:
+        total_length = len(dataset)
+    else: total_length = split_size
     splits = []
 
-    # Generate random indices for each split, with possible repetition.
     for _ in range(num_splits):
-        indices = torch.randint(0, total_length, (split_size,))
-        split = Subset(dataset, indices)
-        splits.append(split)
+        train_size = int(total_length * train_size_ratio)
+        test_size = total_length - train_size
+
+        # Randomly split the dataset into train and test parts
+        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
+        splits.append((train_dataset, test_dataset))
 
     return splits
 

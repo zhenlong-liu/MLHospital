@@ -42,16 +42,10 @@ class TrainTargetMixup(TrainTargetNormalLoss):
         self.mixup = mixup
         self.mixup_alpha = args.alpha
     def train(self, train_loader, test_loader):
-
-        best_accuracy = 0
         t_start = time.time()
         # check whether path exist
         if not os.path.exists(self.log_path):
             os.makedirs(self.log_path)
-
-        
-
-
         for e in range(1, self.epochs+1):
             batch_n = 0
             self.model.train()
@@ -80,7 +74,6 @@ class TrainTargetMixup(TrainTargetNormalLoss):
                     loss = self.criterion(logits, label)
                     loss.backward()
                     self.optimizer.step()
-
             """
             if self.args.dataset.lower() == 'imagenet' and e<self.epochs:
                 self.scheduler.step()

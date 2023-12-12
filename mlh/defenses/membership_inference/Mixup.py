@@ -64,15 +64,11 @@ class TrainTargetMixup(TrainTargetNormalLoss):
 
     def train(self, train_loader, test_loader):
 
-        best_accuracy = 0
         t_start = time.time()
         # check whether path exist
         if not os.path.exists(self.log_path):
             os.makedirs(self.log_path)
 
-        
-        # torch.save(self.model.state_dict(), os.path.join(
-        #     self.log_path, '%s_0.pth' % (self.model_save_name)))
 
         for e in range(1, self.epochs+1):
             batch_n = 0
@@ -103,11 +99,6 @@ class TrainTargetMixup(TrainTargetNormalLoss):
                     loss.backward()
                     self.optimizer.step()
 
-            """
-            if self.args.dataset.lower() == 'imagenet' and e<self.epochs:
-                self.scheduler.step()
-                continue
-            """
             train_acc = self.eval(train_loader)
             test_acc = self.eval(test_loader)
             logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (

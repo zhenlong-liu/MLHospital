@@ -40,6 +40,8 @@ class BuildDataLoader(object):
         self.data_path = args.data_path
         self.input_shape = args.input_shape
         self.batch_size = args.batch_size
+        self.num_splits = args.num_splits
+
     def parse_dataset(self, dataset, train_transform, test_transform):
 
         if dataset.lower() == "imagenet":
@@ -254,8 +256,7 @@ class BuildDataLoader(object):
             shadow_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
 
         return target_train_loader, target_test_loader,inference_data_loader, shadow_train_loader, shadow_test_loader
-
-    def get_split_data_supervised_inference(self, batch_size=128, num_workers=8, select_num=None, if_dataset=False):
+    def get_split_shadow_dataset_ni(self, select_num=None, if_dataset =False, num_splits =16,shadow_datapoint_num =None):
         # inference 1/5
         # self.args.dataset default CIFAR10
         train_transform = self.get_data_transform(self.args.dataset)
@@ -263,39 +264,74 @@ class BuildDataLoader(object):
 
         dataset = self.get_dataset(train_transform, test_transform)
 
-        target_train, target_test, inference, shadow_train, shadow_test = prepare_dataset_inference(
+        _, _,  shadow_train, shadow_test = prepare_dataset_ni(
             dataset, select_num=select_num)
-
-        shadow_list = prepare_dataset_shadow_splits(dataset = shadow_train+ shadow_test, num_splits= 15,split_size= len(shadow_train))
-
-
-
-
+        if shadow_datapoint_num is not None:
+            split_size = shadow_datapoint_num
+        else:
+            split_size = len(shadow_train)
+        shadow_list = prepare_dataset_shadow_splits(dataset = shadow_train+ shadow_test, num_splits= num_splits, split_size= split_size)
+        print(f"Prepare shadow dataset list, total num of the list: {num_splits}")
+        self.shadow_dataset_list = shadow_list
         if if_dataset:
-            print("Return inference dataset")
-            return target_train, target_test, inference, shadow_train, shadow_test
+            return shadow_list
 
+    def get_split_shadow_dataloader_ni(self, batch_size=128, num_workers=8,index= 0):
+        train_dataset, test_dataset= self.shadow_dataset_list[index]
         print("Preparing dataloader!")
-        print("dataset: ", len(dataset))
-        print("target_train: %d \t target_test: %s inference_dataset: %s" %
-              (len(target_train), len(target_test), len(inference)))
-
-        target_train_loader = torch.utils.data.DataLoader(
-            target_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-
-        target_test_loader = torch.utils.data.DataLoader(
-            target_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-
-        inference_data_loader = torch.utils.data.DataLoader(
-            inference, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+        print(f"shadow dataset index: {index}")
+        print(f"train: {len(train_dataset)} \t target_test: {len(test_dataset)}")
 
         shadow_train_loader = torch.utils.data.DataLoader(
-            shadow_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
 
         shadow_test_loader = torch.utils.data.DataLoader(
-            shadow_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
 
-        return target_train_loader, target_test_loader, inference_data_loader, shadow_train_loader, shadow_test_loader
+        return shadow_train_loader, shadow_test_loader
+
+    def get_split_shadow_dataset_inference(self, select_num=None, if_dataset =False, num_splits =16,shadow_datapoint_num =None):
+        # inference 1/5
+        # self.args.dataset default CIFAR10
+        train_transform = self.get_data_transform(self.args.dataset)
+        test_transform = self.get_data_transform(self.args.dataset)
+
+        dataset = self.get_dataset(train_transform, test_transform)
+
+        _, _, inference, shadow_train, shadow_test = prepare_dataset_inference(
+            dataset, select_num=select_num)
+        if shadow_datapoint_num is not None:
+            split_size = shadow_datapoint_num
+        else:
+            split_size = len(shadow_train)+len(shadow_test)
+        shadow_list = prepare_dataset_shadow_splits(dataset = shadow_train+ shadow_test, num_splits= num_splits, split_size= split_size)
+        print(f"Prepare shadow dataset list, total num of the list: {num_splits}")
+        self.inference_dataset = inference
+        self.shadow_dataset_list = shadow_list
+        if if_dataset:
+            return inference, shadow_list
+    def get_split_shadow_dataloader_inference(self, batch_size=128, num_workers=8,index= 0):
+
+        #self.get_split_shadow_dataset_inference(select_num=None, num_splits= num_splits)
+
+        train_dataset, test_dataset= prepare_dataset_target(self.shadow_dataset_list[index])
+
+        print("Preparing dataloader!")
+        print(f"shadow dataset index: {index}")
+        print("train: %d \t target_test: %s inference_dataset: %s" %
+              (len(train_dataset), len(test_dataset), len(self.inference_dataset)))
+
+
+        inference_data_loader = torch.utils.data.DataLoader(
+            self.inference_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+
+        shadow_train_loader = torch.utils.data.DataLoader(
+            train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+
+        shadow_test_loader = torch.utils.data.DataLoader(
+            test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+
+        return inference_data_loader, shadow_train_loader, shadow_test_loader
     
     
     

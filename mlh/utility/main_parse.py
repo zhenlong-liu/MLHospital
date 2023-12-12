@@ -50,6 +50,8 @@ def add_argument_parameter(parser):
 
     parser.add_argument('--shadow_split_num', type=int, default=16, help='number of shadow models')
 
+    parser.add_argument('--shadow_model_index', type=int, default=0, help='index of shadow models')
+
     parser.add_argument('--shadow_datapoint_num', type=int, default=15000, help='number of datapoints for shadow models')
 
 
