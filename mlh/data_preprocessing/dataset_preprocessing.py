@@ -156,7 +156,7 @@ def prepare_dataset_shadow_splits(dataset, num_splits, split_size = None, train_
     """
     if split_size is None:
         total_length = len(dataset)
-    else: total_length = split_size
+    else: total_length = split_size*2
     splits = []
 
     for _ in range(num_splits):
