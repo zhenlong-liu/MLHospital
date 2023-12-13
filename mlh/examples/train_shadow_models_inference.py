@@ -4,7 +4,7 @@ import sys
 sys.path.append("..")
 sys.path.append("../..")
 from utility.main_parse import add_argument_parameter
-from mlh.defenses.membership_inference.Mixup import TrainTargetMixup
+from defenses.membership_inference.Mixup import TrainTargetMixup
 import copy
 from defenses.membership_inference.AdvReg import TrainTargetAdvReg
 from defenses.membership_inference.DP import TrainTargetDPSGD # new
@@ -127,14 +127,14 @@ if __name__ == "__main__":
         "PATE": TrainTargetPATE,
         "EarlyStopping": TrainTargetEarlyStopping
     }
-    for index in range(opt.num_shadow_models):
+    for index in range(opt.shadow_split_num):
 
         #
         if opt.inference:
             inference_loader, train_loader, test_loader = s.get_split_shadow_dataloader_inference(
                 batch_size=opt.batch_size, num_workers=opt.num_workers, index=index)
         else:
-            train_loader, test_loader = s.get_split_shadow_dataloader_inference(batch_size=opt.batch_size,
+            train_loader, test_loader = s.get_split_shadow_dataloader_ni(batch_size=opt.batch_size,
                                                                                 num_workers=opt.num_workers,
                                                                                  index=index)
         if opt.training_type == "Dropout":

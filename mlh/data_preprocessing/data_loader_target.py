@@ -40,7 +40,7 @@ class BuildDataLoader(object):
         self.data_path = args.data_path
         self.input_shape = args.input_shape
         self.batch_size = args.batch_size
-        self.num_splits = args.num_splits
+        self.num_splits = args.shadow_split_num
 
     def parse_dataset(self, dataset, train_transform, test_transform):
 

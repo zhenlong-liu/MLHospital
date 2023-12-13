@@ -49,19 +49,9 @@ class AugemtaionAttackDataset(Dataset):
         train_dataset, train_label = train_object.augmentation_attack(attack_type)
         print(f"dataset shape: {train_dataset.shape}, label shape:  {train_label.shape}")
         test_dataset, test_label =  test_object.augmentation_attack(attack_type)
-        
-        
-        
-        
+
         self.attack_train_dataset  =AttackDataset(train_dataset,train_label)
         self.attack_test_dataset = AttackDataset(test_dataset, test_label)
-        
-
-
-
-
-
-
 
 class AugmentedAttackData(object):
     """
