@@ -127,42 +127,44 @@ if __name__ == "__main__":
         "PATE": TrainTargetPATE,
         "EarlyStopping": TrainTargetEarlyStopping
     }
-        #
-    if opt.inference:
-        inference_loader, train_loader, test_loader = s.get_split_shadow_dataloader_inference(
-            batch_size=opt.batch_size, num_workers=opt.num_workers, index=opt.shadow_model_index)
-    else:
-        train_loader, test_loader = s.get_split_shadow_dataloader_ni(batch_size=opt.batch_size,
-                                                                            num_workers=opt.num_workers,
-                                                                             index=opt.shadow_model_index)
-    if opt.training_type == "Dropout":
-        shadow_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout=opt.tau)
-    else:
-        shadow_model = get_target_model(name=opt.model, num_classes=opt.num_class)
-    if opt.finetune:
-        freeze_except_last_layer(shadow_model)
-    save_pth = generate_save_path(opt, f"shadow_{opt.shadow_model_index}")
-    evaluator_class = training_type_to_class.get(opt.training_type)
+    for index in range(opt.shadow_split_num):
 
-    if evaluator_class:
-        if opt.training_type == "KnowledgeDistillation":
-            teacher_model = load_teacher_model(shadow_model, opt.teacher_path, opt.device)
-            total_evaluator = evaluator_class(model=shadow_model, teacher_model=teacher_model, args=opt, log_path=save_pth, T=opt.tau)
-        elif opt.training_type == "MixupMMD":
-            sorted_loaders = s.get_sorted_data_mixup_mmd_one_inference()
-            mode_loaders = sorted_loaders[0:4] if opt.mode == "target" else sorted_loaders[4:8]
-            train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = mode_loaders
-            total_evaluator = evaluator_class(model=shadow_model, args=opt, log_path=save_pth)
-            total_evaluator.train(train_loader, train_loader_ordered, inference_loader_ordered, test_loader, starting_index, inference_sorted)
+        #
+        if opt.inference:
+            inference_loader, train_loader, test_loader = s.get_split_shadow_dataloader_inference(
+                batch_size=opt.batch_size, num_workers=opt.num_workers, index=index)
         else:
-            total_evaluator = evaluator_class(model=shadow_model, args=opt, log_path=save_pth)
-            total_evaluator.train(train_loader, test_loader)
-    else:
-        raise ValueError("opt.training_type has not been implemented yet")
-    if opt.training_type in ["DPSGD", "EarlyStopping"]:
-        exit()
-    torch.save(shadow_model.state_dict(), os.path.join(save_pth, f"{opt.model}.pth"))
-    print("Finish Training")
+            train_loader, test_loader = s.get_split_shadow_dataloader_ni(batch_size=opt.batch_size,
+                                                                                num_workers=opt.num_workers,
+                                                                                 index=index)
+        if opt.training_type == "Dropout":
+            shadow_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout=opt.tau)
+        else:
+            shadow_model = get_target_model(name=opt.model, num_classes=opt.num_class)
+        if opt.finetune:
+            freeze_except_last_layer(shadow_model)
+        save_pth = generate_save_path(opt, f"shadow_{index}")
+        evaluator_class = training_type_to_class.get(opt.training_type)
+
+        if evaluator_class:
+            if opt.training_type == "KnowledgeDistillation":
+                teacher_model = load_teacher_model(shadow_model, opt.teacher_path, opt.device)
+                total_evaluator = evaluator_class(model=shadow_model, teacher_model=teacher_model, args=opt, log_path=save_pth, T=opt.tau)
+            elif opt.training_type == "MixupMMD":
+                sorted_loaders = s.get_sorted_data_mixup_mmd_one_inference()
+                mode_loaders = sorted_loaders[0:4] if opt.mode == "target" else sorted_loaders[4:8]
+                train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = mode_loaders
+                total_evaluator = evaluator_class(model=shadow_model, args=opt, log_path=save_pth)
+                total_evaluator.train(train_loader, train_loader_ordered, inference_loader_ordered, test_loader, starting_index, inference_sorted)
+            else:
+                total_evaluator = evaluator_class(model=shadow_model, args=opt, log_path=save_pth)
+                total_evaluator.train(train_loader, test_loader)
+        else:
+            raise ValueError("opt.training_type has not been implemented yet")
+        if opt.training_type in ["DPSGD", "EarlyStopping"]:
+            exit()
+        torch.save(shadow_model.state_dict(), os.path.join(save_pth, f"{opt.model}.pth"))
+        print("Finish Training")
 
 
 
