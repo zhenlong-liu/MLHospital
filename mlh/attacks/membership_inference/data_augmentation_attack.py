@@ -10,12 +10,6 @@ from utility.main_parse import save_dict_to_yaml
 import torch.nn.functional as F
 from torchvision.transforms import functional as TF
 
-class RotateTransform:
-    def __init__(self, angle):
-        self.angle = angle
-
-    def __call__(self, x):
-        return TF.rotate(x, self.angle)
 
 class AttackDataset(Dataset):
     def __init__(self, data, labels):

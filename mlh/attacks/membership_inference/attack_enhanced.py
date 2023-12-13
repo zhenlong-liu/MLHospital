@@ -8,4 +8,7 @@ from privacy_meter.metric import PopulationMetric
 from privacy_meter.constants import InferenceGame
 from privacy_meter.audit_report import ROCCurveReport, SignalHistogramReport
 
+import ModelLoader
+
+
 

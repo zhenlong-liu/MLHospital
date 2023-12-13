@@ -41,14 +41,18 @@ def add_argument_parameter(parser):
     parser.add_argument('--checkpoint', action='store_true', default=False, help='if check point')
     
     parser.add_argument('--specific_path', action='store_true', default=False, help='whether load specific path')
-    
+
+
     parser.add_argument('--load_model_path', type=str, default="../save0/CIFAR100/densenet121/NormalLoss/target/ce/epochs150/seed0/1/1/1/1/densenet121.pth", help='load model path')
-    
+
+
     parser.add_argument('--finetune', action='store_true', default=False, help='whether finetune')
     
-    parser.add_argument('--plot_distribution', action='store_true', default=False, help='whether finetune')
+    parser.add_argument('--plot_distribution', action='store_true', default=False, help='whether plot distribution')
 
-    parser.add_argument('--shadow_split_num', type=int, default=16, help='number of shadow models')
+    parser.add_argument('--enhance_mia', action='store_true', default=False, help='whether enhance_mia')
+
+    parser.add_argument('--shadow_split_num', type=int, default=0, help='number of shadow models')
 
     parser.add_argument('--shadow_model_index', type=int, default=0, help='index of shadow models')
 
