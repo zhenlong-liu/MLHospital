@@ -270,7 +270,7 @@ class BuildDataLoader(object):
             split_size = shadow_datapoint_num
         else:
             split_size = len(shadow_train)
-        shadow_list = prepare_dataset_shadow_splits(dataset = shadow_train+ shadow_test, num_splits= num_splits, split_size= split_size)
+        shadow_list = prepare_dataset_shadow_splits(dataset = shadow_train+ shadow_test, num_splits= num_splits, split_size= split_size)# list[tuple]
         print(f"Prepare shadow dataset list, total num of the list: {num_splits}")
         self.shadow_dataset_list = shadow_list
         if if_dataset:

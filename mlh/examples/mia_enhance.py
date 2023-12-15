@@ -93,54 +93,6 @@ def get_image_shape(dataloader):
         print("Data loader is empty or exhausted.")
         return None
 
-
-def load_models(args):
-    """
-    Load the target and shadow models based on the provided arguments.
-
-    Args:
-    args: Parsed command line arguments.
-
-    Returns:
-    A tuple of (target_model, shadow_model).
-    """
-
-    # 构建模型的基本路径和文件名
-    if args.specific_path:
-        load_path_base = args.load_model_path
-    else:
-        load_path_base = generate_save_path(args, mode="target")
-
-    # 目标模型和影子模型的路径
-    load_path_target = os.path.join(load_path_base, f"{args.model}.pth")
-    load_path_shadow = load_path_target.replace("/target/", "/shadow/")
-
-    # 根据训练类型，加载模型
-    if args.training_type == "Dropout":
-        target_model = get_target_model(name=args.model, num_classes=args.num_class, dropout=args.tau)
-        shadow_model = get_target_model(name=args.model, num_classes=args.num_class, dropout=args.tau)
-    elif args.training_type == "DPSGD":
-        target_model = torch.load(load_path_target, map_location=args.device)
-        shadow_model = torch.load(load_path_shadow, map_location=args.device)
-    else:
-        target_model = get_target_model(name=args.model, num_classes=args.num_class)
-        shadow_model = get_target_model(name=args.model, num_classes=args.num_class)
-        target_model.load_state_dict(torch.load(load_path_target, map_location=args.device))
-        shadow_model.load_state_dict(torch.load(load_path_shadow, map_location=args.device))
-
-    # 将模型转移到指定的设备
-    target_model = target_model.to(args.device)
-    shadow_model = shadow_model.to(args.device)
-
-    # 设置模型为评估模式
-    target_model.eval()
-    shadow_model.eval()
-
-    return target_model, shadow_model
-
-
-
-
 if __name__ == "__main__":
     args = parse_args()
     device = args.device
@@ -151,16 +103,27 @@ if __name__ == "__main__":
     torch.cuda.manual_seed_all(seed)    
     os.environ['PYTHONHASHSEED'] = str(seed)
     s = BuildDataLoader(args)
-    
+
+    if args.save_attack_path:
+        save_path = args.save_attack_path
+    else:
+        save_path = generate_save_path(args, mode="target")
+
     if args.inference:
         if args.attack_type == "augmentation":
-            target_train, target_test, _, shadow_train, shadow_test = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+            target_train, target_test, _, _, _ = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+            shadow_dataset_list =s.get_split_shadow_dataset_inference(num_splits = args.shadow_split_num, if_dataset = True)
         else:
-            target_train_loader, target_test_loader, _,shadow_train_loader, shadow_test_loader  = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers)
+            target_train, target_test, _, _, _ = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+            shadow_dataset_list =s.get_split_shadow_dataset_inference(num_splits = args.shadow_split_num, if_dataset = True)
         
     else:
         if args.attack_type == "augmentation":
-            target_train, target_test, shadow_train, shadow_test = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+            target_train, target_test, _, _ = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+
+            shadow_dataset_list = s.get_split_shadow_dataset_ni(num_splits=args.shadow_split_num, if_dataset=True)
+
+
         else:
             target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers)
     #target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
@@ -185,8 +148,7 @@ if __name__ == "__main__":
         auc = attack_model.Infer()
         print(auc)
     elif attack_type == "augmentation":
-        attack_dataset_rotation = AugemtaionAttackDataset( args, "rotation" , target_model, shadow_model,
-                                        target_train, target_test, shadow_train, shadow_test,device)
+        attack_dataset_rotation = AugemtaionAttackDataset( args, "rotation" , target_model, shadow_model,target_train, target_test, shadow_train, shadow_test,device)
         
         attack_dataset_translation =AugemtaionAttackDataset( args, "translation" , target_model, shadow_model,
                                         target_train, target_test, shadow_train, shadow_test,device)
