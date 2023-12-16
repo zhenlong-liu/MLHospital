@@ -1,7 +1,7 @@
 import torchvision
 import sys
 
-from attacks.membership_inference.ModelLoader import ModelLoader, ShadowModelLoader
+from attacks.membership_inference.model_loader import ModelLoader, ShadowModelLoader
 
 sys.path.append("..")
 sys.path.append("../..")
@@ -97,6 +97,7 @@ if __name__ == "__main__":
     args = parse_args()
     device = args.device
     seed = args.seed
+    attack_type = args.attack_type
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
@@ -110,54 +111,36 @@ if __name__ == "__main__":
         save_path = generate_save_path(args, mode="target")
 
     if args.inference:
-        if args.attack_type == "augmentation":
-            target_train, target_test, _, _, _ = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
-            shadow_dataset_list =s.get_split_shadow_dataset_inference(num_splits = args.shadow_split_num, if_dataset = True)
-        else:
-            target_train, target_test, _, _, _ = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
-            shadow_dataset_list =s.get_split_shadow_dataset_inference(num_splits = args.shadow_split_num, if_dataset = True)
+        target_train, target_test, *_ = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+        inference, shadow_dataset_list =s.get_split_shadow_dataset_inference(num_splits = args.shadow_split_num, if_dataset = True)
+
+        shadow_train_loader_list = [
+            s.get_split_shadow_dataloader_inference(batch_size=args.batch_size, num_workers=args.num_workers, index=i)[1] for i
+            in range(args.shadow_split_num)]
+
+        shadow_test_loader_list = [
+            s.get_split_shadow_dataloader_inference(batch_size=args.batch_size, num_workers=args.num_workers, index=i)[2] for i
+            in range(args.shadow_split_num)]
+
+
+
         
     else:
-        if args.attack_type == "augmentation":
-            target_train, target_test, _, _ = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+        target_train, target_test, *_ = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+        shadow_dataset_list = s.get_split_shadow_dataset_ni(num_splits=args.shadow_split_num, if_dataset=True)
 
-            shadow_dataset_list = s.get_split_shadow_dataset_ni(num_splits=args.shadow_split_num, if_dataset=True)
+        shadow_train_loader_list = [s.get_split_shadow_dataloader_ni(batch_size=args.batch_size,                                       num_workers=args.num_workers,                                        index=i)[0] for i in range(args.shadow_split_num)]
 
+        shadow_test_loader_list =  [s.get_split_shadow_dataloader_ni(batch_size=args.batch_size,                                       num_workers=args.num_workers,                                        index=i)[1] for i in range(args.shadow_split_num)]
 
-        else:
-            target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers)
-    #target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
-
+    # model
     target_model = ModelLoader(args, "target")
     shadow_models = ShadowModelLoader(args, "shadow")
-    attack_type = args.attack_type
-    
 
-    if attack_type != "augmentation":
-        input_shape = get_image_shape(target_train_loader)
-    if attack_type == "label-only":
-        attack_model = LabelOnlyMIA(
-            device=args.device,
-            target_model=target_model.eval(), # 打开eval()模式
-            shadow_model=shadow_model.eval(),
-            save_path = save_path,
-            target_loader=(target_train_loader, target_test_loader),
-            shadow_loader=(shadow_train_loader, shadow_test_loader),
-            input_shape=input_shape,
-            nb_classes=args.num_class)
-        auc = attack_model.Infer()
-        print(auc)
-    elif attack_type == "augmentation":
-        attack_dataset_rotation = AugemtaionAttackDataset( args, "rotation" , target_model, shadow_model,target_train, target_test, shadow_train, shadow_test,device)
-        
-        attack_dataset_translation =AugemtaionAttackDataset( args, "translation" , target_model, shadow_model,
-                                        target_train, target_test, shadow_train, shadow_test,device)
-        print(attack_dataset_rotation.attack_train_dataset.data.shape[1])
-        print("Attack datasets are ready")
-    else:
-        attack_dataset = AttackDataset(args, attack_type, target_model, shadow_model,
-                                        target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader)
 
+    input_shape = get_image_shape(test_loader_list[0])
+
+    attack_dataset = [AttackDataset(args, attack_type, target_model, shadow_model,target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader)]
 
         # train attack model
 

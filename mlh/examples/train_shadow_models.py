@@ -132,9 +132,7 @@ if __name__ == "__main__":
         inference_loader, train_loader, test_loader = s.get_split_shadow_dataloader_inference(
             batch_size=opt.batch_size, num_workers=opt.num_workers, index=opt.shadow_model_index)
     else:
-        train_loader, test_loader = s.get_split_shadow_dataloader_ni(batch_size=opt.batch_size,
-                                                                            num_workers=opt.num_workers,
-                                                                             index=opt.shadow_model_index)
+        train_loader, test_loader = s.get_split_shadow_dataloader_ni(batch_size=opt.batch_size,                                       num_workers=opt.num_workers,                                        index=opt.shadow_model_index)
     if opt.training_type == "Dropout":
         shadow_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout=opt.tau)
     else:
