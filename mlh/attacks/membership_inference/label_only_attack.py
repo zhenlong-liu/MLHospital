@@ -1,7 +1,7 @@
 
 import sys
 
-from attacks.membership_inference.MembershipInferenceAttack import MembershipInferenceAttack
+from attacks.membership_inference.membership_Inference_attack import MembershipInferenceAttack
 
 sys.path.append('..')
 sys.path.append('../..')

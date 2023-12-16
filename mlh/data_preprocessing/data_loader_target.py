@@ -31,17 +31,16 @@ from PIL import Image
 from tqdm import tqdm
 from data_preprocessing import configs
 import torchvision
-torch.manual_seed(0)
 
 
 class BuildDataLoader(object):
-    def __init__(self, args):
+    def __init__(self, args,shuffle= True):
         self.args = args
         self.data_path = args.data_path
         self.input_shape = args.input_shape
         self.batch_size = args.batch_size
         self.num_splits = args.shadow_split_num
-
+        self.shuffle = shuffle
     def parse_dataset(self, dataset, train_transform, test_transform):
 
         if dataset.lower() == "imagenet":
@@ -210,10 +209,10 @@ class BuildDataLoader(object):
             (len(target_train), len(target_test)))
 
         target_train_loader = torch.utils.data.DataLoader(
-            target_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            target_train, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
         
         target_test_loader = torch.utils.data.DataLoader(
-            target_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            target_test, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
         
 
         return target_train_loader, target_test_loader
@@ -239,21 +238,21 @@ class BuildDataLoader(object):
             (len(target_train), len(target_test), len(inference)))
 
         target_train_loader = torch.utils.data.DataLoader(
-            target_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            target_train, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
         
         
         target_test_loader = torch.utils.data.DataLoader(
-            target_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            target_test, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
         
         inference_data_loader = torch.utils.data.DataLoader(
-            inference, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            inference, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
         
         
         shadow_train_loader = torch.utils.data.DataLoader(
-            shadow_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            shadow_train, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
         
         shadow_test_loader = torch.utils.data.DataLoader(
-            shadow_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            shadow_test, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
 
         return target_train_loader, target_test_loader,inference_data_loader, shadow_train_loader, shadow_test_loader
     def get_split_shadow_dataset_ni(self, select_num=None, if_dataset =False, num_splits =16,shadow_datapoint_num =None):
@@ -283,10 +282,10 @@ class BuildDataLoader(object):
         print(f"train: {len(train_dataset)} \t target_test: {len(test_dataset)}")
 
         shadow_train_loader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            train_dataset, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
 
         shadow_test_loader = torch.utils.data.DataLoader(
-            test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            test_dataset, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
 
         return shadow_train_loader, shadow_test_loader
 
@@ -323,13 +322,13 @@ class BuildDataLoader(object):
 
 
         inference_data_loader = torch.utils.data.DataLoader(
-            self.inference_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            self.inference_dataset, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
 
         shadow_train_loader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            train_dataset, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
 
         shadow_test_loader = torch.utils.data.DataLoader(
-            test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            test_dataset, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
 
         return inference_data_loader, shadow_train_loader, shadow_test_loader
     
@@ -355,17 +354,17 @@ class BuildDataLoader(object):
             (len(target_train), len(target_test)))
 
         target_train_loader = torch.utils.data.DataLoader(
-            target_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            target_train, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
         
         
         target_test_loader = torch.utils.data.DataLoader(
-            target_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            target_test, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
         
         shadow_train_loader = torch.utils.data.DataLoader(
-            shadow_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            shadow_train, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
         
         shadow_test_loader = torch.utils.data.DataLoader(
-            shadow_test, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+            shadow_test, batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
 
         return target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader
 
@@ -423,7 +422,7 @@ class BuildDataLoader(object):
 
         # note that we set the inference loader's batch size to 1
         target_train_sorted_loader = torch.utils.data.DataLoader(
-            target_train_sorted, batch_size=self.args.batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True)
+            target_train_sorted, batch_size=self.args.batch_size, shuffle=self.shuffle, num_workers=self.args.num_workers, pin_memory=True)
         target_inference_sorted_loader = torch.utils.data.DataLoader(
             target_inference_sorted, batch_size=self.args.batch_size, shuffle=False, num_workers=self.args.num_workers, pin_memory=True)
         shadow_train_sorted_loader = torch.utils.data.DataLoader(

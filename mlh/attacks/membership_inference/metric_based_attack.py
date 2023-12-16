@@ -1,7 +1,7 @@
 
 import sys
 
-from attacks.membership_inference.MembershipInferenceAttack import MembershipInferenceAttack
+from attacks.membership_inference.membership_Inference_attack import MembershipInferenceAttack
 
 sys.path.append('..')
 sys.path.append('../..')
@@ -11,8 +11,7 @@ from scipy.stats import norm
 import numpy as np
 from mlh.defenses.membership_inference.loss_function import get_loss
 from utils import cross_entropy, plot_phi_distribution_together
-
-
+from attack_utils import phi_stable_batch_epsilon, likelihood_ratio
 
 
 class MetricBasedMIA(MembershipInferenceAttack):
@@ -288,55 +287,29 @@ class MetricBasedMIA(MembershipInferenceAttack):
             true_labels.size), true_labels]
         return np.sum(np.multiply(modified_probs, modified_log_probs), axis=1)
 
-    def _phi_stable_batch_epsilon(self, posterior_probs, labels, epsilon=1e-10):
-
-        posterior_probs = posterior_probs + epsilon
-        one_hot_labels = np.zeros_like(posterior_probs)
-
-        one_hot_labels[np.arange(len(labels)), labels] = 1
-
-        # Calculate the log likelihood for the correct labels
-        log_likelihood_correct = np.log(posterior_probs[np.arange(len(labels)), labels])
-
-        # Calculate the sum of posterior probabilities for all incorrect labels
-        sum_incorrect = np.sum(posterior_probs * (1 - one_hot_labels), axis=1)
-
-        # Replace any zero values with a very small number to prevent division by zero in log
-        # Calculate the log likelihood for the incorrect labels
-        log_likelihood_incorrect = np.log(sum_incorrect)
-
-        # Calculate phi_stable for each example
-        phi_stable = log_likelihood_correct - log_likelihood_incorrect
-
-        return phi_stable
-
-    def _likelihood_ratio(self, x, mu_in, sigma_in, mu_out, sigma_out):
-
-        return norm.pdf(x, loc=mu_in, scale=sigma_in) / norm.pdf(x, loc=mu_out, scale=sigma_out)
 
     def _likelihood_ratio_data(self):
-        self.phi_shadow_train = self._phi_stable_batch_epsilon(self.s_tr_outputs, self.s_tr_labels)
-        self.phi_shadow_test = self._phi_stable_batch_epsilon(self.s_te_outputs, self.s_te_labels)
-        self.phi_target_train = self._phi_stable_batch_epsilon(self.t_tr_outputs, self.t_tr_labels)
-        self.phi_target_test = self._phi_stable_batch_epsilon(self.t_te_outputs, self.t_te_labels)
+        self.phi_shadow_train = phi_stable_batch_epsilon(self.s_tr_outputs, self.s_tr_labels)
+        self.phi_shadow_test = phi_stable_batch_epsilon(self.s_te_outputs, self.s_te_labels)
+        self.phi_target_train = phi_stable_batch_epsilon(self.t_tr_outputs, self.t_tr_labels)
+        self.phi_target_test = phi_stable_batch_epsilon(self.t_te_outputs, self.t_te_labels)
 
         mean_shadow_train = np.mean(self.phi_shadow_train)
         sigma_shadow_train = np.sqrt(np.var(self.phi_shadow_train))
         mean_shadow_test = np.mean(self.phi_shadow_test)
         sigma_target_test = np.sqrt(np.var(self.phi_shadow_test))
 
-        self.shadow_train_likelihood_ratio = self._likelihood_ratio(self.phi_shadow_train, mean_shadow_train,
-                                                                    sigma_shadow_train, mean_shadow_test,
-                                                                    sigma_target_test)
-        self.shadow_test_likelihood_ratio = self._likelihood_ratio(self.phi_shadow_test, mean_shadow_train,
+        self.shadow_train_likelihood_ratio = likelihood_ratio(self.phi_shadow_train, mean_shadow_train,
                                                                    sigma_shadow_train, mean_shadow_test,
                                                                    sigma_target_test)
-        self.target_train_likelihood_ratio = self._likelihood_ratio(self.phi_target_train, mean_shadow_train,
-                                                                    sigma_shadow_train, mean_shadow_test,
-                                                                    sigma_target_test)
-        self.target_test_likelihood_ratio = self._likelihood_ratio(self.phi_target_test, mean_shadow_train,
+        self.shadow_test_likelihood_ratio = likelihood_ratio(self.phi_shadow_test, mean_shadow_train,
+                                                                  sigma_shadow_train, mean_shadow_test,
+                                                                  sigma_target_test)
+        self.target_train_likelihood_ratio = likelihood_ratio(self.phi_target_train, mean_shadow_train,
                                                                    sigma_shadow_train, mean_shadow_test,
                                                                    sigma_target_test)
+        self.target_test_likelihood_ratio = likelihood_ratio(self.phi_target_test, mean_shadow_train,  sigma_shadow_train, mean_shadow_test,
+                                                                  sigma_target_test)
 
     def _thre_setting(self, tr_values, te_values):
         value_list = np.concatenate((tr_values, te_values))

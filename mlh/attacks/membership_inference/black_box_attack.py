@@ -2,7 +2,7 @@ import sys
 sys.path.append('..')
 sys.path.append('../..')
 sys.path.append('../../..')
-from attacks.membership_inference.MembershipInferenceAttack import MembershipInferenceAttack
+from mlh.attacks.membership_inference.membership_Inference_attack import MembershipInferenceAttack
 from mlh.utility.main_parse import save_dict_to_yaml
 import torch
 import torch.nn as nn
@@ -47,15 +47,13 @@ class BlackBoxMIA(MembershipInferenceAttack):
         self.train(self.attack_train_loader)
 
     def train(self, dataloader, train_epoch=100):
-        print(torch.get_default_dtype())  # Check default data type
+        #print(torch.get_default_dtype())   Check default data type
         torch.set_default_dtype(torch.float)  # Set default to float if needed
         self.attack_model.train()
         self.optimizer = torch.optim.Adam(
             self.attack_model.parameters(), lr=0.001)
-
         for e in range(1, train_epoch + 1):
             train_loss = 0
-
             labels = []
             pred_labels = []
             pred_posteriors = []

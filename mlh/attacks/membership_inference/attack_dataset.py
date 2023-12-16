@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from torch.utils.data.dataset import Dataset
 from tqdm import tqdm
 import numpy as np
+from attack_utils import phi_stable_batch_epsilon, m_entr_comp
 
 
 def compute_norm_metrics(gradient):
@@ -45,12 +46,14 @@ class ModelParser:
     """
 
     def __init__(self, args, model):
+        self.target_list = None
+        self.posteriors = None
         self.args = args
         self.device = self.args.device
         self.model = model.to(self.device)
         self.model.eval()
         # self.criterion = get_loss(loss_type= args.loss_type, device = args.device, args= args, num_classes=args.num_class)
-
+        self.criterion = nn.CrossEntropyLoss(reduction='none')
     def combined_gradient_attack(self, dataloader):
         """Gradient attack w.r.t input and weights"""
         self.model.eval()
@@ -120,10 +123,66 @@ class ModelParser:
                 posteriors_list += posteriors.detach().cpu().numpy().tolist()
                 # all_losses += losses.tolist()
         torch.cuda.empty_cache()
-
-
+        self.posteriors = posteriors_list
+        self.target_list = target_list
         return {"targets": target_list, "posteriors": posteriors_list}
         # targets :1-10
+
+    def get_metrics(self, dataloader):
+        target_list = []
+        posteriors_list = []
+        losses_list = []
+        entropies_list = []
+        confidences_list = []
+        correctness_list = []
+        phi_stable_list = []
+        modified_entropy_list = []
+        with torch.no_grad():
+            for inputs, targets in dataloader:
+                inputs, targets = inputs.to(self.device), targets.to(self.device)
+                outputs = self.model(inputs)
+                posteriors = F.softmax(outputs, dim=1).cpu().numpy()
+
+                loss = self.criterion(outputs, targets).cpu().numpy()
+                losses_list.append(loss)
+
+                entropy = -np.sum(posteriors * np.log(posteriors + 1e-10), axis=1)
+                entropies_list.extend(entropy)
+
+                confidence, _ = torch.max(F.softmax(outputs, dim=1), 1)
+                confidences_list.extend(confidence.cpu().numpy())
+
+                correct = outputs.argmax(dim=1) == targets
+                correctness_list.extend(correct.cpu().numpy())
+
+                phi_stable = phi_stable_batch_epsilon(posteriors, targets.cpu().numpy())
+                phi_stable_list.extend(phi_stable)
+
+                modified_entropy = m_entr_comp(posteriors, targets.cpu().numpy())
+                modified_entropy_list.extend(modified_entropy)
+
+                target_list.extend(targets.cpu().numpy())
+                posteriors_list.extend(posteriors)
+
+        # Convert lists to NumPy arrays
+        self.targets = np.array(target_list)
+        self.posteriors = np.array(posteriors_list)
+        self.losses = np.array(losses_list)
+        self.entropies = np.array(entropies_list)
+        self.confidences = np.array(confidences_list)
+        self.correctness = np.array(correctness_list)
+        self.phi_stable = np.array(phi_stable_list)
+        self.modified_entropy = np.array(modified_entropy_list)
+        return {
+            "targets": self.targets,
+            "posteriors": self.posteriors,
+            "losses": self.losses,
+            "entropies": self.entropies,
+            "confidences": self.confidences,
+            "correctness": self.correctness,
+            "phi_stable": self.phi_stable,
+            "modified_entropies":self.modified_entropy
+        }
 
     def parse_info_whitebox(self, dataloader, layers):
         target_list = []
@@ -153,6 +212,8 @@ class ModelParser:
         info = {"targets": target_list, "embeddings": embedding_list,
                 "posteriors": posteriors_list, "losses": loss_list}
         return info
+
+
 class AttackDataset:
     """
     Generate attack dataset
