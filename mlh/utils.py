@@ -55,6 +55,15 @@ def store_dict_to_yaml(my_dict, save_path, file_name):
     with open(file_path, 'w') as file:
         yaml.dump(my_dict, file)
 
+def get_function_by_name(my_functions,func_name):
+    try:
+        # Use getattr to retrieve a function from the my_functions module
+        func = getattr(my_functions, func_name)
+        return func
+    except AttributeError:
+        # If the function doesn't exist, return None or raise an exception
+        print(f"No such function: {func_name}")
+        return None
 
 def dict_str(input_dict):
     for key, value in input_dict.items():

@@ -1,19 +1,8 @@
 import numpy as np
-from privacy_meter.audit import Audit
-from privacy_meter.dataset import Dataset
-from privacy_meter.hypothesis_test import threshold_func
-from privacy_meter.information_source import InformationSource
-from privacy_meter.information_source_signal import Signal
-from privacy_meter.model import Model
-from privacy_meter.metric import PopulationMetric
-from privacy_meter.constants import InferenceGame
-from privacy_meter.audit_report import ROCCurveReport, SignalHistogramReport
 from sklearn.metrics import roc_auc_score
-
-import model_loader
-from attacks.membership_inference.attack_utils import ensure_list, default_quantile
+from attacks.membership_inference.attack_utils import ensure_list, default_quantile, flatten_dict
 from attacks.membership_inference.membership_Inference_attack import MembershipInferenceAttack
-from defenses.membership_inference.loss_function import get_loss
+from utility.main_parse import save_dict_to_yaml
 
 
 class ReferenceMIA(MembershipInferenceAttack):
@@ -25,9 +14,8 @@ class ReferenceMIA(MembershipInferenceAttack):
             attack_type,
             attack_train_dataset,
             attack_test_dataset,
-            save_path,
-            batch_size=128):
-        # traget train load
+            save_path):
+        # target train load
         super().__init__()
         self.args = args
         self.num_class = num_class
@@ -35,35 +23,31 @@ class ReferenceMIA(MembershipInferenceAttack):
         self.attack_type = attack_type
         self.attack_train_dataset = attack_train_dataset
         self.attack_test_dataset = attack_test_dataset
-
         self.loss_type = args.loss_type
         self.save_path = save_path
-        self.threshold_func = threshold_func
 
-    def get_threshould(self,threshould_function, alphas,metrics = None):
+
+    def get_threshold(self,threshold_function, alphas,metrics = None):
 
         reference_mem_info_dict, reference_no_mem_info_dict = self.attack_train_dataset
-        # reference_mem_threshould ={f"{key}_threshould": threshould_function(reference_mem_info_dict[key],alphas) for key in reference_mem_info_dict.keys()}
+        # reference_mem_threshold ={f"{key}_threshold": threshold_function(reference_mem_info_dict[key],alphas) for key in reference_mem_info_dict.keys()}
         #
-        # reference_no_mem_threshould = {f"{key}_threshould": threshould_function(reference_no_mem_info_dict[key],alphas) for key in reference_no_mem_info_dict.keys() }
+        # reference_no_mem_threshold = {f"{key}_threshold": threshold_function(reference_no_mem_info_dict[key],alphas) for key in reference_no_mem_info_dict.keys() }
 
 
         if metrics:
             metrics = ensure_list(metrics)
         else:
             metrics = reference_mem_info_dict.keys()
-        reference_mem_threshould = {metric: threshould_function(reference_mem_info_dict[metric],alphas) for metric in metrics}
+        reference_mem_threshold = {metric: threshold_function(reference_mem_info_dict[metric],alphas) for metric in metrics}
 
-        reference_no_mem_threshould = {metric: threshould_function(reference_no_mem_info_dict[metric], alphas) for metric in metrics}
-
-
-        return reference_mem_threshould, reference_no_mem_threshould
+        reference_no_mem_threshold = {metric: threshold_function(reference_no_mem_info_dict[metric], alphas) for metric in metrics}
 
 
-    def run_attack(self,threshould_function, fpr_tolerance_rate_list, metrics = None):
+        return reference_mem_threshold, reference_no_mem_threshold
 
 
-
+    def run_attack(self,threshold_function, fpr_tolerance_rate_list, metrics = None):
 
             if fpr_tolerance_rate_list is None:
                 fpr_tolerance_rate_list = default_quantile()
@@ -71,8 +55,8 @@ class ReferenceMIA(MembershipInferenceAttack):
                 fpr_tolerance_rate_list = np.array(fpr_tolerance_rate_list)
 
 
-            reference_member_threshold, reference_non_member_threshold = self.get_threshould(
-                threshould_function,fpr_tolerance_rate_list,metrics =metrics
+            reference_member_threshold, reference_non_member_threshold = self.get_threshold(
+                threshold_function,fpr_tolerance_rate_list,metrics =metrics
             )
 
             target_mem_info_dict, target_no_mem_info_dict = self.attack_test_dataset
@@ -129,6 +113,8 @@ class ReferenceMIA(MembershipInferenceAttack):
                     "Accuracy": accuracy,
                     "AUC": auc_scores
                 }
+            save_dict =flatten_dict(result_metrics)
 
+            save_dict_to_yaml(save_dict, f"{self.save_path}/reference_metrics.yaml")
             return result_metrics
 

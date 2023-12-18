@@ -2,6 +2,7 @@ import torchvision
 import sys
 
 from attacks.membership_inference.attack_dataset_muti_shdow_models import AttackDatasetMutiShadowModels
+from attacks.membership_inference.enhanced_attack import ReferenceMIA
 from attacks.membership_inference.model_loader import ModelLoader, ShadowModelLoader
 
 sys.path.append("..")
@@ -15,7 +16,7 @@ from mlh.attacks.membership_inference.label_only_attack import LabelOnlyMIA
 from mlh.attacks.membership_inference.metric_based_attack import MetricBasedMIA
 import torch
 from data_preprocessing.data_loader_target import BuildDataLoader
-from utils import get_target_model, generate_save_path
+from utils import get_target_model, generate_save_path, get_function_by_name
 import argparse
 import numpy as np
 import os
@@ -99,6 +100,11 @@ if __name__ == "__main__":
     device = args.device
     seed = args.seed
     attack_type = args.attack_type
+    alphas = [args.alphas]
+
+    threshold_function = get_function_by_name("threshold_functions",args.threshold_function)
+    fpr_tolerance_rate_list =args.fpr_tolerance_rate_list
+
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
@@ -153,25 +159,26 @@ if __name__ == "__main__":
 
     if "metric-based" in attack_type:
 
-        attack_model = MetricBasedMIA(
+        attack_model = ReferenceMIA(
             args = args,
             num_class=args.num_class,
             device=args.device,
-            attack_type=attack_type,
-            attack_train_dataset=attack_dataset.attack_train_dataset,
-            attack_test_dataset=attack_dataset.attack_test_dataset,
-            #train_loader = target_train_loader,
-            save_path = save_path,
-            batch_size=128)
-    elif "white_box" in attack_type:
-        attack_model = MetricBasedMIA(
-            args = args,
-            num_class=args.num_class,
-            device=args.device,
-            attack_type=attack_type,
-            attack_train_dataset=attack_dataset.attack_train_dataset,
-            attack_test_dataset=attack_dataset.attack_test_dataset,
-            #train_loader = target_train_loader,
-            save_path = save_path,
-            batch_size=128)
+            attack_type= attack_type,
+            attack_train_dataset=attack_dataset.get_reference_info(shadow_train_loader_list, shadow_test_loader_list),
+            attack_test_dataset=attack_dataset.get_target_info(target_train_loader, target_test_loader),
+            save_path = save_path)
+
+        attack_model.run_attack(threshold_function,fpr_tolerance_rate_list)
+
+    # elif "white_box" in attack_type:
+    #     attack_model = MetricBasedMIA(
+    #         args = args,
+    #         num_class=args.num_class,
+    #         device=args.device,
+    #         attack_type=attack_type,
+    #         attack_train_dataset=attack_dataset.attack_train_dataset,
+    #         attack_test_dataset=attack_dataset.attack_test_dataset,
+    #         #train_loader = target_train_loader,
+    #         save_path = save_path,
+    #         batch_size=128)
     else: raise ValueError("No attack is executed")

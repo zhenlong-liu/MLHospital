@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from scipy.stats import norm
-
+from mlh.utility.main_parse import save_dict_to_yaml
 
 def phi_stable_batch_epsilon( posterior_probs, labels, epsilon=1e-10):
     posterior_probs = posterior_probs + epsilon
@@ -73,3 +73,21 @@ def calculate_confidence(posteriors):
 def calculate_correctness(outputs, targets):
     correct = outputs.argmax(dim=1) == targets
     return correct.cpu().numpy()
+
+
+def flatten_dict(result_metrics):
+    # Initialize an empty dictionary to hold the flattened structure
+    flattened = {}
+
+    # Loop through each metric in the result_metrics dictionary
+    for metric, values in result_metrics.items():
+        # Loop through each key in the inner dictionary
+        for key, value in values.items():
+            # Create a new key by combining the metric and the original key
+            new_key = f"{metric}_{key}"
+            # Add this to the flattened dictionary
+
+            flattened[new_key] = value
+            print(f"{new_key}: {value}")
+    return flattened
+

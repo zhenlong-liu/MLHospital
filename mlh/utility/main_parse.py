@@ -59,6 +59,8 @@ def add_argument_parameter(parser):
     parser.add_argument('--shadow_datapoint_num', type=int, default=15000, help='number of datapoints for shadow models')
 
     parser.add_argument('--save_attack_path', type=str, default=None, help = 'path to save attack result')
+
+    parser.add_argument('--threshold_function', type=str, default='')
 def save_namespace_to_yaml(namespace, output_path):
     """
     Save a Namespace object to a YAML file.
