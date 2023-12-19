@@ -43,7 +43,7 @@ def generate_train_command_2(params, mode, gpu):
     # 返回生成的args命令，去除末尾的多余空格
     return args_command.strip()
 
-def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type ='metric-based', nohup = True, gpu =0, store =True):
+def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type ='metric-based', inference_type = "reference_attack",nohup = True, gpu =0, store =True):
     if nohup:
         args_command = "nohup"
     else: args_command = ""
@@ -64,6 +64,7 @@ def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type 
         
     args_command += f"--attack_type {attack_type} "
     args_command += f"--gpu {gpu} "
+    args_command += f"--inference_type {inference_type} "
     
     save_pth = generate_save_path(params, 'target')
     if store:

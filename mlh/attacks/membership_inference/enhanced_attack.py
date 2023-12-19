@@ -3,8 +3,8 @@ from sklearn.metrics import roc_auc_score
 from attacks.membership_inference.attack_utils import ensure_list, default_quantile, flatten_dict
 from attacks.membership_inference.membership_Inference_attack import MembershipInferenceAttack
 from utility.main_parse import save_dict_to_yaml
-
-
+import importlib
+from sklearn.metrics import auc
 class ReferenceMIA(MembershipInferenceAttack):
     def __init__(
             self,
@@ -39,11 +39,13 @@ class ReferenceMIA(MembershipInferenceAttack):
             metrics = ensure_list(metrics)
         else:
             metrics = reference_mem_info_dict.keys()
-        reference_mem_threshold = {metric: threshold_function(reference_mem_info_dict[metric],alphas) for metric in metrics}
-
-        reference_no_mem_threshold = {metric: threshold_function(reference_no_mem_info_dict[metric], alphas) for metric in metrics}
-
-
+            
+        
+        reference_mem_threshold = {metric: threshold_function(reference_mem_info_dict[metric].T,alphas) for metric in metrics}
+        # reference_mem_info_dict[metric].T 15000 16
+        reference_no_mem_threshold = {metric: threshold_function(reference_no_mem_info_dict[metric].T, alphas) for metric in metrics}
+        #breakpoint()
+        
         return reference_mem_threshold, reference_no_mem_threshold
 
 
@@ -58,7 +60,9 @@ class ReferenceMIA(MembershipInferenceAttack):
             reference_member_threshold, reference_non_member_threshold = self.get_threshold(
                 threshold_function,fpr_tolerance_rate_list,metrics =metrics
             )
-
+            #reference_member_threshold {metric: threshold }
+            
+            
             target_mem_info_dict, target_no_mem_info_dict = self.attack_test_dataset
 
 
@@ -66,33 +70,45 @@ class ReferenceMIA(MembershipInferenceAttack):
                 metrics = target_mem_info_dict.keys()
 
             num_threshold = len(fpr_tolerance_rate_list)
-            target_mem_info_dict = {key: value.repeat(num_threshold, 1).T for key,value in target_mem_info_dict.items() if key in metrics}
+            target_mem_info_dict = {key: value.reshape(-1,1).repeat(num_threshold, 1).T for key,value in target_mem_info_dict.items() if key in metrics}
 
             target_no_mem_info_dict = {key: value.reshape(-1, 1).repeat(num_threshold,1).T for key, value in target_no_mem_info_dict.items() if key in metrics}
 
-
-            member_preds_dict = {key: np.less(value, reference_member_threshold) for key,value in target_mem_info_dict.items()}
-
-            non_member_preds_dict = {key: np.less(value, reference_non_member_threshold)
-                                 for key,value in target_no_mem_info_dict.items()}
-
-
+            #breakpoint()
+            less_metric = ["losses","entropies","modified_entropies"]
+            greater_metric = ["confidences","phi_stable","correctness"]
+            member_preds_dict = {key: np.less(value, reference_member_threshold[key]) for key,value in target_mem_info_dict.items() 
+                                 if key in less_metric}
+            member_preds_dict = {}
+            non_member_preds_dict = {}
+            for key, value in target_mem_info_dict.items():
+                if key in less_metric:
+                    member_preds_dict[key] = np.less(value, reference_member_threshold[key])
+                if key in greater_metric:
+                    member_preds_dict[key] = np.greater_equal(value, reference_member_threshold[key])
+            
+            for key, value in target_no_mem_info_dict.items():
+                if key in less_metric:
+                    non_member_preds_dict[key] = np.less(value, reference_member_threshold[key])
+                if key in greater_metric:
+                    non_member_preds_dict[key] = np.greater_equal(value, reference_member_threshold[key])
+                    
             predictions_dict = {key: np.concatenate([member_preds_dict[key], non_member_preds_dict[key]], axis=1) for key in metrics}
 
             true_labels_dict = {key: np.concatenate(
-                [np.ones(len(member_preds_dict[key])), np.zeros(len(non_member_preds_dict[key]))]
+                [np.ones(len(member_preds_dict[key].T)), np.zeros(len(non_member_preds_dict[key].T))]
             ) for key in metrics}
+            # np.concatenate([np.ones(len(member_preds_dict["losses"].T)),np.zeros(len(non_member_preds_dict["losses"].T))])
 
-
-
+            # 
             result_metrics = {}
             for metric in metrics:
-                predictions = predictions_dict[metric]
+                predictions = predictions_dict[metric] # 10,30000
                 true_labels = true_labels_dict[metric]
 
                 # expand true_labels to match shape of predictions
                 true_labels_expanded = np.expand_dims(true_labels, axis=0)
-
+                # breakpoint()
                 # calculate TP, FP, TN, FN
                 tp = np.sum((predictions == 1) & (true_labels_expanded == 1), axis=1)
                 fp = np.sum((predictions == 1) & (true_labels_expanded == 0), axis=1)
@@ -101,20 +117,19 @@ class ReferenceMIA(MembershipInferenceAttack):
 
                 # calculate accuracy
                 accuracy = (tp + tn) / (tp + fp + tn + fn)
-
+                fpr = fp/(fp+fn)
+                tpr = tp/(tn+tp)
                 # calculate AUC fpr_tolerance_rate
-                auc_scores = [roc_auc_score(true_labels, predictions[i, :]) for i in range(predictions.shape[0])]
+                auc_scores = auc(fpr,tpr)
 
                 result_metrics[metric] = {
-                    "TP": tp,
-                    "FP": fp,
-                    "TN": tn,
-                    "FN": fn,
                     "Accuracy": accuracy,
+                    "FPR": fpr,
+                    "TPR": tpr,
                     "AUC": auc_scores
                 }
-            save_dict =flatten_dict(result_metrics)
-
+            save_dict =flatten_dict(result_metrics,fpr_tolerance_rate_list)
+            
             save_dict_to_yaml(save_dict, f"{self.save_path}/reference_metrics.yaml")
             return result_metrics
 

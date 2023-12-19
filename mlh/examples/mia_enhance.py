@@ -1,13 +1,15 @@
 import torchvision
 import sys
+sys.path.append("..")
+sys.path.append("../..")
+sys.path.append("../../..")
+
 
 from attacks.membership_inference.attack_dataset_muti_shdow_models import AttackDatasetMutiShadowModels
 from attacks.membership_inference.enhanced_attack import ReferenceMIA
 from attacks.membership_inference.model_loader import ModelLoader, ShadowModelLoader
 
-sys.path.append("..")
-sys.path.append("../..")
-sys.path.append("../../..")
+
 from mlh.utility.main_parse import add_argument_parameter
 from attacks.membership_inference.data_augmentation_attack import AugemtaionAttackDataset, DataAugmentationMIA
 from mlh.attacks.membership_inference.attack_dataset import AttackDataset
@@ -16,7 +18,7 @@ from mlh.attacks.membership_inference.label_only_attack import LabelOnlyMIA
 from mlh.attacks.membership_inference.metric_based_attack import MetricBasedMIA
 import torch
 from data_preprocessing.data_loader_target import BuildDataLoader
-from utils import get_target_model, generate_save_path, get_function_by_name
+from utils import get_target_model, generate_save_path, call_function_from_module
 import argparse
 import numpy as np
 import os
@@ -100,9 +102,9 @@ if __name__ == "__main__":
     device = args.device
     seed = args.seed
     attack_type = args.attack_type
-    alphas = [args.alphas]
-
-    threshold_function = get_function_by_name("threshold_functions",args.threshold_function)
+    inference_type = args.inference_type
+    threshold_function = call_function_from_module("attacks.membership_inference.threshold_functions",args.threshold_function)    
+    metrics = args.metrics
     fpr_tolerance_rate_list =args.fpr_tolerance_rate_list
 
     np.random.seed(seed)
@@ -145,8 +147,8 @@ if __name__ == "__main__":
         shadow_test_loader_list =  [s.get_split_shadow_dataloader_ni(batch_size=args.batch_size,                                       num_workers=args.num_workers,                                        index=i)[1] for i in range(args.shadow_split_num)]
 
     # model
-    target_model = ModelLoader(args, "target")
-    shadow_models = ShadowModelLoader(args, "shadow")
+    target_model = ModelLoader(args, "target")()
+    shadow_models = ShadowModelLoader(args, "shadow")()
 
 
     input_shape = get_image_shape(shadow_test_loader_list[0])
@@ -158,17 +160,17 @@ if __name__ == "__main__":
 
 
     if "metric-based" in attack_type:
+        if "reference_attack" in inference_type:
+            attack_model = ReferenceMIA(
+                args = args,
+                num_class=args.num_class,
+                device=args.device,
+                attack_type= attack_type,
+                attack_train_dataset=attack_dataset.get_reference_info(target_train_loader, target_test_loader),
+                attack_test_dataset=attack_dataset.get_target_info(target_train_loader, target_test_loader),
+                save_path = save_path)
 
-        attack_model = ReferenceMIA(
-            args = args,
-            num_class=args.num_class,
-            device=args.device,
-            attack_type= attack_type,
-            attack_train_dataset=attack_dataset.get_reference_info(shadow_train_loader_list, shadow_test_loader_list),
-            attack_test_dataset=attack_dataset.get_target_info(target_train_loader, target_test_loader),
-            save_path = save_path)
-
-        attack_model.run_attack(threshold_function,fpr_tolerance_rate_list)
+            attack_model.run_attack(threshold_function,fpr_tolerance_rate_list,metrics)
 
     # elif "white_box" in attack_type:
     #     attack_model = MetricBasedMIA(

@@ -55,15 +55,45 @@ def store_dict_to_yaml(my_dict, save_path, file_name):
     with open(file_path, 'w') as file:
         yaml.dump(my_dict, file)
 
-def get_function_by_name(my_functions,func_name):
+import importlib
+
+import importlib
+
+def call_function_from_module(module_name, function_name):
+    """
+    Dynamically import a module and call a specified function within that module.
+
+    Args:
+    - module_name (str): The name of the module to import.
+    - function_name (str): The name of the function to call within the module.
+
+    Returns:
+    - The return value of the called function.
+
+    Raises:
+    - ImportError: If the module cannot be imported.
+    - AttributeError: If the function is not found in the module.
+    - Exception: If an error occurs during the function call.
+    """
+
     try:
-        # Use getattr to retrieve a function from the my_functions module
-        func = getattr(my_functions, func_name)
+        # Dynamically import the specified module
+        mod = importlib.import_module(module_name)
+
+        # Get the specified function from the module
+        func = getattr(mod, function_name)
+
+        # Call the function and return its result
         return func
-    except AttributeError:
-        # If the function doesn't exist, return None or raise an exception
-        print(f"No such function: {func_name}")
-        return None
+    except ImportError as e:
+        print(f"Error importing module: {e}")
+        raise
+    except AttributeError as e:
+        print(f"Function not found in the module: {e}")
+        raise
+    except Exception as e:
+        print(f"Error calling the function: {e}")
+        raise
 
 def dict_str(input_dict):
     for key, value in input_dict.items():

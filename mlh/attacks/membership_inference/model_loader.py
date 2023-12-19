@@ -5,8 +5,9 @@ from utils import get_target_model, generate_save_path
 class ModelLoader:
     def __init__(self, args, mode="target"):
         self.args = args
-        self.load_path = self.generate_load_path()  # Call the method to set load_path on initialization
         self.mode = mode
+        self.load_path = self.generate_load_path()  # Call the method to set load_path on initialization
+        
 
     def generate_load_path(self):
         if self.args.specific_path:

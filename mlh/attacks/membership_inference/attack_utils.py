@@ -75,7 +75,7 @@ def calculate_correctness(outputs, targets):
     return correct.cpu().numpy()
 
 
-def flatten_dict(result_metrics):
+def flatten_dict(result_metrics,alphas):
     # Initialize an empty dictionary to hold the flattened structure
     flattened = {}
 
@@ -83,11 +83,18 @@ def flatten_dict(result_metrics):
     for metric, values in result_metrics.items():
         # Loop through each key in the inner dictionary
         for key, value in values.items():
+            if np.isscalar(value):
+                new_key = f"{metric}_{key}"
+                flattened[new_key] = float(value)
+                print(f"{new_key}: {value}")
+                continue
             # Create a new key by combining the metric and the original key
-            new_key = f"{metric}_{key}"
-            # Add this to the flattened dictionary
+            for idx, alpha in enumerate(alphas):
+                
+                new_key = f"{metric}_{key}_alpha_{alpha}"
+                # Add this to the flattened dictionary
 
-            flattened[new_key] = value
-            print(f"{new_key}: {value}")
+                flattened[new_key] = float(value[idx])
+                print(f"{new_key}: {value}")
     return flattened
 

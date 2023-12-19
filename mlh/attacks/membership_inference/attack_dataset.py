@@ -1,3 +1,7 @@
+import sys
+sys.path.append('..')
+sys.path.append('../..')
+sys.path.append('../../..')
 from scipy.stats import kurtosis, skew
 import torch
 import torch.nn as nn
@@ -5,7 +9,7 @@ import torch.nn.functional as F
 from torch.utils.data.dataset import Dataset
 from tqdm import tqdm
 import numpy as np
-from attack_utils import phi_stable_batch_epsilon, m_entr_comp
+from attacks.membership_inference.attack_utils import phi_stable_batch_epsilon, m_entr_comp
 
 
 def compute_norm_metrics(gradient):
@@ -137,14 +141,16 @@ class ModelParser:
         correctness_list = []
         phi_stable_list = []
         modified_entropy_list = []
+        #print("calculate metrics!")
         with torch.no_grad():
+            #breakpoint()
             for inputs, targets in dataloader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)
                 posteriors = F.softmax(outputs, dim=1).cpu().numpy()
 
                 loss = self.criterion(outputs, targets).cpu().numpy()
-                losses_list.append(loss)
+                losses_list.extend(loss)
 
                 entropy = -np.sum(posteriors * np.log(posteriors + 1e-10), axis=1)
                 entropies_list.extend(entropy)
@@ -165,14 +171,21 @@ class ModelParser:
                 posteriors_list.extend(posteriors)
 
         # Convert lists to NumPy arrays
+
+        
         self.targets = np.array(target_list)
-        self.posteriors = np.array(posteriors_list)
+        self.posteriors = posteriors_list
         self.losses = np.array(losses_list)
         self.entropies = np.array(entropies_list)
         self.confidences = np.array(confidences_list)
-        self.correctness = np.array(correctness_list)
+        self.correctness = np.array(correctness_list).astype(int)
         self.phi_stable = np.array(phi_stable_list)
         self.modified_entropy = np.array(modified_entropy_list)
+        # print(type(self.losses))
+        # print(self.losses)
+        
+        
+        
         return {
             "targets": self.targets,
             "posteriors": self.posteriors,

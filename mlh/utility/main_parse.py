@@ -60,10 +60,17 @@ def add_argument_parameter(parser):
 
     parser.add_argument('--save_attack_path', type=str, default=None, help = 'path to save attack result')
 
-    parser.add_argument('--fpr_tolerance_rate_list', metavar='F', type=float, nargs='*', default=[],
+    parser.add_argument('--fpr_tolerance_rate_list', metavar='F', type=float, nargs='*', default=[0.05,0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
                         help='an optional list of fpr tolerance rate')
 
+    parser.add_argument('--metrics', metavar='F', type=str, nargs='*', default=["losses","entropies","confidences","phi_stable","modified_entropies","correctness"],
+                        help='an optional list of fpr tolerance rate')
+    
     parser.add_argument('--threshold_function', type=str, default='linear_itp_threshold_func',help='threshold_func, linear_itp_threshold_func, logit_rescale_threshold_func, gaussian_threshold_func, min_linear_logit_threshold_func')
+
+    
+    parser.add_argument('--inference_type', type=str, default=None, help = 'path to save attack result')
+
 def save_namespace_to_yaml(namespace, output_path):
     """
     Save a Namespace object to a YAML file.
