@@ -164,7 +164,7 @@ def gaussian_threshold_func(
         loc = parameters[:, 0].reshape(-1, 1).repeat(num_threshold, 1)
         scale = parameters[:, 1].reshape(-1, 1).repeat(num_threshold, 1)
         alpha = np.array(alpha).reshape(-1, 1).repeat(num_points, 1)
-        threshold = norm.ppf(1 - np.array(alpha), loc=loc.T, scale=scale.T)
+        threshold = norm.ppf(np.array(alpha), loc=loc.T, scale=scale.T)
     else:
         loc, scale = norm.fit(distribution)
         threshold = norm.ppf(alpha, loc=loc, scale=scale)
