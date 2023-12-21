@@ -49,6 +49,7 @@ def linear_itp_threshold_func(
     """
 
     if len(distribution.shape) > 1:
+        
         # for reference attacks
         # The line of code `threshold = np.quantile(distribution, q=alpha[1:-1], method="linear",
         # axis=1, **kwargs)` is calculating the quantiles of the distribution along the specified axis
@@ -56,24 +57,47 @@ def linear_itp_threshold_func(
         threshold = np.quantile(
             distribution, q=alpha[1:-1], method="linear", axis=1, **kwargs
         )
-        threshold = np.concatenate(
-            [
-                threshold,
-                np.repeat(distribution.max() + 1e-4, distribution.shape[0]).reshape(
-                    1, -1
-                ),
-            ],
-            axis=0,
-        )
-        threshold = np.concatenate(
-            [
-                np.repeat(distribution.min() - 1e-4, distribution.shape[0]).reshape(
-                    1, -1
-                ),
-                threshold,
-            ],
-            axis=0,
-        )
+        
+        if all(a <= b for a, b in zip(alpha, alpha[1:])):  # Monotonically increasing
+            threshold = np.concatenate(
+                [
+                    threshold,
+                    np.repeat(distribution.max() + 1e-4, distribution.shape[0]).reshape(
+                        1, -1
+                    ),
+                ],
+                axis=0,
+            )
+            threshold = np.concatenate(
+                [
+                    np.repeat(distribution.min() - 1e-4, distribution.shape[0]).reshape(
+                        1, -1
+                    ),
+                    threshold,
+                ],
+                axis=0,
+            )
+        else:
+            threshold = np.concatenate(
+                [
+                    threshold,
+                    np.repeat(distribution.min() - 1e-4, distribution.shape[0]).reshape(
+                        1, -1
+                    ),
+                ],
+                axis=0,
+            )
+            threshold = np.concatenate(
+                [
+                    np.repeat(distribution.max() + 1e-4, distribution.shape[0]).reshape(
+                        1, -1
+                    ),
+                    threshold,
+                ],
+                axis=0,
+            )
+    # Calculate the max and min thresholds
+            
 
     else:
         threshold = np.quantile(distribution, q=alpha[1:-1], method="linear", **kwargs)
