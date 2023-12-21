@@ -129,8 +129,10 @@ class ReferenceMIA(MembershipInferenceAttack):
                 fpr = fp/(fp+tn)
                 tpr = tp/(fn+tp)
                 # calculate AUC fpr_tolerance_rate
+                print(metric)
+                print(fpr)
                 auc_scores = auc(fpr,tpr)
-
+                
                 result_metrics[metric] = {
                     "Accuracy": accuracy,
                     "FPR": fpr,
@@ -144,6 +146,5 @@ class ReferenceMIA(MembershipInferenceAttack):
             
             save_dict =flatten_dict(result_metrics,fpr_tolerance_rate_list,keys = ["Accuracy", "FPR", "TPR", "AUC"])
             save_dict_to_yaml(save_dict, f"{self.save_path}/reference_metrics_{threshold_function.__name__}.yaml")
-            breakpoint()
             return result_metrics
 
