@@ -22,7 +22,7 @@
 import sys
 import numpy as np
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
-
+from models.models_non_image import  Purchase,Texas
 import yaml
 from models.resnet import resnet20
 import torch.nn as nn
@@ -452,14 +452,16 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None, fintune = Fa
         else:
             model.heads.head = nn.Linear(num_ftrs, num_classes)
             
-            
+    elif name == "TexasClassifier":
+        model= Texas(num_classes = num_classes, dropout = dropout)
+    elif name == "PurchaseClassifier":
+        model= Purchase(num_classes = num_classes, dropout = dropout)
+
     else:
         raise ValueError("Model not implemented yet :P")
 
     return model
 
-
-import torch.nn as nn
 
 def get_dropout_fc_layers(model, rate = 0.5):
     last_layer =list(model.children())[-1]

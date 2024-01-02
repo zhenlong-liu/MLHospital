@@ -24,6 +24,8 @@ import torchvision.transforms as transforms
 import torch
 import numpy as np
 from io import RawIOBase
+
+from data_preprocessing.data_no_image import prepare_purchase, prepare_texas
 from data_preprocessing.dataset_preprocessing import prepare_dataset, cut_dataset, prepare_dataset_ni, \
     prepare_inference_dataset, prepare_dataset_target, prepare_dataset_inference, prepare_dataset_shadow_splits
 from torchvision import datasets
@@ -63,8 +65,12 @@ class BuildDataLoader(object):
             self.data_path = "/data/dataset/imagenet-rendition/imagenet-r/"
             dataset = torchvision.datasets.ImageFolder(root=self.data_path, transform=train_transform)
             return dataset
-        
-        if dataset in configs.SUPPORTED_IMAGE_DATASETS: # 定义了几个支持的数据集
+        if dataset.lower() == "purchase":
+            dataset = prepare_purchase(self.data_path)
+        if dataset.lower() == "texas":
+            dataset = prepare_texas(self.data_path)
+
+        if dataset in configs.SUPPORTED_IMAGE_DATASETS:
             _loader = getattr(datasets, dataset)
             if dataset != "EMNIST":
                 train_dataset = _loader(root=self.data_path,
