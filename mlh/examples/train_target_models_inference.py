@@ -1,10 +1,9 @@
 import os
 import sys
-
 sys.path.append("..")
 sys.path.append("../..")
 from utility.main_parse import add_argument_parameter
-from mlh.defenses.membership_inference.Mixup_no_inf import TrainTargetMixup
+from defenses.membership_inference.Mixup_no_inf import TrainTargetMixup
 import copy
 from defenses.membership_inference.AdvReg import TrainTargetAdvReg
 from defenses.membership_inference.DP import TrainTargetDPSGD # new

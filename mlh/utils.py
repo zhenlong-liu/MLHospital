@@ -453,9 +453,9 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None, fintune = Fa
             model.heads.head = nn.Linear(num_ftrs, num_classes)
             
     elif name == "TexasClassifier":
-        model= Texas(num_classes = num_classes, dropout = dropout)
+        model= Texas(num_classes = num_classes, droprate = dropout)
     elif name == "PurchaseClassifier":
-        model= Purchase(num_classes = num_classes, dropout = dropout)
+        model= Purchase(num_classes = num_classes, droprate = dropout)
 
     else:
         raise ValueError("Model not implemented yet :P")

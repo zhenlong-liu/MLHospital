@@ -1,11 +1,9 @@
 import os
 import sys
-from defenses.membership_inference.MixupMMDLoss import TrainTargetMixupMMDLoss
-
 sys.path.append("..")
 sys.path.append("../..")
 from utility.main_parse import add_argument_parameter
-
+from defenses.membership_inference.MixupMMDLoss import TrainTargetMixupMMDLoss
 from defenses.membership_inference.NormalRelaxLoss import TrainTargetNormalRelaxLoss
 from mlh.defenses.membership_inference.Mixup_no_inf import TrainTargetMixup
 
@@ -18,15 +16,7 @@ from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothi
 from defenses.membership_inference.MixupMMD import TrainTargetMixupMMD
 from defenses.membership_inference.PATE import TrainTargetPATE
 from defenses.membership_inference.Normal import TrainTargetNormal
-
-from defenses.membership_inference.logit_norm import TrainTargetLogitsNorm
-
-from defenses.membership_inference.logit_norm import LogitNormLoss
-
-from defenses.membership_inference.LogitClip import TrainTargetLogitClip
-
 from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
-
 from models.resnet import resnet20
 from tqdm import tqdm
 import torch

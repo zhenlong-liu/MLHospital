@@ -67,9 +67,10 @@ class BuildDataLoader(object):
             return dataset
         if dataset.lower() == "purchase":
             dataset = prepare_purchase(self.data_path)
+            return dataset
         if dataset.lower() == "texas":
             dataset = prepare_texas(self.data_path)
-
+            return dataset
         if dataset in configs.SUPPORTED_IMAGE_DATASETS:
             _loader = getattr(datasets, dataset)
             if dataset != "EMNIST":

@@ -38,7 +38,7 @@ class MetricBasedMIA(MembershipInferenceAttack):
         """
         self.loss_type = args.loss_type
         self.save_path = save_path
-        self.criterion = get_loss(loss_type="ce", device=self.device, args=self.args)
+        #self.criterion = get_loss(loss_type="ce", device=self.device, args=self.args)
         if self.attack_type == "metric-based":
             self.metric_based_attacks()
         elif self.attack_type == "white_box":

@@ -27,18 +27,19 @@ def prepare_texas(data_root):
     Y: (67330,)  num_classes=100
     '''
     ## Dataset directory
-    DATASET_PATH = os.path.join(data_root, 'Texas')
+    DATASET_PATH = os.path.join(data_root, 'texas')
     if not os.path.exists(DATASET_PATH):
         os.makedirs(DATASET_PATH)
-    DATASET_FEATURES = os.path.join(DATASET_PATH, 'texas', '100/feats')
-    DATASET_LABELS = os.path.join(DATASET_PATH, 'texas', '100/labels')
+    DATASET_FEATURES = os.path.join(DATASET_PATH, '100/feats')
+    DATASET_LABELS = os.path.join(DATASET_PATH, '100/labels')
     DATASET_NUMPY = 'data.npz'
-
+    #print(DATASET_PATH)
     if not os.path.isfile(DATASET_FEATURES):
         print('Dowloading the dataset...')
         urllib.request.urlretrieve("https://www.comp.nus.edu.sg/~reza/files/dataset_texas.tgz",
                                    os.path.join(DATASET_PATH, 'tmp.tgz'))
         print('Dataset Dowloaded')
+        #print(os.path.join(DATASET_PATH, 'tmp.tgz'))
         tar = tarfile.open(os.path.join(DATASET_PATH, 'tmp.tgz'))
         tar.extractall(path=DATASET_PATH)
 
