@@ -206,24 +206,25 @@ def get_non_image_parameter_set(method, loss_type = "ce", dataset = "cifar100", 
     }
     
     concave_exp_one_param = {
-        "alpha":[0.382,0.385,0.388] ,
+        "alpha":[0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9] ,
             #[0.39, 0.41,0.55, 0.65,0.75, 0.85, 0.9,0.95],
         
         
-        "temp":[0.05] ,
+        "temp":[0.05,0.1,0.5,1] ,
             #[0.01,0.02, 0.05, 0.1],
         #"tau": [3],
         "tau": [1],
         "gamma": [1]
     }
-    concave_qua = {
-        "alpha":[0.51,0.52,0.53,0.54,0.55,0.56,0.57,0.58,0.59], 
-            #[0.3,0.4,0.5,0.6,0.7,0.8],
-            #[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
-        "temp": [0.05],
-        "tau": [1],
-        "gamma": [1],
-    }
+    # concave_qua = {
+    #     "alpha":[[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]],
+    #         #[0.51,0.52,0.53,0.54,0.55,0.56,0.57,0.58,0.59], 
+    #         #[0.3,0.4,0.5,0.6,0.7,0.8],
+    #         #[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+    #     "temp": [0.05, 0.1,0.5,1],
+    #     "tau": [1],
+    #     "gamma": [1],
+    # }
     concave_taylor ={
         "alpha":[0.6,0.7,0.8],
             #[], 
@@ -237,7 +238,7 @@ def get_non_image_parameter_set(method, loss_type = "ce", dataset = "cifar100", 
         "alpha":[0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
             #[0.45,0.55,0.65,0.75,0.85,0.9,0.95],
             #[0.32,0.33,0.34,0.35,0.36,0.37,0.38], 
-        "temp": [0.05,0.1,0.5],
+        "temp": [0.05,0.1,0.5,1],
         "tau": [1],
         "gamma": [2],
         }
@@ -268,7 +269,7 @@ def get_non_image_parameter_set(method, loss_type = "ce", dataset = "cifar100", 
         "EarlyStopping": early_param,
         "concave_exp_one": concave_exp_one_param,
         "DPSGD" : dpsgd_param,
-        "concave_qua":concave_qua,
+        #"concave_qua":concave_qua,
         "concave_taylor":concave_taylor,
         "concave_taylor_n":concave_taylor_n,
     }
