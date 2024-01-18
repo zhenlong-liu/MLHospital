@@ -75,8 +75,8 @@ if __name__ == "__main__":
     #[("EarlyStopping", "ce")] ("RelaxLoss","ce") ()
     #loss_funtion = ["concave_exp"]
     # ["Dropout", "MixupMMD", "AdvReg", "DPSGD", "RelaxLoss"]
-    gpu0 = 6
-    gpu1 = 7
+    gpu0 = 2
+    gpu1 = 3
     
     
     """
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     #save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     
-    """
+    #"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
         for method, loss  in methods:
@@ -126,7 +126,7 @@ if __name__ == "__main__":
         
         
         concurrent.futures.wait(futures)
-    """
+    #"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1:
         
         futures = []

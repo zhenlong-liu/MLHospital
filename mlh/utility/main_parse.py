@@ -11,6 +11,7 @@ def add_argument_parameter(parser):
                         help='temperature')
     # 默认储存到save里
     parser.add_argument('--tau', type=float, default=1, help = "logitclip tau")
+    parser.add_argument('--weight_decay', type=float, default=5e-4, help = "logitclip tau")
     
     parser.add_argument('--loss_type', type=str, default="ce", help = "Loss function")
     

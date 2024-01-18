@@ -154,7 +154,8 @@ def get_imagenet_parameter_set(loss_type, dataset = "cifar100", model ="wideresn
     }
     
     concave_taylor_n ={
-        "alpha":[0.7,0.8,0.9],
+        "alpha": [0.5],
+            #[0.7,0.8,0.9],
             #[0.2,0.3,0.4,0.6],  # 
         "temp": [1], 
             #[1,0.5,0.1],

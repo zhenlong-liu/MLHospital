@@ -51,7 +51,7 @@ if __name__ == "__main__":
     'loss_type': 'ce', # concave_log  concave_exp
     'learning_rate': 0.1,
     'epochs': 300, # 100 300
-    "model": "wide_resnet50",  # resnet18 # densenet121 # wide_resnet50 resnet34
+    "model": "densenet121",  # resnet18 # densenet121 # wide_resnet50 resnet34
     'optimizer' : "sgd",
     'seed' : 0,
     "alpha" : 1,
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber", concave_qua, "concave_taylor", "concave_taylor_n"]
-    methods = [("NormalLoss", "ce"),("NormalLoss","concave_taylor_n"),("RelaxLoss","ce")]
+    methods = [("NormalLoss","concave_taylor_n")]
     #[("Dropout","ce"),("NormalLoss","taylor"),("NormalLoss","ncemae")] # 
     
     
