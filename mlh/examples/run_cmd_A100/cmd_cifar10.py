@@ -60,7 +60,8 @@ if __name__ == "__main__":
     
     
     params_copy =copy.deepcopy(params)
-    methods = [("NormalLoss","ereg"),("NormalLoss","ce_ls")]
+    methods = [("NormalLoss", "concave_exp_one"), ("NormalLoss","concave_taylor_n")]
+    #[("NormalLoss","ereg"),("NormalLoss","ce_ls")]
     #[("NormalLoss", "concave_exp_one")]
     #[("KnowledgeDistillation","ce")]
     #[("EarlyStopping", "ce")]
@@ -107,43 +108,42 @@ if __name__ == "__main__":
     ##Create a list of ThreadPoolExecutors, one for each GPU
     executors = [concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) for _ in gpu_list]
 
-    # futures = []
+    futures = []
 
 
-    # for method, loss in methods:
-    #     param_dict = get_cifar10_parameter_set(method) or get_cifar10_parameter_set(loss)
+    for method, loss in methods:
+        param_dict = get_cifar10_parameter_set(method) or get_cifar10_parameter_set(loss)
 
-    #     all_combinations = itertools.product(
-    #         param_dict["temp"], 
-    #         param_dict["alpha"], 
-    #         param_dict["gamma"], 
-    #         param_dict["tau"]
-    #     )
+        all_combinations = itertools.product(
+            param_dict["temp"], 
+            param_dict["alpha"], 
+            param_dict["gamma"], 
+            param_dict["tau"]
+        )
 
-    #     for temp, alpha, gamma, tau in all_combinations:
+        for temp, alpha, gamma, tau in all_combinations:
             
 
-    #         params.update({
-    #             'training_type': method,
-    #             'loss_type': loss,
-    #             'alpha': alpha,
-    #             'temp': temp,
-    #             'gamma': gamma,
-    #             'tau': tau,
-    #         })
-    #         gpu_index0, gpu0 = next(gpu_iter)
-    #         gpu_index1, gpu1 = next(gpu_iter)
-    #         cmd0, cmd1 = generate_cmd_hup(params,gpu0,gpu1)
-    #         #print(type(cmd))
-    #         print(cmd0)
-    #         futures.append(executors[gpu_index0].submit(run_command, cmd0))
-    #         futures.append(executors[gpu_index1].submit(run_command, cmd1))
+            params.update({
+                'training_type': method,
+                'loss_type': loss,
+                'alpha': alpha,
+                'temp': temp,
+                'gamma': gamma,
+                'tau': tau,
+            })
+            gpu_index0, gpu0 = next(gpu_iter)
+            gpu_index1, gpu1 = next(gpu_iter)
+            cmd0, cmd1 = generate_cmd_hup(params,gpu0,gpu1)
+            #print(type(cmd))
+            print(cmd0)
+            futures.append(executors[gpu_index0].submit(run_command, cmd0))
+            futures.append(executors[gpu_index1].submit(run_command, cmd1))
 
-    # concurrent.futures.wait(futures)
+    concurrent.futures.wait(futures)
     
     attack_py = "../mia_example_only_target.py" #"../mia_enhance.py"#"../mia_example_only_target.py"
     
-    #with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
         
     futures = []
     for method, loss in methods:
@@ -157,9 +157,9 @@ if __name__ == "__main__":
         )
         
         for temp, alpha, gamma, tau in all_combinations:
-            # gpu_index0, gpu0 = next(gpu_iter)
-            # gpu_index1, gpu1 = next(gpu_iter)
-            # gpu_index2, gpu2 = next(gpu_iter)
+            gpu_index0, gpu0 = next(gpu_iter)
+            gpu_index1, gpu1 = next(gpu_iter)
+            gpu_index2, gpu2 = next(gpu_iter)
             gpu_index3, gpu3 = next(gpu_iter)
             params.update({
                 'training_type': method,
@@ -175,23 +175,23 @@ if __name__ == "__main__":
                 for epoch in param_dict["stop_eps"]:
                     params["tau"] = epoch
 
-                    # cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = attack_py, store=False)
-                    # cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = attack_py)
-                    # cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = attack_py)
+                    cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = attack_py, store=False)
+                    cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = attack_py)
+                    cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = attack_py)
                     cmd6 = generate_mia_command(params, attack_type= "augmentation", gpu = gpu3,  nohup = False, mia = attack_py)
-                    # futures.append(executors[gpu_index0].submit(run_command, cmd3))
-                    # futures.append(executors[gpu_index1].submit(run_command, cmd4))
-                    # futures.append(executors[gpu_index2].submit(run_command, cmd5))
+                    futures.append(executors[gpu_index0].submit(run_command, cmd3))
+                    futures.append(executors[gpu_index1].submit(run_command, cmd4))
+                    futures.append(executors[gpu_index2].submit(run_command, cmd5))
                     futures.append(executors[gpu_index3].submit(run_command, cmd6))
             else:
                 params["epochs"] = params_copy["epochs"]
-                # cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = attack_py, store=False)
-                # cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = attack_py)
-                # cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = attack_py)
+                cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = attack_py, store=False)
+                cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = attack_py)
+                cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = attack_py)
                 cmd6 = generate_mia_command(params, attack_type= "augmentation", gpu = gpu3,  nohup = False, mia = attack_py)
-                # futures.append(executors[gpu_index0].submit(run_command, cmd3))
-                # futures.append(executors[gpu_index1].submit(run_command, cmd4))
-                # futures.append(executors[gpu_index2].submit(run_command, cmd5))
+                futures.append(executors[gpu_index0].submit(run_command, cmd3))
+                futures.append(executors[gpu_index1].submit(run_command, cmd4))
+                futures.append(executors[gpu_index2].submit(run_command, cmd5))
                 futures.append(executors[gpu_index3].submit(run_command, cmd6))
 
     concurrent.futures.wait(futures)

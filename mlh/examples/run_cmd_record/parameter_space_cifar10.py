@@ -130,8 +130,9 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "gamma": [1]
     }
     concave_exp_one_param = {
-        "alpha": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
-        "temp": [0.01,0.03, 0.05, 0.1],
+        "alpha": [0,0.05,0.95,1],
+            #[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+        "temp": [0.01,0.05,0.1],
         #"tau": [3],
         "tau": [1],
         "gamma": [1]
@@ -170,7 +171,8 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
     }
     
     concave_taylor_n ={
-        "alpha": [0.06, 0.07, 0.08,0.09,],
+        "alpha": [0,0.05,0.95,1], 
+            #[0.06, 0.07, 0.08,0.09,],
             #[0.01, 0.05,0.1,0.15],
         # 0.2,0.3,0.4,0.5,0.6,0.7,0.8
             #[0.2,0.3,0.45,0.5,0.55,0.6,0.65,0.75,0.85,0.9,0.95],
