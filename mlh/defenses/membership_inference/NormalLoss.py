@@ -46,14 +46,14 @@ class TrainTargetNormalLoss(Trainer):
         
         self.model = model.to(args.device)
         self.device = args.device
+        self.weight_decay = args.weight_decay
         self.num_classes = args.num_class
         self.epochs = args.epochs
         self.smooth_eps = smooth_eps
         self.args = args
         self.loss_type = args.loss_type
         self.learning_rate = args.learning_rate
-
-        self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, weight_decay)
+        self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, self.weight_decay)
         #self.optimizer = torch.optim.SGD( self.model.parameters(), self.learning_rate, momentum, weight_decay)
         
         self.scheduler = get_scheduler(scheduler_name = args.scheduler, optimizer =self.optimizer, t_max=self.epochs)

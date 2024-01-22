@@ -6,8 +6,8 @@ import sys
 sys.path.append("..")
 sys.path.append("../..")
 from run_cmd.generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
-from mlh.examples.run_cmd_record.parameter_space_cifar100 import get_cifar100_parameter_set
-from run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
+#from mlh.examples.run_cmd_record.parameter_space_cifar100 import get_cifar100_parameter_set
+from run_cmd_record.parameter_space_cifar10_lr import get_cifar10_parameter_set_lr
 from run_cmd_record.record import save_merged_dicts_to_yaml
 import GPUtil
 import time
@@ -54,14 +54,17 @@ if __name__ == "__main__":
     "teacher_path": "../save_adj/CIFAR10/resnet34/NormalLoss/target/ce/epochs300/seed0/1/1/1/1/resnet34.pth",
     #"weight_decay": 100*5e-4,
     }
+    origin_log_path = params["log_path"]
     
+    
+
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     
     
     
     
     params_copy =copy.deepcopy(params)
-    methods = [ ("NormalLoss","concave_taylor_n")] # ("NormalLoss", "concave_exp_one"),
+    methods = [ ("NormalLoss","concave_taylor_n"),("NormalLoss", "concave_exp_one")] # ("NormalLoss", "concave_exp_one"),
     #[("NormalLoss","ereg"),("NormalLoss","ce_ls")]
     #[("NormalLoss", "concave_exp_one")]
     #[("KnowledgeDistillation","ce")]
@@ -110,19 +113,21 @@ if __name__ == "__main__":
     executors = [concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) for _ in gpu_list]
 
     futures = []
-
+    learning_rate_list = [0.1,0.05,0.01,0.005,0.001]
+    #params["log_path"] = f"{origin_log_path}/lr{learning_rate}"
 
     for method, loss in methods:
-        param_dict = get_cifar10_parameter_set(method) or get_cifar10_parameter_set(loss)
+        param_dict = get_cifar10_parameter_set_lr(method) or get_cifar10_parameter_set_lr(loss)
 
         all_combinations = itertools.product(
             param_dict["temp"], 
             param_dict["alpha"], 
             param_dict["gamma"], 
-            param_dict["tau"]
+            param_dict["tau"],
+            learning_rate_list
         )
 
-        for temp, alpha, gamma, tau in all_combinations:
+        for temp, alpha, gamma, tau , learning_rate in  all_combinations:
             
 
             params.update({
@@ -132,7 +137,9 @@ if __name__ == "__main__":
                 'temp': temp,
                 'gamma': gamma,
                 'tau': tau,
+                "learning_rate" : learning_rate
             })
+            params["log_path"] = f"{origin_log_path}/lr{learning_rate}"
             gpu_index0, gpu0 = next(gpu_iter)
             gpu_index1, gpu1 = next(gpu_iter)
             cmd0, cmd1 = generate_cmd_hup(params,gpu0,gpu1)
@@ -148,7 +155,7 @@ if __name__ == "__main__":
         
     futures = []
     for method, loss in methods:
-        param_dict = get_cifar10_parameter_set(method) or get_cifar10_parameter_set(loss)
+        param_dict = get_cifar10_parameter_set_lr(method) or get_cifar10_parameter_set_lr(loss)
         
         all_combinations = itertools.product(
             param_dict["temp"], 
@@ -197,4 +204,4 @@ if __name__ == "__main__":
 
     concurrent.futures.wait(futures)
     
-    # python cmd_cifar10.py
+    # python cmd_cifar10_adj_lr.py

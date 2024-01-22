@@ -1,6 +1,6 @@
 
 
-def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar10", model ="resnet34"):
+def get_cifar10_parameter_set_lr(loss_type, method ="NormalLoss", dataset = "cifar10", model ="resnet34"):
     
     ce_param = {
         "alpha": [1],
@@ -166,7 +166,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "alpha": [0.5],
             #[0,0.05,0.95,1],
             #[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
-        "temp": [0.01,0.05],
+        "temp": [1],
             #[0.01,0.05,0.1],
         #"tau": [3],
         "tau": [1],
