@@ -115,7 +115,8 @@ class BuildDataLoader(object):
     def get_data_transform(self, dataset, use_transform="simple"):
         
         if dataset.lower() in ["imagenet", "imagenet_r"]:
-            transform_list = [transforms.RandomResizedCrop(224)]
+            transform_list = [transforms.Resize(256),transforms.CenterCrop(224)]
+            #transform_list = [transforms.RandomResizedCrop(224)]
             if use_transform == "simple":
                 transform_list += [transforms.RandomHorizontalFlip()]
                 print("add simple data augmentation!")
