@@ -264,7 +264,7 @@ def get_loss(loss_type, device, args, train_loader = None, num_classes = 10, red
 
 
 def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10, reduction = "mean"):
-    CIFAR100_CONFIG = {
+    CONFIG = {
         "ce": nn.CrossEntropyLoss(),
         "ce_ls": nn.CrossEntropyLoss(label_smoothing= args.temp, reduction = reduction),
         "ereg": EntropyRegularizedLoss(alpha = args.alpha, reduction = reduction),
@@ -298,10 +298,11 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "concave_exp_one": ConcaveExpOneLoss(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
         "concave_qua":ConcaveQ(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
         "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
-        "concave_taylor_n":ConcaveTaylorN(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau)
+        "concave_taylor_n":ConcaveTaylorN(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
+        "variance_penalty": VariancePenalty(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau)
     }
 
-    return CIFAR100_CONFIG[loss_type]
+    return CONFIG[loss_type]
 
 
 
@@ -1217,6 +1218,26 @@ class ConcaveTaylorN(nn.Module):
         return self.beta*loss
 
 
+class VariancePenalty(nn.Module):
+    def __init__(self, alpha = 1, beta = 1, gamma=1.0, tau =1,reduction='mean'):
+        super(VariancePenalty, self).__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+        self.beta = beta
+        self.reduction = reduction
+    def forward(self, input, target):
+        losses  = F.cross_entropy(input, target, reduction="none")
+        penalty = torch.var(losses)
+        loss = losses+self.alpha *penalty
+        if self.reduction == "none":
+            return loss
+        elif self.reduction == "mean":
+            return loss.mean()
+        elif self.reduction == "sum":
+            return loss.sum()
+        else:
+            raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+            
 
 class ConcaveLogLoss(nn.Module):
     def __init__(self, alpha = 1, beta = 1, gamma=1.0,reduction='mean'):

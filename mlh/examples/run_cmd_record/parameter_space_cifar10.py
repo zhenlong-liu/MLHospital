@@ -192,6 +192,22 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "tau": [1],
         "gamma": [1],
         }
+    
+    variance_penalty ={
+        "alpha": [1e-4,1e-3,1e-2,0.1],
+            #[0,0.05,0.95,1], 
+            #[0.06, 0.07, 0.08,0.09,],
+            #[0.01, 0.05,0.1,0.15],
+        # 0.2,0.3,0.4,0.5,0.6,0.7,0.8
+            #[0.2,0.3,0.45,0.5,0.55,0.6,0.65,0.75,0.85,0.9,0.95],
+            #[0.32,0.33,0.34,0.35,0.36,0.37,0.38], 
+        "temp": [1],
+            #[0.01,0.05,0.1],
+        "tau": [1],
+        "gamma": [2],
+        }
+        
+    
     loss_type_param_space = {
         "ce" : ce_param,
         "focal": focal_param,
@@ -217,6 +233,7 @@ def get_cifar10_parameter_set(loss_type, method ="NormalLoss", dataset = "cifar1
         "concave_qua":concave_qua,
         "concave_taylor":concave_taylor,
         "concave_taylor_n":concave_taylor_n,
+        "variance_penalty" : variance_penalty,
     }
     
     
