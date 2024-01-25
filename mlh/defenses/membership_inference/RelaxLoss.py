@@ -74,10 +74,12 @@ class TrainTargetRelaxLoss(TrainTargetNormalLoss):
 
         # torch.save(self.model.state_dict(), os.path.join(
         #     self.log_path, '%s_0.pth' % (self.model_save_name)))
-
+        
         for e in range(1, self.epochs+1):
+            self.e = e
             self.model.train()
             loss_num =0
+            losses = []
             for img, label in train_loader:
                 self.model.zero_grad()
                 img, label = img.to(self.device), label.to(self.device)
@@ -86,6 +88,8 @@ class TrainTargetRelaxLoss(TrainTargetNormalLoss):
                 # 其形状是torch.Size([128, 10])
                 loss_ce_full = self.crossentropy_noreduce(logits, label)
                 loss_ce = torch.mean(loss_ce_full)
+                
+                
                 if self.epochs %2 ==0:
                     loss = (loss_ce - self.alpha).abs()
                 else: 
@@ -103,19 +107,45 @@ class TrainTargetRelaxLoss(TrainTargetNormalLoss):
                         loss = (1 - correct) * self.crossentropy_soft(logits, soft_targets) - 1. * loss_ce_full
                         loss = torch.mean(loss)
                 loss.backward()
+                losses.append(loss.item())
                 loss_num = loss.item()
                 self.optimizer.step()
+                
+                
+                
+                if e % 10 == 0 or e<3:
+                    self.loader_type = "train_loader"
+                    train_acc = self.eval(train_loader)
+                    self.loader_type = "test_loader"
+                    test_acc = self.eval(test_loader)
+                    logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
+                        self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, np.mean(losses), time.time() - t_start))
+                    
+                self.scheduler.step()  
+                
+                
+                if e == self.epochs:
+                    log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
+                                "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}
+                    save_dict_to_yaml(log_dict,  f'{self.log_path}/train_log.yaml')
+                
+                self.sta_book.sta_epochs.to_excel( f'{self.log_path}/epochs_data.xlsx', index=False)   
+            
+            
+            
+            
+            
+            
+            # train_acc = self.eval(train_loader)
+            # test_acc = self.eval(test_loader)
 
-            train_acc = self.eval(train_loader)
-            test_acc = self.eval(test_loader)
-
-            logx.msg('Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
-                e, len(train_loader.dataset), train_acc, test_acc, loss_num, time.time() - t_start))
-            self.scheduler.step()
-            if e == self.epochs:
-                log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
-                            "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}
-                save_dict_to_yaml(log_dict, f'{self.log_path}/train_log.yaml')
+            # logx.msg('Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
+            #     e, len(train_loader.dataset), train_acc, test_acc, loss_num, time.time() - t_start))
+            # self.scheduler.step()
+            # if e == self.epochs:
+            #     log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
+            #                 "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}
+            #     save_dict_to_yaml(log_dict, f'{self.log_path}/train_log.yaml')
 
             
  

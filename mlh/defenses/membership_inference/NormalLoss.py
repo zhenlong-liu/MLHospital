@@ -5,7 +5,6 @@ import time
 import sys
 sys.path.append("..")
 sys.path.append("../..")
-
 # class LabelSmoothingLoss(torch.nn.Module):
 from runx.logx import logx
 import torch.nn.functional as F
@@ -17,6 +16,7 @@ torch.backends.cudnn.benchmark = False
 from tqdm import tqdm
 from utils import get_optimizer, get_scheduler, get_init_args, dict_str
 from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
+from utility.metrics import Metrics, StaMetrics
 #     """
 #     copy from:
 #     https://github.com/pytorch/pytorch/issues/7455
@@ -55,7 +55,7 @@ class TrainTargetNormalLoss(Trainer):
         self.learning_rate = args.learning_rate
         self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, self.weight_decay)
         #self.optimizer = torch.optim.SGD( self.model.parameters(), self.learning_rate, momentum, weight_decay)
-        
+        self.sta_book = StaMetrics()
         self.scheduler = get_scheduler(scheduler_name = args.scheduler, optimizer =self.optimizer, t_max=self.epochs)
         #self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
         self.criterion = self.initialize_criterion()
@@ -107,25 +107,56 @@ class TrainTargetNormalLoss(Trainer):
         print("Sampled weight decay:", weight_decay)
         return weight_decay
 
-    def eval(self, data_loader):
-
+    def eval(self, data_loader, record_py = False):
         correct = 0
         total = 0
         self.model.eval()
+        #losses = torch.nn.functional.cross_entropy(logits, label, reduction='none')
+        self.sta_book._metrics_list =[]
+        
         with torch.no_grad():
 
             for img, label in data_loader:
                 img, label = img.to(self.device), label.to(self.device)
                 logits = self.model.eval().forward(img)
-
+                metrics = Metrics(labels = label, logits = logits)
+                self.sta_book.add_metrics(metrics.metrics)
                 predicted = torch.argmax(logits, dim=1)
                 total += label.size(0)
                 correct += (predicted == label).sum().item()
 
             final_acc = 100 * correct / total
-
+            self.sta_book.add_total_variance(self.e, self.loader_type)
         return final_acc
 
+    def eval_epochs(self, data_loader, record_py = False):
+
+        correct = 0
+        total = 0
+        self.model.eval()
+        #losses = torch.nn.functional.cross_entropy(logits, label, reduction='none')
+        self.sta_book._metrics_list =[]
+        
+        with torch.no_grad():
+
+            for img, label in data_loader:
+                img, label = img.to(self.device), label.to(self.device)
+                logits = self.model.eval().forward(img)
+                metrics = Metrics(labels = label, logits = logits)
+                self.sta_book.add_metrics(metrics)
+                predicted = torch.argmax(logits, dim=1)
+                total += label.size(0)
+                correct += (predicted == label).sum().item()
+
+            final_acc = 100 * correct / total
+            self.sta_book.add_total_variance(self.e)
+        return final_acc
+
+    
+    
+    
+    
+    
     def train(self, train_loader, test_loader):
 
         best_accuracy = 0
@@ -142,7 +173,7 @@ class TrainTargetNormalLoss(Trainer):
             batch_n = 0
             self.model.train()
             loss_num =0
-            
+            self.e =e
             for img, label in tqdm(train_loader):
                 self.model.zero_grad()
                 batch_n += 1
@@ -163,8 +194,12 @@ class TrainTargetNormalLoss(Trainer):
                 self.scheduler.step()
                 continue
             """
+            
+        
             if e % 10 == 0 or e<3:
+                self.loader_type = "train_loader"
                 train_acc = self.eval(train_loader)
+                self.loader_type = "test_loader"
                 test_acc = self.eval(test_loader)
                 logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
                     self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, np.mean(losses), time.time() - t_start))
@@ -176,3 +211,5 @@ class TrainTargetNormalLoss(Trainer):
                 log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
                             "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}
                 save_dict_to_yaml(log_dict,  f'{self.log_path}/train_log.yaml')
+            
+            self.sta_book.sta_epochs.to_excel( f'{self.log_path}/epochs_data.xlsx', index=False)   
