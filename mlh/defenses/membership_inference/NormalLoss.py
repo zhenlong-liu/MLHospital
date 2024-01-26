@@ -195,7 +195,7 @@ class TrainTargetNormalLoss(Trainer):
                 continue
             """
             
-        
+            
             if e % 10 == 0 or e<3:
                 self.loader_type = "train_loader"
                 train_acc = self.eval(train_loader)

@@ -113,23 +113,23 @@ class TrainTargetRelaxLoss(TrainTargetNormalLoss):
                 
                 
                 
-                if e % 10 == 0 or e<3:
-                    self.loader_type = "train_loader"
-                    train_acc = self.eval(train_loader)
-                    self.loader_type = "test_loader"
-                    test_acc = self.eval(test_loader)
-                    logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
-                        self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, np.mean(losses), time.time() - t_start))
-                    
-                self.scheduler.step()  
+            if e % 10 == 0 or e<3:
+                self.loader_type = "train_loader"
+                train_acc = self.eval(train_loader)
+                self.loader_type = "test_loader"
+                test_acc = self.eval(test_loader)
+                logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
+                    self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, np.mean(losses), time.time() - t_start))
                 
-                
-                if e == self.epochs:
-                    log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
-                                "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}
-                    save_dict_to_yaml(log_dict,  f'{self.log_path}/train_log.yaml')
-                
-                self.sta_book.sta_epochs.to_excel( f'{self.log_path}/epochs_data.xlsx', index=False)   
+            self.scheduler.step()  
+            
+            
+            if e == self.epochs:
+                log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
+                            "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}
+                save_dict_to_yaml(log_dict,  f'{self.log_path}/train_log.yaml')
+            
+            self.sta_book.sta_epochs.to_excel( f'{self.log_path}/epochs_data.xlsx', index=False)   
             
             
             
