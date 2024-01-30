@@ -168,8 +168,9 @@ class TrainTargetNormalLoss(Trainer):
         
         # torch.save(self.model.state_dict(), os.path.join(
         #     self.log_path, '%s_0.pth' % (self.model_save_name)))
-        losses = []
+        
         for e in range(1, self.epochs+1):
+            losses = []
             batch_n = 0
             self.model.train()
             loss_num =0
@@ -196,14 +197,14 @@ class TrainTargetNormalLoss(Trainer):
             """
             
             
-            if e % 10 == 0 or e<3:
-                self.loader_type = "train_loader"
-                train_acc = self.eval(train_loader)
-                self.loader_type = "test_loader"
-                test_acc = self.eval(test_loader)
-                logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
-                    self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, np.mean(losses), time.time() - t_start))
-            
+            #if e % 10 == 0 or e<3:
+            self.loader_type = "train_loader"
+            train_acc = self.eval(train_loader)
+            self.loader_type = "test_loader"
+            test_acc = self.eval(test_loader)
+            logx.msg('Loss Type: %s, Train Epoch: %d, Total Sample: %d, Train Acc: %.3f, Test Acc: %.3f, Loss: %.3f, Total Time: %.3fs' % (
+                self.args.loss_type, e, len(train_loader.dataset), train_acc, test_acc, np.mean(losses), time.time() - t_start))
+        
             self.scheduler.step()
             
             

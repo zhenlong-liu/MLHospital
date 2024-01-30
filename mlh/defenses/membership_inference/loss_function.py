@@ -268,7 +268,7 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "ce": nn.CrossEntropyLoss(),
         "ce_ls": nn.CrossEntropyLoss(label_smoothing= args.temp, reduction = reduction),
         "ereg": EntropyRegularizedLoss(alpha = args.alpha, reduction = reduction),
-        "focal": FocalLoss(gamma=args.gamma,reduction = reduction),
+        "focal": FocalLoss(gamma=args.gamma,beta=args.temp ,reduction = reduction),
         "mae": MAELoss(num_classes=num_classes),
         "gce": GCE(device, alpha = args.alpha, q=args.temp, k=num_classes),
         "sce": SCE(alpha=args.alpha, beta=args.temp, num_classes=num_classes),
@@ -299,7 +299,8 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "concave_qua":ConcaveQ(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
         "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
         "concave_taylor_n":ConcaveTaylorN(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
-        "variance_penalty": VariancePenalty(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau)
+        "variance_penalty": VariancePenalty(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
+        "focal_exp":FocalExp(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau)
     }
 
     return CONFIG[loss_type]
@@ -963,13 +964,14 @@ def focal_loss(input_values, gamma, reduction="mean"):
         raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
     
 class FocalLoss(nn.Module):
-    def __init__(self, gamma=0.,reduction='mean'):
+    def __init__(self, gamma=0., beta = 1,reduction='mean'):
         super(FocalLoss, self).__init__()
         assert gamma >= 0
         self.gamma = gamma
+        self.beta = beta
         self.reduction = reduction
     def forward(self, input, target):
-        return focal_loss(F.cross_entropy(input, target, reduction="none"), self.gamma, reduction = self.reduction)
+        return self.beta *focal_loss(F.cross_entropy(input, target, reduction="none"), self.gamma, reduction = self.reduction)
 
 class PHuberCE(nn.Module):
     def __init__(self, tau=10):
@@ -1130,6 +1132,22 @@ def ce_concave_exp_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
         raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
     
 
+def concave_exp_loss(input_values, gamma =1, reduction="mean"):
+    """Computes the focal loss"""
+    p = torch.exp(-input_values)
+    
+    loss = torch.exp(gamma*p)
+
+    if reduction == "none":
+        return loss
+    elif reduction == "mean":
+        return loss.mean()
+    elif reduction == "sum":
+        return loss.sum()
+    else:
+        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+
+
     
     
 class ConcaveExpLoss(nn.Module):
@@ -1210,11 +1228,7 @@ class ConcaveTaylorN(nn.Module):
         self.beta = beta
         self.reduction = reduction
     def forward(self, input, target):
-        
-        
         loss = taylor_exp(F.cross_entropy(input, target, reduction="none"),self.alpha, self.beta, self.gamma) 
-        
-        
         return self.beta*loss
 
 
@@ -1238,6 +1252,33 @@ class VariancePenalty(nn.Module):
         else:
             raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
             
+class FocalExp(nn.Module):
+    def __init__(self, alpha = 1, beta = 1, gamma=1.0, tau =1,reduction='mean'):
+        super(FocalExp, self).__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+        self.beta = beta
+        self.tau =tau
+        self.reduction = reduction
+    def forward(self, input, target):
+        ce = F.cross_entropy(input, target, reduction="none")
+        losses = focal_loss(ce, gamma = self.tau, reduction="none")
+        
+        cel = concave_exp_loss(ce,reduction="none")
+
+        loss = self.alpha * losses + (1-self.alpha)*cel
+        if self.reduction == "none":
+            return loss
+        elif self.reduction == "mean":
+            return loss.mean()
+        elif self.reduction == "sum":
+            return loss.sum()
+        else:
+            raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+
+
+
+
 
 class ConcaveLogLoss(nn.Module):
     def __init__(self, alpha = 1, beta = 1, gamma=1.0,reduction='mean'):
