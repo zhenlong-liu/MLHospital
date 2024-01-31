@@ -156,6 +156,8 @@ class MetricBasedMIA(MembershipInferenceAttack):
             plot_phi_distribution_together(self.phi_target_train, self.phi_target_test, self.save_path)
             plot_phi_distribution_together(self.phi_shadow_train, self.phi_shadow_test, self.save_path,
                                            "phi_distribution_shadow_comparison")
+            
+            #plot_celoss_distribution_together()
         # mia_dict # phi_distribution_shadow_comparison
 
     def print_result(self, name, given_tuple):

@@ -34,6 +34,7 @@ import torch, gc
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import argparse
+from torch.utils.data import DataLoader, Dataset
 #from transformers import AdamW
 sys.path.append("..")
 sys.path.append("../..")
@@ -207,21 +208,20 @@ def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t
 class DummyScheduler:
     def step(self):
         pass
-def compute_losses(loader, net,device):
-    """Auxiliary function to compute per-sample losses"""
+def phi_stable_batch_epsilon( probs, labels, epsilon=1e-10):
+    posterior_probs = probs + epsilon
 
-    criterion = nn.CrossEntropyLoss(reduction="none")
-    all_losses = []
-    net.eval()
-    with torch.no_grad():
-        for inputs, targets in loader:
-            inputs, targets = inputs.to(device), targets.to(device)
+    one_hot_labels = torch.zeros_like(posterior_probs)
+    one_hot_labels[torch.arange(labels.size(0)),labels] = 1
 
-            logits = net(inputs)
-            losses = criterion(logits, targets).numpy(force=True)
-            all_losses.extend(iter(losses))
-    return np.array(all_losses)
+    log_likelihood_correct = torch.log(posterior_probs[torch.arange(labels.size(0)), labels])
+    sum_incorrect = torch.sum(posterior_probs * (1 - one_hot_labels), dim=1)
+    sum_incorrect = torch.clamp(sum_incorrect, min=epsilon)
 
+    log_likelihood_incorrect = torch.log(sum_incorrect)
+    phi_stable = log_likelihood_correct - log_likelihood_incorrect
+
+    return phi_stable
 def cross_entropy(prob, label):
     # 避免概率值为0，加上一个很小的值进行平滑处理
     epsilon = 1e-12
@@ -234,6 +234,79 @@ def cross_entropy(prob, label):
     one_hot_label[np.arange(len(label)), label] = 1
 
     return -np.sum(one_hot_label * np.log(prob), axis=1)
+
+def compute_cross_entropy_losses(data, model, device, batch_size=512):
+    """
+    Compute cross-entropy losses for each sample in a given dataset or dataloader.
+
+    :param data: PyTorch Dataset or DataLoader containing the data.
+    :param model: PyTorch model for making predictions.
+    :param batch_size: Batch size to use for the DataLoader if data is a Dataset.
+    :return: A list of losses, one for each sample.
+    """
+    model.to(device)
+    # Ensure the model is in evaluation mode
+    model.eval()
+    # Check if data is already a DataLoader
+    if isinstance(data, DataLoader):
+        dataloader = data
+    elif isinstance(data, Dataset):
+        # Create DataLoader for loading the data
+        dataloader = DataLoader(data, batch_size=batch_size)
+    else:
+        raise TypeError("data must be a PyTorch Dataset or DataLoader object")
+    # List to store loss for each sample
+    losses = []
+    with torch.no_grad():  # Disable gradient computation for efficiency
+        for inputs, targets in dataloader:
+            # Compute the model output
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = model(inputs)
+
+            # Compute cross-entropy loss
+            loss = F.cross_entropy(outputs, targets, reduction='none')
+            losses.extend(loss.tolist())
+
+    return losses
+
+
+def compute_phi_stable(data, model, device, batch_size=512):
+    """
+    Compute cross-entropy losses for each sample in a given dataset or dataloader.
+
+    :param data: PyTorch Dataset or DataLoader containing the data.
+    :param model: PyTorch model for making predictions.
+    :param batch_size: Batch size to use for the DataLoader if data is a Dataset.
+    :return: A list of losses, one for each sample.
+    """
+    model.to(device)
+    # Ensure the model is in evaluation mode
+    model.eval()
+    # Check if data is already a DataLoader
+    if isinstance(data, DataLoader):
+        dataloader = data
+    elif isinstance(data, Dataset):
+        # Create DataLoader for loading the data
+        dataloader = DataLoader(data, batch_size=batch_size)
+    else:
+        raise TypeError("data must be a PyTorch Dataset or DataLoader object")
+    # List to store loss for each sample
+    phi_stables = []
+    with torch.no_grad():  # Disable gradient computation for efficiency
+        for inputs, targets in dataloader:
+            # Compute the model output
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = model(inputs)
+            probs = F.softmax(outputs)
+            phi_stable = phi_stable_batch_epsilon(probs,targets )
+            # Compute cross-entropy loss
+
+            phi_stables.extend(phi_stable.tolist()) 
+    return phi_stables
+
+
+
+
 
 
 
@@ -329,8 +402,8 @@ def plot_celoss_distribution_together(target_train_loader, target_test_loader, t
     #target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
     
     
-    train_loss = compute_losses(target_train_loader, target_model, device)
-    test_loss = compute_losses(target_test_loader, target_model, device)
+    train_loss = compute_cross_entropy_losses(target_train_loader, target_model, device)
+    test_loss = compute_cross_entropy_losses(target_test_loader, target_model, device)
     train_mean = np.mean(train_loss)
     train_variance = np.var(train_loss)
     test_mean = np.mean(test_loss)
@@ -340,8 +413,6 @@ def plot_celoss_distribution_together(target_train_loader, target_test_loader, t
             "loss_test_mean": test_mean, "loss_test_variance" :test_variance}
     
     store_dict_to_yaml(dict_sta, save_path,"loss_distribution.yaml")
-    
-    
     print(f'Loss: train_mean:{train_mean: .8f} train_variance:{train_variance: .8f} test_mean:{test_mean: .8f} test_variance:{test_variance: .8f}')
     # Plot the distribution of entropies
 

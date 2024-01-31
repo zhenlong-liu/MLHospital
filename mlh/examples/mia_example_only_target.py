@@ -11,7 +11,7 @@ from mlh.attacks.membership_inference.label_only_attack import LabelOnlyMIA
 from mlh.attacks.membership_inference.metric_based_attack import MetricBasedMIA
 import torch
 from data_preprocessing.data_loader_target import BuildDataLoader
-from utils import get_target_model, generate_save_path
+from utils import get_target_model, generate_save_path, plot_celoss_distribution_together
 import argparse
 import numpy as np
 import os
@@ -162,6 +162,9 @@ if __name__ == "__main__":
         target_model.load_state_dict(torch.load(load_path_target, map_location=args.device))
         shadow_model.load_state_dict(torch.load(load_path_shadow, map_location=args.device))
     
+    if args.plot_distribution:
+        plot_celoss_distribution_together(target_train,target_test,target_model,save_path=save_path,device= args.device) 
+        exit()
 
     target_model = target_model.to(args.device)
     target_model.eval()

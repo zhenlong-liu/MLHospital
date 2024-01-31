@@ -22,7 +22,7 @@ def update_dict1_from_dict2(dict1, dict2):
             dict1[key] = dict2[key]
 
 if __name__ == "__main__":
-    
+  
     params = {
     'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
     "dataset": "CIFAR10",
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     gpu0 = 0
     gpu1 = 1
     gpu2 = 0
-    root_dir = '../save_adj/CIFAR10/resnet34/DPSGD'
+    root_dir = '../save_adj/CIFAR10/resnet34/NormalLoss/target/concave_taylor_n/epochs300/seed0/0.05' 
     #'../save_adj/CIFAR100/densenet121'
     #'../save_adj/CIFAR100/densenet121/MixupMMD/target/ce/epochs300/'
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor2:
@@ -117,31 +117,31 @@ if __name__ == "__main__":
                         
                         """
                         
-                        
-                        if not os.path.exists(mia_yaml):
-                            #print(data_train_log["Train Acc"])
-                            #print(cmd3)
-                            #exit()
-                            futures.append(executor1.submit(run_command, cmd3))
-                        if not os.path.exists(mia_bb_yaml):
-                            #print(cmd4)
-                            #exit()
-                            futures.append(executor2.submit(run_command, cmd4))
+                        futures.append(executor1.submit(run_command, cmd3))
+                        # if not os.path.exists(mia_yaml):
+                        #     #print(data_train_log["Train Acc"])
+                        #     #print(cmd3)
+                        #     #exit()
+                        #     futures.append(executor1.submit(run_command, cmd3))
+                        # if not os.path.exists(mia_bb_yaml):
+                        #     #print(cmd4)
+                        #     #exit()
+                        #     futures.append(executor2.submit(run_command, cmd4))
                             
                         
-                        if not os.path.exists(mia_wb_yaml):
+                        # if not os.path.exists(mia_wb_yaml):
                             
-                            #print(cmd5)
-                            #exit()
-                            futures.append(executor1.submit(run_command, cmd5))
-                        else:
-                            with open(mia_wb_yaml, 'r') as f:
-                                mia_wb_log = yaml.safe_load(f)
-                                #print(mia_wb_log)
-                            if "grid_w_l2_test_acc" not in mia_wb_log.keys():
-                                #print(cmd5)
+                        #     #print(cmd5)
+                        #     #exit()
+                        #     futures.append(executor1.submit(run_command, cmd5))
+                        # else:
+                        #     with open(mia_wb_yaml, 'r') as f:
+                        #         mia_wb_log = yaml.safe_load(f)
+                        #         #print(mia_wb_log)
+                        #     if "grid_w_l2_test_acc" not in mia_wb_log.keys():
+                        #         #print(cmd5)
                                 
-                                futures.append(executor1.submit(run_command, cmd5))
+                        #         futures.append(executor1.submit(run_command, cmd5))
                         
                         
                         
