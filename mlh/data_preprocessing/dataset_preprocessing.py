@@ -121,7 +121,6 @@ def prepare_dataset_inference(dataset, select_num=None):
     length = len(dataset)
     each_length = length//5
     # if we specify a number, we use the number to split data
-    torch.manual_seed(0)
     if select_num is None:
         target_train, target_test,inference, shadow_train, shadow_test, _ = torch.utils.data.random_split(
             dataset, [each_length, each_length, each_length, each_length, each_length, len(dataset)-(each_length*5)])

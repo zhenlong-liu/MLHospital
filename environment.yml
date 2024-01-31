@@ -1,4 +1,4 @@
-name: mlh
+name: mlh2
 channels:
   - pytorch
   - nvidia
@@ -199,3 +199,5 @@ dependencies:
     - openpyxl
     - seaborn==0.13.0
     - openpyxl==3.1.2
+    - ruamel.yaml==0.18.5
+    - GPUtil==1.4.0
