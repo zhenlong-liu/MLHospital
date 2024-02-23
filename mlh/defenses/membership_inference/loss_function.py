@@ -300,7 +300,8 @@ def get_loss_adj(loss_type, device, args, train_loader = None, num_classes = 10,
         "concave_taylor":ConcaveTaylor(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
         "concave_taylor_n":ConcaveTaylorN(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
         "variance_penalty": VariancePenalty(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
-        "focal_exp":FocalExp(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau)
+        "focal_exp":FocalExp(alpha = args.alpha, beta = args.temp, gamma = args.gamma, tau = args.tau),
+        "csce":CustomSoftmaxCrossEntropyLoss(C = args.alpha,reduction = reduction),
     }
 
     return CONFIG[loss_type]
@@ -838,16 +839,47 @@ class LogitClipLoss(nn.Module):
         self.min = -threshold
         self.max = threshold
         self.reduction = reduction
-
     def forward(self, x, target):
         x = torch.clamp(x, self.min, self.max)
-
         if self.reduction == 'mean':
             return F.cross_entropy(x, target, reduction='mean')
         elif self.reduction == 'sum':
             return F.cross_entropy(x, target, reduction='sum')
         elif self.reduction == 'none':
             return F.cross_entropy(x, target, reduction='none')
+        else:
+            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
+class CustomSoftmaxCrossEntropyLoss(nn.Module):
+    def __init__(self, C=1.0, reduction='mean'):
+        """
+        Custom loss function with an added constant in the softmax denominator.
+        Parameters:
+        - C: Constant to add in the softmax denominator.
+        """
+        super(CustomSoftmaxCrossEntropyLoss, self).__init__()
+        self.C = C
+        self.reduction = reduction
+    def forward(self, logits, targets):
+        """
+        Forward pass for the loss function.
+        Parameters:
+        - logits: Tensor of model logits (size: [batch_size, num_classes]).
+        - targets: Tensor of target class indices (size: [batch_size]).
+        Returns:
+        - loss: Computed loss value.
+        """
+        # Manually compute the modified softmax
+        exp_logits = torch.exp(logits)
+        modified_softmax = exp_logits / (exp_logits.sum(dim=1, keepdim=True) + self.C)
+        # Compute log of modified softmax
+        log_probs = modified_softmax.log()
+        # Compute the negative log likelihood loss
+        if self.reduction == 'mean':
+            return F.nll_loss(log_probs, targets, reduction='mean')
+        elif self.reduction == 'sum':
+            return F.nll_loss(log_probs, targets, reduction='sum')
+        elif self.reduction == 'none':
+            return F.nll_loss(log_probs, targets, reduction='none')
         else:
             raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
 
