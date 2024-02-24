@@ -4,11 +4,8 @@ import concurrent.futures
 import sys
 sys.path.append("..")
 sys.path.append("../..")
-from generate_cmd import generate_cmd, generate_cmd_hup, generate_mia_command
+from generate_cmd import generate_cmd_hup, generate_mia_command
 from mlh.examples.run_cmd_record.parameter_space_cifar100 import get_cifar100_parameter_set
-from run_cmd_record.parameter_space_cifar10 import get_cifar10_parameter_set
-
-from run_cmd_record.record import save_merged_dicts_to_yaml
 import GPUtil
 import time
 def check_gpu_memory():
@@ -20,7 +17,6 @@ def check_gpu_memory():
         if len(valid_gpus) >= 2:
             return valid_gpus[:2]
         return None
-
 
 def run_command(cmd):
     os.system(cmd)
@@ -55,7 +51,7 @@ if __name__ == "__main__":
     os.environ['MKL_THREADING_LAYER'] = 'GNU' 
     #"RelaxLoss"
     #["concave_log","mixup_py","concave_exp","focal","ereg","ce_ls","flood","phuber", concave_qua, "concave_taylor", "concave_taylor_n"]
-    methods = [("NormalLoss", "ce")]
+    methods = [("NormalLoss", "csce")]
                #("NormalLoss","concave_taylor_n"),("RelaxLoss","ce")]
     #[("Dropout","ce"),("NormalLoss","taylor"),("NormalLoss","ncemae")] # 
     
@@ -84,7 +80,6 @@ if __name__ == "__main__":
     
     
     """
-    
     end_time = time.time() + 24*60*60  # 24 hours from now
     found_gpus = False
     while time.time() < end_time:
@@ -94,7 +89,6 @@ if __name__ == "__main__":
             found_gpus = True
             break
         time.sleep(10*60)  # Wait for 10 minutes
-
     if not found_gpus:
         print("Did not find suitable GPUs within 24 hours. Exiting the program.")
         exit()
@@ -105,7 +99,7 @@ if __name__ == "__main__":
     #save_merged_dicts_to_yaml(params, methods, "./4090_record", dataset= params.get("dataset"))
     
     #print(111)
-    """
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor2:
         futures = []
         for method, loss  in methods:
@@ -132,9 +126,8 @@ if __name__ == "__main__":
         
         
         concurrent.futures.wait(futures)
-    """
-    
-    #exit()
+
+
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor1:
         
