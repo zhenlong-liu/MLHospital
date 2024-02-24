@@ -851,37 +851,22 @@ class LogitClipLoss(nn.Module):
             raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
 class CustomSoftmaxCrossEntropyLoss(nn.Module):
     def __init__(self, C=1.0, reduction='mean'):
-        """
-        Custom loss function with an added constant in the softmax denominator.
-        Parameters:
-        - C: Constant to add in the softmax denominator.
-        """
         super(CustomSoftmaxCrossEntropyLoss, self).__init__()
         self.C = C
         self.reduction = reduction
+    
     def forward(self, logits, targets):
-        """
-        Forward pass for the loss function.
-        Parameters:
-        - logits: Tensor of model logits (size: [batch_size, num_classes]).
-        - targets: Tensor of target class indices (size: [batch_size]).
-        Returns:
-        - loss: Computed loss value.
-        """
-        # Manually compute the modified softmax
-        exp_logits = torch.exp(logits)
-        modified_softmax = exp_logits / (exp_logits.sum(dim=1, keepdim=True) + self.C)
-        # Compute log of modified softmax
-        log_probs = modified_softmax.log()
+        # Adjust logits to improve numerical stability
+        max_logits = logits.max(dim=1, keepdim=True)[0]
+        stabilized_logits = logits - max_logits
+        
+        # Manually compute the modified softmax with C added to the denominator
+        exp_logits = torch.exp(stabilized_logits)
+        modified_softmax_denominator = exp_logits.sum(dim=1, keepdim=True) + torch.exp(torch.tensor(self.C) - max_logits)
+        log_probs = stabilized_logits - modified_softmax_denominator.log()
+        
         # Compute the negative log likelihood loss
-        if self.reduction == 'mean':
-            return F.nll_loss(log_probs, targets, reduction='mean')
-        elif self.reduction == 'sum':
-            return F.nll_loss(log_probs, targets, reduction='sum')
-        elif self.reduction == 'none':
-            return F.nll_loss(log_probs, targets, reduction='none')
-        else:
-            raise ValueError("Invalid reduction option. Use 'mean', 'sum', or 'none'.")
+        return F.nll_loss(log_probs, targets, reduction=self.reduction)
 
 
 class LogitClip(nn.Module):
