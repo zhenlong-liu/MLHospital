@@ -6,8 +6,7 @@ from utility.main_parse import add_argument_parameter
 from defenses.membership_inference.Mixup_no_inf import TrainTargetMixup
 import copy
 from defenses.membership_inference.AdvReg import TrainTargetAdvReg
-from defenses.membership_inference.DP import TrainTargetDPSGD # new
-from defenses.membership_inference.LabelSmoothing import TrainTargetLabelSmoothing
+from defenses.membership_inference.DP import TrainTargetDPSGD
 from defenses.membership_inference.MixupMMDLoss import TrainTargetMixupMMDLoss
 from defenses.membership_inference.PATE import TrainTargetPATE
 from defenses.membership_inference.Normal import TrainTargetNormal
@@ -64,7 +63,6 @@ def parse_args():
     args = parser.parse_args()
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
     args.device = 'cuda:%d' % args.gpu if torch.cuda.is_available() else 'cpu'
-
     return args
 
 def load_teacher_model(model,teacher_path ,device):
@@ -112,8 +110,9 @@ if __name__ == "__main__":
     torch.cuda.manual_seed_all(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     s = BuildDataLoader(opt)
-    #split_num = [0.25,0,0.25,0.25,0,0.25]
-    
+
+
+
     
     if opt.inference:  
         target_train_loader, target_test_loader, inference_loader,shadow_train_loader, shadow_test_loader  = s.get_data_supervised_inference(batch_size =opt.batch_size, num_workers =opt.num_workers)
@@ -181,15 +180,7 @@ if __name__ == "__main__":
         
         total_evaluator.train(train_loader, test_loader)
     
-    
-    elif opt.training_type == "LabelSmoothing":
-
-        total_evaluator = TrainTargetLabelSmoothing(
-            model=target_model, epochs=opt.epochs, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
-    
     elif opt.training_type == "AdvReg":
-
         total_evaluator = TrainTargetAdvReg(
             model=target_model, args = opt,  log_path=save_pth)
         total_evaluator.train(train_loader, inference_loader, test_loader)
@@ -215,21 +206,17 @@ if __name__ == "__main__":
     
     
     elif opt.training_type == "MixupMMD":
-
         target_train_sorted_loader, target_inference_sorted_loader, shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_target_inference, start_index_shadow_inference, target_inference_sorted, shadow_inference_sorted = s.get_sorted_data_mixup_mmd_one_inference()
         if opt.mode == "target":
             train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = target_train_sorted_loader, target_inference_sorted_loader, start_index_target_inference, target_inference_sorted
-
         elif opt.mode == "shadow":
             train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_shadow_inference, shadow_inference_sorted
-
         total_evaluator = TrainTargetMixupMMDLoss(
             model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, train_loader_ordered,
                               inference_loader_ordered, test_loader, starting_index, inference_sorted)
 
     elif opt.training_type == "PATE":
-
         total_evaluator = TrainTargetPATE(
             model=target_model, args = opt, log_path=save_pth)
         total_evaluator.train(train_loader, inference_loader, test_loader)

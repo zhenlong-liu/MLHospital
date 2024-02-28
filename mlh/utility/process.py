@@ -84,7 +84,7 @@ def extract_last_line_logging_info(log_file,df = False):
             
             else:
                 if "]" in last_line:
-                    log_str = last_line.split("] ")[1]  # 去掉前面的"[After MMD]"
+                    log_str = last_line.split("] ")[1]
                     log_list = log_str.split(", ")
                     log_dict = {}
                     for item in log_list:

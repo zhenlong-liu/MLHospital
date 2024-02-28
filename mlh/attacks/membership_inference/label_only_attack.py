@@ -106,7 +106,6 @@ class LabelOnlyMIA(MembershipInferenceAttack):
 
         binary_predictions = (prediction > 0.5).astype(int)
 
-        # 计算指标
         recall = recall_score(groundtruth, binary_predictions)
         precision = precision_score(groundtruth, binary_predictions)
         f1 = f1_score(groundtruth, binary_predictions)

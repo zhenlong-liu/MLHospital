@@ -88,8 +88,6 @@ class TrainTargetNormal(Trainer):
         logx.initialize(logdir=self.log_path,
                         coolname=False, tensorboard=False)
 
-    # 需要通过装饰器 @staticmethod 来进行修饰， 静态方法既不需要传递类对象也不需要传递实例对象（形参没有self/cls ） 。
-
     @staticmethod
     def _sample_weight_decay():
         # We selected the l2 regularization parameter from a range of 45 logarithmically spaced values between 10−6 and 105
@@ -134,13 +132,9 @@ class TrainTargetNormal(Trainer):
             for img, label in train_loader:
                 self.model.zero_grad()
                 batch_n += 1
-
                 img, label = img.to(self.device), label.to(self.device)
-                # print("img", img.shape)
                 logits = self.model(img)
-                # 其形状是torch.Size([128, 10])
                 loss = self.criterion(logits, label)
-                
                 loss.backward()
                 self.optimizer.step()
     

@@ -48,13 +48,11 @@ if __name__ == "__main__":
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor2:
         futures = []
-        
         for alpha in aa:
             params["alpha"] = alpha
-            cmd1, cmd2 = generate_cmd_hup(params, 5, 6)  # 请确保已定义generate_cmd函数和相关参数
+            cmd1, cmd2 = generate_cmd_hup(params, 5, 6)
             futures.append(executor1.submit(run_command, cmd1))
-            futures.append(executor2.submit(run_command, cmd2))        
-        # 等待所有任务完成
+            futures.append(executor2.submit(run_command, cmd2))
         concurrent.futures.wait(futures)
     
     

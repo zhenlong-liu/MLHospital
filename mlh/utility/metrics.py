@@ -93,11 +93,7 @@ class StaMetrics:
             sta_book[f"{key}_var"] = np.var(value_np)
         sta_book["epoch"] = epoch
         sta_book["loader_type"] = loader_type
-
-        # 更新 DataFrame
         self.sta_epochs = pd.concat([self.sta_epochs,pd.DataFrame([sta_book])], ignore_index=True)
-
-        # 重置 _metrics_list
         self._metrics_list = []
 
 

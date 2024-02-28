@@ -88,7 +88,6 @@ class TrainTargetNormalRelaxLoss(Trainer):
         save_namespace_to_yaml(args, f'{self.log_path}/config.yaml')
         #save_namespace_to_yaml(dict_str(get_init_args(self.criterion)), f'{self.log_path}/loss_config.yaml')
 
-    # 需要通过装饰器 @staticmethod 来进行修饰， 静态方法既不需要传递类对象也不需要传递实例对象（形参没有self/cls ） 。
 
     @staticmethod
     def _sample_weight_decay():
@@ -136,7 +135,7 @@ class TrainTargetNormalRelaxLoss(Trainer):
                 img, label = img.to(self.device), label.to(self.device)
                 # print("img", img.shape)
                 logits = self.model(img)
-                # 其形状是torch.Size([128, 10])
+                # torch.Size([128, 10])
                 loss_ce_full = self.crossentropy_noreduce(logits, label)
                 loss_ce = torch.mean(loss_ce_full)
                 if self.epochs %2 ==0:

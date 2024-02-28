@@ -10,7 +10,7 @@ from runx.logx import logx
 import torch.nn.functional as F
 from defenses.membership_inference.trainer import Trainer
 import torch.nn as nn
-from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from defenses.membership_inference.loss_function import get_loss_adj
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 from tqdm import tqdm
@@ -81,10 +81,10 @@ class TrainTargetNormalLoss(Trainer):
         
     def initialize_criterion(self):
         """Initialize the loss criterion."""
-        if self.args.loss_adjust:
-            return get_loss_adj(loss_type=self.loss_type, device=self.device, args=self.args, num_classes=self.num_classes)
-        else:
-            return get_loss(loss_type=self.loss_type, device=self.device, args=self.args, num_classes=self.num_classes)
+        return get_loss_adj(loss_type=self.loss_type, device=self.device, args=self.args, num_classes=self.num_classes)
+
+
+
 
     def save_configs(self):
         """Save configurations for better reproducibility and logging."""
@@ -182,7 +182,7 @@ class TrainTargetNormalLoss(Trainer):
                 img, label = img.to(self.device), label.to(self.device)
                 # print("img", img.shape)
                 logits = self.model(img)
-                # 其形状是torch.Size([128, 10])
+                # torch.Size([128, 10])
                 
                 loss = self.criterion(logits, label)
                 

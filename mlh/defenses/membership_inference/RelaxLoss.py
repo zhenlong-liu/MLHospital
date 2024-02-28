@@ -85,7 +85,7 @@ class TrainTargetRelaxLoss(TrainTargetNormalLoss):
                 img, label = img.to(self.device), label.to(self.device)
                 # print("img", img.shape)
                 logits = self.model(img)
-                # 其形状是torch.Size([128, 10])
+                # torch.Size([128, 10])
                 loss_ce_full = self.crossentropy_noreduce(logits, label)
                 loss_ce = torch.mean(loss_ce_full)
                 

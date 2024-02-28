@@ -101,7 +101,7 @@ if __name__ == "__main__":
     seed = args.seed
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
+    torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)    
     os.environ['PYTHONHASHSEED'] = str(seed)
     s = BuildDataLoader(args)
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     if attack_type == "label-only":
         attack_model = LabelOnlyMIA(
             device=args.device,
-            target_model=target_model.eval(), # 打开eval()模式
+            target_model=target_model.eval(),
             shadow_model=shadow_model.eval(),
             save_path = save_path,
             target_loader=(target_train_loader, target_test_loader),

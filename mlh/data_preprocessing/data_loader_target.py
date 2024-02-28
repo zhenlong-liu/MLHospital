@@ -136,47 +136,17 @@ class BuildDataLoader(object):
             return transform_
         transform_list = [transforms.Resize(
             (self.input_shape[0], self.input_shape[0])), ]
-        
         if use_transform == "simple":
             transform_list += [transforms.RandomCrop(
                 32, padding=4), transforms.RandomHorizontalFlip(), ]
-      
             print("add simple data augmentation!")
-            ## 是在此处做的print
         transform_list.append(transforms.ToTensor())
-
         if dataset in ["MNIST", "FashionMNIST", "EMNIST"]:
             transform_list = [
                 transforms.Grayscale(3), ] + transform_list
-
         transform_ = transforms.Compose(transform_list)
         return transform_
 
-    # def get_data_transform(self, dataset):
-    #     train_transform_list = [transforms.Resize(
-    #         (self.input_shape[0], self.input_shape[0])), ]
-    #     test_transform_list = [transforms.Resize(
-    #         (self.input_shape[0], self.input_shape[0])), ]
-
-    #     train_transform_list += [transforms.RandomCrop(
-    #         32, padding=4), transforms.RandomHorizontalFlip(), ]
-    #     test_transform_list += [transforms.RandomCrop(
-    #         32, padding=4), transforms.RandomHorizontalFlip(), ]
-    #     print("add simple data augmentation!")
-
-    #     train_transform_list.append(transforms.ToTensor())
-    #     test_transform_list.append(transforms.ToTensor())
-
-    #     if dataset in ["MNIST", "FashionMNIST", "EMNIST"]:
-    #         train_transform_list = [
-    #             transforms.Grayscale(3), ] + train_transform_list
-    #         test_transform_list = [
-    #             transforms.Grayscale(3), ] + test_transform_list
-
-    #     train_transform = transforms.Compose(train_transform_list)
-    #     test_transform = transforms.Compose(test_transform_list)
-
-    #     return train_transform, test_transform
 
     def get_dataset(self, train_transform, test_transform):
         """
@@ -200,7 +170,6 @@ class BuildDataLoader(object):
 
 
     def get_data_supervised(self, num_workers=2, select_num=None):
-        # self.args.dataset 默认为CIFAR10
         batch_size = self.batch_size
         
         train_transform = self.get_data_transform(self.args.dataset)
@@ -344,8 +313,6 @@ class BuildDataLoader(object):
     
     
     def get_data_supervised_ni(self, batch_size=128, num_workers=2, select_num=None, if_dataset = False):
-        # 没有inference
-        # self.args.dataset 默认为CIFAR10
         train_transform = self.get_data_transform(self.args.dataset)
         test_transform = self.get_data_transform(self.args.dataset)
 

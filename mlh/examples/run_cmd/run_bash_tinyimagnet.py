@@ -44,7 +44,7 @@ if __name__ == "__main__":
         
         for loss in lossfunction:
             params_loss['loss_type'] = loss
-            cmd1, cmd2 = generate_cmd_hup(params_loss, 6, 7)  # 请确保已定义generate_cmd函数和相关参数
+            cmd1, cmd2 = generate_cmd_hup(params_loss, 6, 7)  #
             if loss == "gce":
                 futures.append(executor.submit(run_command, cmd2))
                 continue

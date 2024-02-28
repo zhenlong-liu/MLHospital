@@ -8,14 +8,7 @@ sys.path.append("../../..")
 from attacks.membership_inference.attack_dataset_muti_shdow_models import AttackDatasetMutiShadowModels
 from attacks.membership_inference.enhanced_attack import ReferenceMIA
 from attacks.membership_inference.model_loader import ModelLoader, ShadowModelLoader
-
-
 from mlh.utility.main_parse import add_argument_parameter
-from attacks.membership_inference.data_augmentation_attack import AugemtaionAttackDataset, DataAugmentationMIA
-from mlh.attacks.membership_inference.attack_dataset import AttackDataset
-from mlh.attacks.membership_inference.black_box_attack import BlackBoxMIA
-from mlh.attacks.membership_inference.label_only_attack import LabelOnlyMIA
-from mlh.attacks.membership_inference.metric_based_attack import MetricBasedMIA
 import torch
 from data_preprocessing.data_loader_target import BuildDataLoader
 from utils import get_target_model, generate_save_path, call_function_from_module
@@ -109,7 +102,7 @@ if __name__ == "__main__":
 
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)#让显卡产生的随机数一致
+    torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)    
     os.environ['PYTHONHASHSEED'] = str(seed)
     s = BuildDataLoader(args,shuffle=False)

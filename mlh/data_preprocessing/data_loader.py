@@ -40,7 +40,7 @@ class GetDataLoader(object):
         self.input_shape = args.input_shape
     def parse_dataset(self, dataset, train_transform, test_transform):
 
-        if dataset in configs.SUPPORTED_IMAGE_DATASETS: # 定义了几个支持的数据集
+        if dataset in configs.SUPPORTED_IMAGE_DATASETS:
             _loader = getattr(datasets, dataset)
             if dataset != "EMNIST":
                 train_dataset = _loader(root=self.data_path,
@@ -90,7 +90,6 @@ class GetDataLoader(object):
                 32, padding=4), transforms.RandomHorizontalFlip(), ]
 
             print("add simple data augmentation!")
-            ## 是在此处做的print
         transform_list.append(transforms.ToTensor())
 
         if dataset in ["MNIST", "FashionMNIST", "EMNIST"]:
@@ -151,7 +150,6 @@ class GetDataLoader(object):
         return dataset
 
     def get_data_supervised(self, batch_size=128, num_workers=2, select_num=None):
-        # self.args.dataset 默认为CIFAR10
         train_transform = self.get_data_transform(self.args.dataset)
         test_transform = self.get_data_transform(self.args.dataset)
 

@@ -99,14 +99,9 @@ def parse_args():
                         help='comma delimited input shape input')
     add_argument_parameter(parser)
     args = parser.parse_args(args=[])
-
-    # 将 args 转换为字典
     args_dict = vars(args)
-
-    # 额外处理某些特殊类型的参数
     args_dict['input_shape'] = [int(item) for item in args_dict['input_shape'].split(',')]
     args_dict['device'] = 'cuda:%d' % args_dict['gpu'] if torch.cuda.is_available() else 'cpu'
-
     return args_dict
 
 if __name__ == "__main__":

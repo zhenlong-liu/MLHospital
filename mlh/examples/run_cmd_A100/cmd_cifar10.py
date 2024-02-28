@@ -29,7 +29,7 @@ if __name__ == "__main__":
     
     
     params = {
-    'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
+    'python': "../train_target_models_inference.py", #
     "dataset": "CIFAR10",
     "num_class": 10,
     'log_path': "../save_adjlr", #'../save_300_cosine', # '../save_p2' save_adj

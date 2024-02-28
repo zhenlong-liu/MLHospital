@@ -40,8 +40,6 @@ if __name__ == "__main__":
             cmd1, cmd2 = generate_cmd_hup(params_temp,6,7)
             futures.append(executor.submit(run_command, cmd1))
             futures.append(executor.submit(run_command, cmd2))
-        
-        # 等待所有任务完成
         concurrent.futures.wait(futures)
         """
         for loss in lossfunction:
@@ -50,20 +48,3 @@ if __name__ == "__main__":
             futures.append(executor.submit(run_command, cmd3))
         
         concurrent.futures.wait(futures)
-    """"
-        for temp in ss:
-            params_temp["temp"] = temp
-            cmd1, cmd2 = generate_cmd_hup(params_temp,6,7)
-            futures.append(executor.submit(run_command, cmd1))
-            futures.append(executor.submit(run_command, cmd2))
-        
-        # 等待所有任务完成
-        concurrent.futures.wait(futures)
-    
-        for temp in ss:
-            params_temp["temp"] = temp
-            cmd3 =generate_mia_command(params_temp, mia ="../mia_example_only_target.py",nohup = False)
-            futures.append(executor.submit(run_command, cmd3))
-        
-        concurrent.futures.wait(futures)
-    """

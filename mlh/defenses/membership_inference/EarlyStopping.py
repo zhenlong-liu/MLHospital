@@ -56,7 +56,7 @@ class TrainTargetEarlyStopping(TrainTargetNormalLoss):
                 img, label = img.to(self.device), label.to(self.device)
                 # print("img", img.shape)
                 logits = self.model(img)
-                # 其形状是torch.Size([128, 10])
+                # torch.Size([128, 10])
                 
                 loss = self.criterion(logits, label)
                 

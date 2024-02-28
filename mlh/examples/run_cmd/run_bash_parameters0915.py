@@ -85,7 +85,7 @@ if __name__ == "__main__":
                         futures.append(executor1.submit(run_command, cmd1))
                         futures.append(executor2.submit(run_command, cmd2))
             
-        # 等待所有任务完成
+
         concurrent.futures.wait(futures)
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor1, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor2:

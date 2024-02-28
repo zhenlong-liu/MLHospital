@@ -33,7 +33,6 @@ class FeatureExtractor(nn.Module):
         for layer_id in layers:
             layer = dict([*self.model.named_modules()])[layer_id]
             layer.register_forward_hook(self.save_outputs_hook(layer_id))
-        ## 修饰器，register_forward_hook里面需要一个函数，这个函数需要三个参数，所以用下面的save_outputs_hook 来将其缩减为只需要一个参数的函数
     def save_outputs_hook(self, layer_id):
         def fn(_, __, output):
             self._features[layer_id] = output

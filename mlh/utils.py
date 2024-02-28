@@ -22,6 +22,9 @@
 import sys
 import numpy as np
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
+
+from torch.optim.adamw import AdamW
+
 from models.models_non_image import  Purchase,Texas
 import yaml
 from models.resnet import resnet20
@@ -223,16 +226,10 @@ def phi_stable_batch_epsilon( probs, labels, epsilon=1e-10):
 
     return phi_stable
 def cross_entropy(prob, label):
-    # 避免概率值为0，加上一个很小的值进行平滑处理
     epsilon = 1e-12
-
-    # 使用np.clip确保概率值不为0或1，以避免log(0)或log(1)出现无效值
     prob = np.clip(prob, epsilon, 1.0 - epsilon)
-
-    # 将label转换为one-hot编码
     one_hot_label = np.zeros_like(prob)
     one_hot_label[np.arange(len(label)), label] = 1
-
     return -np.sum(one_hot_label * np.log(prob), axis=1)
 
 def compute_cross_entropy_losses(data, model, device, batch_size=512):
@@ -451,12 +448,6 @@ def get_target_model(name="resnet18", num_classes=10, dropout=None, fintune = Fa
     elif name == "resnet20":
         model = resnet20(num_classes=num_classes)
         if dropout is not None:
-            # 如果 resnet20 模型的最后一层是线性层，可以如下添加 dropout 层
-            # num_ftrs = model.fc.in_features
-            # model.fc = nn.Sequential(
-            #     nn.Linear(num_ftrs, num_classes),
-            #     nn.Dropout(dropout)
-            # )
             pass
     elif name == "resnet34":
         if fintune:
@@ -559,12 +550,7 @@ def add_new_last_layer(model, new_last_layer):
             model.classifier[-1] =new_last_layer
         else: model.classifier = new_last_layer
     else:
-        raise AttributeError("模型没有 'fc' 或 'classifier' 属性")
-
-
-
-
-
+        raise AttributeError("there is no 'fc' or 'classifier'")
 
 def one_hot_embedding(y, num_classes=10, dtype=torch.cuda.FloatTensor):
     '''

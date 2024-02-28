@@ -104,7 +104,7 @@ if __name__ == "__main__":
     if attack_type == "label-only":
         attack_model = LabelOnlyMIA(
             device=args.device,
-            target_model=target_model.eval(), # 打开eval()模式
+            target_model=target_model.eval(),
             shadow_model=shadow_model.eval(),
             target_loader=(target_train_loader, target_test_loader),
             shadow_loader=(shadow_train_loader, shadow_test_loader),

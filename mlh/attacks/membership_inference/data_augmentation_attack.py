@@ -13,22 +13,16 @@ from torchvision.transforms import functional as TF
 
 class AttackDataset(Dataset):
     def __init__(self, data, labels):
-        # 确认data是numpy数组并且将其转换成torch张量
         if isinstance(data, np.ndarray):
             data = torch.from_numpy(data)
-        # 确认labels是numpy数组并且将其转换成torch张量
         if isinstance(labels, np.ndarray):
             labels = torch.from_numpy(labels)
-        
         self.data = data
         self.labels = labels
-
     def __len__(self):
         return len(self.data)
-
     def __getitem__(self, idx):
         return self.data[idx], self.labels[idx]
-    
     
 class AugemtaionAttackDataset(Dataset):
     def __init__(self, args, attack_type , target_model, shadow_model,
@@ -115,8 +109,6 @@ class AugmentedAttackData(object):
 
  
     def augmentation_attack(self, attack_type):
-        # 使用小批量处理时，不再需要为整个数据集预先分配大数组
-        # 改为收集每个批次的结果
         attack_results = []
 
         if attack_type =="rotation":
@@ -130,13 +122,10 @@ class AugmentedAttackData(object):
             self.model.eval()
             for i, augment in enumerate(augments):
                 transform = self._get_transform(augment, attack_type)
-                # 使用DataLoader进行小批量加载和增强
                 train_augmented_dataset = CustomDataset(self.train_dataset, transform)
                 train_data_loader = DataLoader(train_augmented_dataset, batch_size=self.batch_size, shuffle=False)
-                
                 test_augmented_dataset = CustomDataset(self.test_dataset, transform)
                 test_data_loader = DataLoader(test_augmented_dataset, batch_size=self.batch_size, shuffle=False)
-                
                 
                 batch_results  = []
                 for batch, labels in train_data_loader:
@@ -165,7 +154,6 @@ class AugmentedAttackData(object):
         
         return final_results, m
 
-    # CustomDataset需要被定义来处理图像的加载和增强
 class CustomDataset(Dataset):
     def __init__(self, dataset, transform=None):
         self.dataset = dataset
