@@ -441,19 +441,12 @@ class BuildDataLoader(object):
         return target_train_sorted_loader, target_inference_sorted_loader, shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_target_inference, start_index_shadow_inference, target_inference_sorted, shadow_inference_sorted
 # target_train_sorted_loader  target_inference_sorted_loader start_index_target_inference target_inference_sorted
 
-
-
-
-
-
 class GetDataLoaderPoison(object):
     def __init__(self, args):
         self.args = args
         self.data_path = args.data_path
         self.input_shape = args.input_shape
-
     def parse_dataset(self, dataset):
-
         if dataset in configs.SUPPORTED_IMAGE_DATASETS:
             _loader = getattr(datasets, dataset)
             if dataset != "EMNIST":
@@ -480,15 +473,12 @@ class GetDataLoaderPoison(object):
         else:
             raise ValueError("Dataset Not Supported: ", dataset)
         return train_dataset, test_dataset
-
     def get_data_transform(self, dataset, use_transform="simple"):
         transform_list = [transforms.Resize(
             (self.input_shape[0], self.input_shape[0])), ]
-
         if use_transform == "simple":
             transform_list += [transforms.RandomCrop(
                 32, padding=4), transforms.RandomHorizontalFlip(), ]
-
             print("add simple data augmentation!")
 
         transform_list.append(transforms.ToTensor())

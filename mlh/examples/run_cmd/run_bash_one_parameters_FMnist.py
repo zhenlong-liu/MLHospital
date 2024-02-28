@@ -71,7 +71,7 @@ if __name__ == "__main__":
             for alpha in aa:
                 params_temp["temp"] = temp
                 params_temp["alpha"] = alpha
-                cmd3 =generate_mia_command(params_temp, mia ="../mia_example_only_target.py",nohup = False,gpu =1)
+                cmd3 =generate_mia_command(params_temp, mia ="../mia.py",nohup = False,gpu =1)
                 futures.append(executor.submit(run_command, cmd3))
 
         concurrent.futures.wait(futures)

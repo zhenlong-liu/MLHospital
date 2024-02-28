@@ -25,6 +25,7 @@ SUPPORTED_IMAGE_DATASETS = set(["CIFAR10",
                                 "MNIST",
                                 "EMNIST",
                                 "FashionMNIST"
+                                "imagenet",
                                 #"Imagenet"
                                 ])
 

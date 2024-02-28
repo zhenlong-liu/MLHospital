@@ -24,7 +24,7 @@ def update_dict1_from_dict2(dict1, dict2):
 if __name__ == "__main__":
   
     params = {
-    'python': "../train_target_models_inference.py", # "../train_target_models_noinference.py"
+    'python': "../train_models.py", # "../train_target_models_noinference.py"
     "dataset": "CIFAR10",
     "num_class": 10,
     'log_path': "../save_adj", #'../save_300_cosine', # '../save_p2' save_adj
@@ -79,11 +79,11 @@ if __name__ == "__main__":
                         params["load_model_path"] = subdir
                         
                         
-                        cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
-                        cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
-                        cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
+                        cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia.py")
+                        cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia.py")
+                        cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu2,  nohup = False, mia = "../mia.py")
                         
-                        cmd6 = generate_mia_command(params, attack_type= "label-only", gpu = gpu2,  nohup = False, mia = "../mia_example_only_target.py")
+                        cmd6 = generate_mia_command(params, attack_type= "label-only", gpu = gpu2,  nohup = False, mia = "../mia.py")
                         #print(cmd6)
                         #exit()
                         #print(data_config)

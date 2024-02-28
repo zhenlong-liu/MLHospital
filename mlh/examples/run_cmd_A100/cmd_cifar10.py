@@ -29,7 +29,7 @@ if __name__ == "__main__":
     
     
     params = {
-    'python': "../train_target_models_inference.py", #
+    'python': "../train_models.py", #
     "dataset": "CIFAR10",
     "num_class": 10,
     'log_path': "../save_adjlr", #'../save_300_cosine', # '../save_p2' save_adj
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     concurrent.futures.wait(futures)
     
-    attack_py = "../mia_example_only_target.py" #"../mia_enhance.py"#"../mia_example_only_target.py"
+    attack_py = "../mia.py" #"../mia_enhance.py"#"../mia.py"
     
         
     futures = []

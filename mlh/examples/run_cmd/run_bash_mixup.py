@@ -67,8 +67,8 @@ if __name__ == "__main__":
         params['batch_size'] = 64
         for alpha in aa:
             params["alpha"] = alpha
-            cmd3 =generate_mia_command(params, gpu = 3,  nohup = False, mia = "../mia_example_only_target.py")
-            cmd4 = generate_mia_command(params, attack_type= "black-box",gpu = 5,  nohup = False, mia = "../mia_example_only_target.py")
+            cmd3 =generate_mia_command(params, gpu = 3,  nohup = False, mia = "../mia.py")
+            cmd4 = generate_mia_command(params, attack_type= "black-box",gpu = 5,  nohup = False, mia = "../mia.py")
             # print(cmd3)
             futures.append(executor.submit(run_command, cmd3))
             futures.append(executor.submit(run_command, cmd4))

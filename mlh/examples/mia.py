@@ -28,38 +28,14 @@ torch.cuda.manual_seed_all(0)
 
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
-    parser.add_argument('--batch_size', type=int, default=512,
-                        help='batch_size')
-    parser.add_argument('--num_workers', type=int, default=10,
-                        help='num of workers to use')
-    parser.add_argument('--epochs', type=int, default=100,
-                        help='number of training epochs')
-    parser.add_argument('--gpu', type=int, default=5,
-                        help='gpu index used for training')
-    # model dataset
-    parser.add_argument('--model', type=str, default='resnet18')
     parser.add_argument('--load-pretrained', type=str, default='no')
-    parser.add_argument('--dataset', type=str, default='CIFAR10',
-                        help='dataset')
-    parser.add_argument('--num_class', type=int, default=10,
-                        help='number of classes')
-    parser.add_argument('--training_type', type=str, default="Normal",
-                        help='Normal, LabelSmoothing, AdvReg, DP, MixupMMD, PATE')
     #--training type there is used for specifying path to load model
-    parser.add_argument('--inference-dataset', type=str, default='CIFAR10',
-                        help='if yes, load pretrained attack model to inference')
     parser.add_argument('--attack_type', type=str, default='black-box',
                         help='attack type: "black-box", "black-box-sorted", "black-box-top3", "metric-based", and "label-only"')
-    parser.add_argument('--data_path', type=str, default='../datasets/',
-                        help='data_path')
-    parser.add_argument('--input-shape', type=str, default="32,32,3",
-                        help='comma delimited input shape input')
     add_argument_parameter(parser)
-    
     args = parser.parse_args()
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
     args.device = 'cuda:%d' % args.gpu if torch.cuda.is_available() else 'cpu'
-
     return args
 
 

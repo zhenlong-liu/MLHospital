@@ -65,7 +65,6 @@ import importlib
 
 
 def p1_score(acc, adv):
-    
     return 2*acc*(1-adv)/(acc+1-adv)
 
 def call_function_from_module(module_name, function_name):

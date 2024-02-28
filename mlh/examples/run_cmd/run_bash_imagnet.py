@@ -48,7 +48,7 @@ if __name__ == "__main__":
         futures = []     
         for loss in lossfunction:
             params_loss['loss_type'] = loss
-            cmd3 =generate_mia_command(params_loss, nohup = False, mia = "../mia_example_only_target.py", gpu=1)
+            cmd3 =generate_mia_command(params_loss, nohup = False, mia = "../mia.py", gpu=1)
             futures.append(executor.submit(run_command, cmd3))
         
         concurrent.futures.wait(futures)

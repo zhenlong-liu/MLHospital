@@ -26,7 +26,7 @@ from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from mlh.data_preprocessing.data_loader import GetDataLoader
+from mlh.data_preprocessing.data_loader_target import BuildDataLoader
 import argparse
 import numpy as np
 import torch.optim as optim
@@ -129,7 +129,7 @@ def evaluate(model, dataloader):
 if __name__ == "__main__":
 
     args = parse_args()
-    s = GetDataLoader(args)
+    s = BuildDataLoader(args)
     target_train_loader, target_inference_loader, target_test_loader, shadow_train_loader, shadow_inference_loader, shadow_test_loader = s.get_data_supervised()
 
     target_model = get_target_model(name="resnet18", num_classes=2)

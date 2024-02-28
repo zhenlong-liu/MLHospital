@@ -16,7 +16,7 @@ if __name__ == "__main__":
     
     
     params = {
-    'python': "../train_target_models_inference.py", 
+    'python': "../train_models.py",
     # train_target_models_noinference   train_target_models_inference
     "dataset": "CIFAR100", # imagnet
     "num_class": 100,
@@ -83,10 +83,10 @@ if __name__ == "__main__":
                             params["gamma"] = gamma
                             params["tau"] = tau
                             
-                            cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
-                            cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia_example_only_target.py")
+                            cmd3 =generate_mia_command(params, gpu = gpu0,  nohup = False, mia = "../mia.py")
+                            cmd4 = generate_mia_command(params, attack_type= "black-box", gpu = gpu1,  nohup = False, mia = "../mia.py")
                             
-                            cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia_example_only_target.py")
+                            cmd5 = generate_mia_command(params, attack_type= "white_box", gpu = gpu0,  nohup = False, mia = "../mia.py")
                             
                             futures.append(executor1.submit(run_command, cmd3))
                             futures.append(executor1.submit(run_command, cmd4))

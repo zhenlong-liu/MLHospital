@@ -31,7 +31,7 @@ def generate_train_command_2(params, mode, gpu):
     args_command += f"--gpu {gpu} "
     return args_command.strip()
 
-def generate_mia_command(params, mia ="mia_example_only_target.py", attack_type ='metric-based', inference_type = "reference_attack",nohup = True, gpu =0, store =True):
+def generate_mia_command(params, mia ="mia.py", attack_type ='metric-based', inference_type = "reference_attack",nohup = True, gpu =0, store =True):
     if nohup:
         args_command = "nohup"
     else: args_command = ""

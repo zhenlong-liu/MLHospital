@@ -54,7 +54,7 @@ if __name__ == "__main__":
             else:
                 futures.append(executor.submit(run_command, cmd1))
                 futures.append(executor.submit(run_command, cmd2))
-        # 等待所有任务完成
+
         concurrent.futures.wait(futures)
         
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         for loss in lossfunction:
             params_loss['loss_type'] = loss
             
-            cmd3 =generate_mia_command(params_loss,gpu = 7,  nohup = False, mia = "../mia_example_only_target.py")
+            cmd3 =generate_mia_command(params_loss,gpu = 7,  nohup = False, mia = "../mia.py")
             print(cmd3)
             futures.append(executor.submit(run_command, cmd3))
         

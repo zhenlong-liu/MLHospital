@@ -44,7 +44,7 @@ if __name__ == "__main__":
         
         for loss in lossfunction:
             params_loss['loss_type'] = loss
-            cmd3 =generate_mia_command(params_loss, nohup = False, mia = "../mia_example_only_target.py")
+            cmd3 =generate_mia_command(params_loss, nohup = False, mia = "../mia.py")
             print(cmd3)
             futures.append(executor.submit(run_command, cmd3))
         

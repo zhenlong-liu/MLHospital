@@ -106,7 +106,7 @@ def parse_args():
 
 if __name__ == "__main__":
     args_dict = {
-        'python': "../train_target_models_inference.py" ,
+        'python': "../train_models.py" ,
         #"../train_shadow_models.py", # "../train_target_models_noinference.py"
         "data_path": "../../datasets",
         "dataset": "CIFAR100", # purchase texas  
