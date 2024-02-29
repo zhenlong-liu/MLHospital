@@ -249,7 +249,8 @@ def get_cifar100_parameter_set(method, loss_type = "ce", dataset = "cifar100", m
         }
 
     csce_param ={
-        "alpha": [-5,-3,-1,0,1,3,5],
+        "alpha":[-50,-10,10,20,50], 
+            #[-5,-3,-1,0,1,3,5],
                   #1e-6,0.00001,0.0001,0.001],
         "temp": [1],
             #[0.05,0.1,0.5,1],

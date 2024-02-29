@@ -12,7 +12,7 @@ from runx.logx import logx
 import torch.nn.functional as F
 from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss 
 import torch.nn as nn
-from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from defenses.membership_inference.loss_function import get_loss_adj
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 from tqdm import tqdm

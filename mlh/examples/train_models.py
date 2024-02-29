@@ -23,18 +23,10 @@ torch.set_num_threads(1)
 from utils import get_target_model, generate_save_path
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
-    parser.add_argument('--batch_size', type=int, default=128,
-                        help='batch_size')
-    parser.add_argument('--num_workers', type=int, default=10,
-                        help='num of workers to use')
     parser.add_argument('--training_type', type=str, default="Normal",
-                        help='Normal, LabelSmoothing, AdvReg, DP, MixupMMD, PATE')
+                        help='NormalLoss, LabelSmoothing, AdvReg, DP, MixupMMD, PATE')
     parser.add_argument('--mode', type=str, default="shadow",
                         help='target, shadow')
-    parser.add_argument('--epochs', type=int, default=100,
-                        help='number of training epochs')
-    parser.add_argument('--gpu', type=int, default=0,
-                        help='gpu index used for training')
     parser.add_argument('--load-pretrained', type=str, default='no')
     parser.add_argument('--task', type=str, default='mia',
                         help='specify the attack task, mia or ol')

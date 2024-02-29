@@ -43,7 +43,7 @@ from runx.logx import logx
 import torch.nn.functional as F
 from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss 
 import torch.nn as nn
-from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from defenses.membership_inference.loss_function import get_loss_adj
 
 from tqdm import tqdm
 from utils import get_optimizer, get_scheduler, get_init_args, dict_str

@@ -34,8 +34,6 @@ from opacus import PrivacyEngine
 #from opacus.validators import ModuleValidator
 from tqdm import tqdm
 from utils import get_optimizer, get_scheduler, get_init_args, dict_str
-from defenses.membership_inference.loss_function import get_loss
-
 
 class TrainTargetDP(Trainer):
     def __init__(self, model, args, momentum=0.9, weight_decay=5e-4, grad_norm=1.0, delta=1e-5, log_path="./"):

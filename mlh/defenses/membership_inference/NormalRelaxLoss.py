@@ -12,7 +12,7 @@ import torch.nn as nn
 from defenses.membership_inference.loss_function import*
 from utils import CrossEntropy_soft, one_hot_embedding
 
-from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from defenses.membership_inference.loss_function import get_loss_adj
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 from tqdm import tqdm
