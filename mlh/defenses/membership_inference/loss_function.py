@@ -828,9 +828,7 @@ def ce_concave_quadratic_loss(input_values, alpha, gamma =1, reduction="mean"):
 def ce_concave_exp_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
     """Computes the focal loss"""
     p = torch.exp(-input_values)
-    
     loss = alpha * input_values - beta *torch.exp(gamma*p)
-
     if reduction == "none":
         return loss
     elif reduction == "mean":
@@ -838,8 +836,7 @@ def ce_concave_exp_loss(input_values, alpha, beta, gamma =1, reduction="mean"):
     elif reduction == "sum":
         return loss.sum()
     else:
-        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
-    
+        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")  
 
 def concave_exp_loss(input_values, gamma =1, reduction="mean"):
     """Computes the focal loss"""

@@ -4,6 +4,19 @@ import yaml
 import os
 from datetime import datetime
 def add_argument_parameter(parser):
+    # train
+    parser.add_argument('--training_type', type=str, default="Normal",
+                        help='NormalLoss, LabelSmoothing, AdvReg, DP, MixupMMD, PATE')
+    parser.add_argument('--mode', type=str, default="shadow",
+                        help='target, shadow')
+    parser.add_argument('--load-pretrained', type=str, default='no')
+    parser.add_argument('--task', type=str, default='mia',
+                        help='specify the attack task, mia or ol')
+    #--training type there is used for specifying path to load model
+    # attack
+    parser.add_argument('--attack_type', type=str, default='black-box',
+                        help='attack type: "black-box", "black-box-sorted", "black-box-top3", "metric-based", and "label-only"')
+    # share
     parser.add_argument('--batch_size', type=int, default=512,
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=10,
@@ -25,7 +38,7 @@ def add_argument_parameter(parser):
                         default='./save', help='data_path')
     parser.add_argument('--temp', type=float, default=1,
                         help='temperature')
-    parser.add_argument('--tau', type=float, default=1, help = "logitclip tau")
+
     parser.add_argument('--weight_decay', type=float, default=5e-4, help = "logitclip tau")
     parser.add_argument('--loss_type', type=str, default="ce", help = "Loss function")
     parser.add_argument('--lp', type=int, default=2, help = "lp norm")
@@ -34,12 +47,15 @@ def add_argument_parameter(parser):
     parser.add_argument('--optimizer', type=str, default="sgd", help = "sgd or adam")
     parser.add_argument('--scheduler', type=str, default="cosine", help = "cosine or step")
     parser.add_argument('--seed', type=int, default=0, help='seed')
+    # hyperparameter
     parser.add_argument('--alpha', type=float, default=1, help='adjust parameter')
+    parser.add_argument('--beta', type=float, default=1, help='adjust parameter')
+    parser.add_argument('--gamma', type=float, default=1, help='adjust parameter')
+    parser.add_argument('--tau', type=float, default=1, help = "adjust parameter")
+        
     parser.add_argument('--augment_kwarg_translation', type=int, default=1, help='translation parameter')
     parser.add_argument('--augment_kwarg_rotation', type=int, default=4, help='rotation parameter')
     parser.add_argument('--noise_scale', type=float, default=100, help='noise scale for DPSGD')
-    parser.add_argument('--beta', type=float, default=0, help='Dropout rate')
-    parser.add_argument('--gamma', type=float, default=1, help='adjust parameter')
     parser.add_argument('--loss_adjust', action='store_true', default=False, help='if invoke loss_adj function')
     parser.add_argument('--inference', action='store_true', default=False, help='if spilt inference dataset')
     parser.add_argument('--teacher_path', type=str, default="../save0/CIFAR100/densenet121/NormalLoss/target/ce/epochs150/seed0/1/1/1/1/densenet121.pth", help='teacher path for Knowledge Distillation')

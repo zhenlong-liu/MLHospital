@@ -27,11 +27,7 @@ torch.cuda.manual_seed_all(0)
 
 
 def parse_args():
-    parser = argparse.ArgumentParser('argument for training')
-    parser.add_argument('--load-pretrained', type=str, default='no')
-    #--training type there is used for specifying path to load model
-    parser.add_argument('--attack_type', type=str, default='black-box',
-                        help='attack type: "black-box", "black-box-sorted", "black-box-top3", "metric-based", and "label-only"')
+    parser = argparse.ArgumentParser('argument for attack')
     add_argument_parameter(parser)
     args = parser.parse_args()
     args.input_shape = [int(item) for item in args.input_shape.split(',')]
