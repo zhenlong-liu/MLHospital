@@ -3,7 +3,7 @@ import torch
 from scipy.stats import norm
 from mlh.utility.main_parse import save_dict_to_yaml
 
-def phi_stable_batch_epsilon( posterior_probs, labels, epsilon=1e-10):
+def phi_stable_batch_epsilon(posterior_probs, labels, epsilon=1e-10):
     posterior_probs = posterior_probs + epsilon
     one_hot_labels = np.zeros_like(posterior_probs)
 
