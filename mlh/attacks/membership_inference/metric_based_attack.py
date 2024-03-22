@@ -6,7 +6,7 @@ sys.path.append('../../..')
 from mlh.utility.main_parse import save_dict_to_yaml
 from scipy.stats import norm
 import numpy as np
-from mlh.defenses.membership_inference.loss_function import get_loss
+from defenses.membership_inference.loss_function_2 import get_loss
 from utils import cross_entropy, plot_phi_distribution_together
 from attacks.membership_inference.attack_utils import phi_stable_batch_epsilon, likelihood_ratio
 from attacks.membership_inference.membership_Inference_attack import MembershipInferenceAttack
