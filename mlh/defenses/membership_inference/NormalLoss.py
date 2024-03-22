@@ -10,33 +10,13 @@ from runx.logx import logx
 import torch.nn.functional as F
 from defenses.membership_inference.trainer import Trainer
 import torch.nn as nn
-from defenses.membership_inference.loss_function import get_loss_adj
+from defenses.membership_inference.loss_function import get_loss
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 from tqdm import tqdm
 from utils import get_optimizer, get_scheduler, get_init_args, dict_str
 from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
 from utility.metrics import Metrics, StaMetrics
-#     """
-#     copy from:
-#     https://github.com/pytorch/pytorch/issues/7455
-#     """
-
-#     def __init__(self, classes, smoothing=0.0, dim=-1):
-#         super(LabelSmoothingLoss, self).__init__()
-#         self.confidence = 1.0 - smoothing
-#         self.smoothing = smoothing
-#         self.cls = classes
-#         self.dim = dim
-
-#     def forward(self, pred, target):
-#         pred = pred.log_softmax(dim=self.dim)
-#         with torch.no_grad():
-#             # true_dist = pred.data.clone()
-#             true_dist = torch.zeros_like(pred)
-#             true_dist.fill_(self.smoothing / (self.cls - 1))
-#             true_dist.scatter_(1, target.data.unsqueeze(1), self.confidence)
-#         return torch.mean(torch.sum(-true_dist * pred, dim=self.dim))
 
 
 class TrainTargetNormal(Trainer):
@@ -70,7 +50,7 @@ class TrainTargetNormal(Trainer):
         
     def initialize_criterion(self):
         """Initialize the loss criterion."""
-        return get_loss_adj(loss_type=self.loss_type, device=self.device, args=self.args, num_classes=self.num_classes)
+        return get_loss(loss_type=self.loss_type, device=self.device, args=self.args, num_classes=self.num_classes)
 
 
 

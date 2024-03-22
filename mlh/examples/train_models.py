@@ -4,16 +4,9 @@ sys.path.append("..")
 sys.path.append("../..")
 from utility.main_parse import add_argument_parameter
 from utility.utilis_train import load_teacher_model, freeze_except_last_layer, set_random_seed
-from defenses.membership_inference.Mixup_no_inf import TrainTargetMixup
-from defenses.membership_inference.AdvReg import TrainTargetAdvReg
-from defenses.membership_inference.DP import TrainTargetDPSGD
-from defenses.membership_inference.MixupMMDLoss import TrainTargetMixupMMDLoss
-from defenses.membership_inference.PATE import TrainTargetPATE
-from defenses.membership_inference.Normal import TrainTargetNormal
-from defenses.membership_inference.KnowledgeDistillation import TrainTargetKnowledgeDistillation
+
 from defenses.membership_inference.NormalLoss import TrainTargetNormal
-from defenses.membership_inference.EarlyStopping import TrainTargetEarlyStopping
-from defenses.membership_inference.RelaxLoss import TrainTargetRelaxLoss
+
 import torch
 import torch.nn as nn
 from data_preprocessing.data_loader_target import BuildDataLoader
@@ -23,18 +16,8 @@ torch.set_num_threads(1)
 from utils import get_target_model, generate_save_path
 def parse_args():
     parser = argparse.ArgumentParser('argument for training')
-    parser.add_argument('--batch_size', type=int, default=128,
-                        help='batch_size')
-    parser.add_argument('--num_workers', type=int, default=10,
-                        help='num of workers to use')
-    parser.add_argument('--training_type', type=str, default="Normal",
-                        help='Normal, LabelSmoothing, AdvReg, DP, MixupMMD, PATE')
     parser.add_argument('--mode', type=str, default="shadow",
                         help='target, shadow')
-    parser.add_argument('--epochs', type=int, default=100,
-                        help='number of training epochs')
-    parser.add_argument('--gpu', type=int, default=0,
-                        help='gpu index used for training')
     parser.add_argument('--load-pretrained', type=str, default='no')
     parser.add_argument('--task', type=str, default='mia',
                         help='specify the attack task, mia or ol')
@@ -76,62 +59,6 @@ if __name__ == "__main__":
         total_evaluator = TrainTargetNormal(
             model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
-
-    elif opt.training_type == "RelaxLoss":
-        total_evaluator = TrainTargetRelaxLoss(
-            model=target_model, args=opt,log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader) 
-
-
-    elif opt.training_type == "Dropout":
-        total_evaluator = TrainTargetNormal(
-            model=target_model, args=opt, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
-    
-    elif opt.training_type == "KnowledgeDistillation":
-        teacher_model = load_teacher_model(target_model, opt.teacher_path, opt.device)
-        total_evaluator = TrainTargetKnowledgeDistillation(model= target_model,teacher_model =teacher_model ,args=opt,log_path=save_pth, T= opt.tau)
-        
-        total_evaluator.train(train_loader, test_loader)
-    
-    elif opt.training_type == "AdvReg":
-        total_evaluator = TrainTargetAdvReg(
-            model=target_model, args = opt,  log_path=save_pth)
-        total_evaluator.train(train_loader, inference_loader, test_loader)
-
-    
-    elif opt.training_type == "DPSGD":
-        total_evaluator = TrainTargetDPSGD(
-            model=target_model, args=opt, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
-        print("Finish Training")
-        exit()
-
-    elif opt.training_type == "Mixup":
-        total_evaluator = TrainTargetMixup(
-            model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, num_classes= opt.num_class, epochs=opt.epochs, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
-
-    elif opt.training_type == "MixupMMD":
-        target_train_sorted_loader, target_inference_sorted_loader, shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_target_inference, start_index_shadow_inference, target_inference_sorted, shadow_inference_sorted = s.get_sorted_data_mixup_mmd_one_inference()
-        if opt.mode == "target":
-            train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = target_train_sorted_loader, target_inference_sorted_loader, start_index_target_inference, target_inference_sorted
-        elif opt.mode == "shadow":
-            train_loader_ordered, inference_loader_ordered, starting_index, inference_sorted = shadow_train_sorted_loader, shadow_inference_sorted_loader, start_index_shadow_inference, shadow_inference_sorted
-        total_evaluator = TrainTargetMixupMMDLoss(
-            model=target_model, args=opt, log_path=save_pth)
-        total_evaluator.train(train_loader, train_loader_ordered,
-                              inference_loader_ordered, test_loader, starting_index, inference_sorted)
-    elif opt.training_type == "PATE":
-        total_evaluator = TrainTargetPATE(
-            model=target_model, args = opt, log_path=save_pth)
-        total_evaluator.train(train_loader, inference_loader, test_loader)
-    elif opt.training_type == "EarlyStopping":
-        total_evaluator = TrainTargetEarlyStopping(
-            model=target_model, args = opt, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)
-        print("Finish Training")
-        exit()
     else:
         raise ValueError(
             "opt.training_type has not been implemented yet")

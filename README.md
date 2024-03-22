@@ -19,14 +19,14 @@ python setup.py install;
 
 ```
 cd MLHospital/mlh/examples;
-python train_models.py --mode target --training_type Normal --loss_type  --alpha 0.5 ;
-python train_target_models.py --mode shadow;
+python train_models.py --mode target --training_type Normal --loss_type ccel --alpha 0.5;
+python train_models.py --mode shadow --training_type Normal --loss_type ccel --alpha 0.5;
 ```
-Note that you can also specify the `--training_type` with different defense mechanisms, e.g., `Normal`, `LabelSmoothing`, `AdvReg`, `DP`, `MixupMMD`, and `PATE`.
+Note that you can also specify the `--loss_type` with different loss function, e.g., `ce`, `focal` and `ccql`.
 
 ### Step 1: perform membership inference attacks
 ```
-python mia_example.py 
+python mia.py  --training_type Normal --loss_type ccel --alpha 0.5
 ```
 Note that you can also specify the `--attack_type` with different attacks, e.g., `black-box`, `black-box-sorted`, `black-box-top3`, `metric-based`, and `label-only`.
 

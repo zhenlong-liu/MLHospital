@@ -4,6 +4,8 @@ import yaml
 import os
 from datetime import datetime
 def add_argument_parameter(parser):
+    parser.add_argument('--training_type', type=str, default="Normal",
+                        help='training type')
     parser.add_argument('--batch_size', type=int, default=512,
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=10,
