@@ -4,7 +4,7 @@ import os
 import time
 import sys
 
-from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
+from defenses.membership_inference.NormalLoss import TrainTargetNormal
 
 sys.path.append("..")
 sys.path.append("../..")
@@ -55,7 +55,7 @@ def mixup_data(x, y, device="cuda:0", alpha=1.0, use_cuda=True):
 def mixup_criterion(y_a, y_b, lam):
     return lambda criterion, pred: lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
-class TrainTargetMixup(TrainTargetNormalLoss):
+class TrainTargetMixup(TrainTargetNormal):
     def __init__(self, model, args, mixup =1, **kwargs):
 
         super().__init__(model, args, **kwargs)

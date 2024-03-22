@@ -10,15 +10,15 @@ import copy
 # class LabelSmoothingLoss(torch.nn.Module):
 from runx.logx import logx
 import torch.nn.functional as F
-from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss 
+from defenses.membership_inference.NormalLoss import TrainTargetNormal 
 import torch.nn as nn
-from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from defenses.membership_inference.loss_function_2 import get_loss, get_loss_adj
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 from tqdm import tqdm
 from utils import generate_save_path, get_optimizer, get_scheduler, get_init_args, dict_str
 from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
-class TrainTargetEarlyStopping(TrainTargetNormalLoss):
+class TrainTargetEarlyStopping(TrainTargetNormal):
     def __init__(self, model, args, 
                   **kwargs):
         """

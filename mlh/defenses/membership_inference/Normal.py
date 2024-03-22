@@ -33,29 +33,6 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 
-# class LabelSmoothingLoss(torch.nn.Module):
-#     """
-#     copy from:
-#     https://github.com/pytorch/pytorch/issues/7455
-#     """
-
-#     def __init__(self, classes, smoothing=0.0, dim=-1):
-#         super(LabelSmoothingLoss, self).__init__()
-#         self.confidence = 1.0 - smoothing
-#         self.smoothing = smoothing
-#         self.cls = classes
-#         self.dim = dim
-
-#     def forward(self, pred, target):
-#         pred = pred.log_softmax(dim=self.dim)
-#         with torch.no_grad():
-#             # true_dist = pred.data.clone()
-#             true_dist = torch.zeros_like(pred)
-#             true_dist.fill_(self.smoothing / (self.cls - 1))
-#             true_dist.scatter_(1, target.data.unsqueeze(1), self.confidence)
-#         return torch.mean(torch.sum(-true_dist * pred, dim=self.dim))
-
-
 class TrainTargetNormal(Trainer):
     def __init__(self, model, device="cuda:0", num_class=10, epochs=100, learning_rate=0.01, momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
 
@@ -73,17 +50,7 @@ class TrainTargetNormal(Trainer):
             self.model.parameters(), learning_rate, momentum, weight_decay)
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer, T_max=self.epochs)
-
         self.criterion = nn.CrossEntropyLoss()
-
-        # self.log_path = "%smodel_%s_bs_%s_dataset_%s/%s/label_smoothing_%.1f" % (self.opt.model_save_path, self.opt.model,
-        # #                                                                              self.opt.batch_size, self.opt.dataset, self.opt.mode, self.opt.smooth_eps)
-        # self.model_save_name = 'model_%s_label_smoothing_%.1f' % (
-        #     self.opt.mode, self.opt.smooth_eps)
-
-        # logx.initialize(logdir=self.log_path,
-        #                 coolname=False, tensorboard=False)
-
         self.log_path = log_path
         logx.initialize(logdir=self.log_path,
                         coolname=False, tensorboard=False)

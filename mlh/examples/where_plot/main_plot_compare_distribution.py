@@ -36,12 +36,7 @@ import matplotlib.lines as mlines
 import matplotlib.ticker as ticker
 plt.rcParams['font.family'] = 'Times New Roman'
 from utility.main_parse import add_argument_parameter
-def plot_phi_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device):
-    # Calculate loss for target_train_loader and target_test_loader
-    #target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
-    #target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
-    
-    
+def plot_phi_distribution_together(target_train_loader, target_test_loader, target_model, device):    
     train_loss = compute_phi_stable(target_train_loader, target_model, device)
     test_loss = compute_phi_stable(target_test_loader, target_model, device)
     train_mean = np.mean(train_loss)
@@ -49,11 +44,8 @@ def plot_phi_distribution_together(target_train_loader, target_test_loader, targ
     test_mean = np.mean(test_loss)
     test_variance = np.var(test_loss)
     
-#     dict_sta = {"loss_train_mean":train_mean, "loss_train_variance": train_variance,
-#             "loss_test_mean": test_mean, "loss_test_variance" :test_variance}
     
     print(f'Loss: train_mean:{train_mean: .8f} train_variance:{train_variance: .8f} test_mean:{test_mean: .8f} test_variance:{test_variance: .8f}')
-    # Plot the distribution of entropies
 
     plt.figure(figsize=(8, 6))
     plt.hist(train_loss, bins=50, alpha=0.5, label=f'Train Loss\nMean: {train_mean:.2f}\nVariance: {train_variance:.2f}', color='blue')

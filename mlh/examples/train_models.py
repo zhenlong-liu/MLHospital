@@ -11,7 +11,7 @@ from defenses.membership_inference.MixupMMDLoss import TrainTargetMixupMMDLoss
 from defenses.membership_inference.PATE import TrainTargetPATE
 from defenses.membership_inference.Normal import TrainTargetNormal
 from defenses.membership_inference.KnowledgeDistillation import TrainTargetKnowledgeDistillation
-from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
+from defenses.membership_inference.NormalLoss import TrainTargetNormal
 from defenses.membership_inference.EarlyStopping import TrainTargetEarlyStopping
 from defenses.membership_inference.RelaxLoss import TrainTargetRelaxLoss
 import torch
@@ -72,8 +72,8 @@ if __name__ == "__main__":
         freeze_except_last_layer(target_model)
     save_pth = generate_save_path(opt)
     #save_pth = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}/{opt.mode}/{opt.loss_type}/epochs{opt.epochs}/seed{seed}/{temp_save}'
-    if opt.training_type == "NormalLoss":
-        total_evaluator = TrainTargetNormalLoss(
+    if opt.training_type == "Normal":
+        total_evaluator = TrainTargetNormal(
             model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
 
@@ -81,14 +81,10 @@ if __name__ == "__main__":
         total_evaluator = TrainTargetRelaxLoss(
             model=target_model, args=opt,log_path=save_pth)
         total_evaluator.train(train_loader, test_loader) 
-        """
-        total_evaluator = TrainTargetNormalRelaxLoss(
-            model=target_model, args=opt, train_loader=train_loader, loss_type=opt.loss_type , device= opt.device, epochs=opt.epochs, log_path=save_pth)
-        total_evaluator.train(train_loader, test_loader)    
-        """
+
 
     elif opt.training_type == "Dropout":
-        total_evaluator = TrainTargetNormalLoss(
+        total_evaluator = TrainTargetNormal(
             model=target_model, args=opt, log_path=save_pth)
         total_evaluator.train(train_loader, test_loader)
     
@@ -102,12 +98,7 @@ if __name__ == "__main__":
         total_evaluator = TrainTargetAdvReg(
             model=target_model, args = opt,  log_path=save_pth)
         total_evaluator.train(train_loader, inference_loader, test_loader)
-        #model = total_evaluator.model
 
-    # elif opt.training_type == "DP":
-    #     total_evaluator = TrainTargetDP(
-    #         model=target_model, args=opt, log_path=save_pth)
-    #     total_evaluator.train(train_loader, test_loader)
     
     elif opt.training_type == "DPSGD":
         total_evaluator = TrainTargetDPSGD(

@@ -66,11 +66,6 @@ def get_image_shape(dataloader):
         print("Data loader is empty or exhausted.")
         return None
 
-
-
-
-
-
 if __name__ == "__main__":
     args = parse_args()
     device = args.device
@@ -91,7 +86,7 @@ if __name__ == "__main__":
     else:
         if args.attack_type == "augmentation":
             target_train, target_test, shadow_train, shadow_test = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
-        else:
+        else:  
             target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers)
     #target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
 

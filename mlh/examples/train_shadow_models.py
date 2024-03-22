@@ -11,7 +11,7 @@ from defenses.membership_inference.DP import TrainTargetDPSGD # new
 from defenses.membership_inference.MixupMMDLoss import TrainTargetMixupMMDLoss
 from defenses.membership_inference.PATE import TrainTargetPATE
 from defenses.membership_inference.KnowledgeDistillation import TrainTargetKnowledgeDistillation
-from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
+from defenses.membership_inference.NormalLoss import TrainTargetNormal
 from defenses.membership_inference.EarlyStopping import TrainTargetEarlyStopping
 from defenses.membership_inference.RelaxLoss import TrainTargetRelaxLoss
 import torch
@@ -116,9 +116,9 @@ if __name__ == "__main__":
 
         # train_loader is a dataloader, using next(), feature shape is [128,3,32,32], label shape [128]
     training_type_to_class = {
-        "NormalLoss": TrainTargetNormalLoss,
+        "NormalLoss": TrainTargetNormal,
         "RelaxLoss": TrainTargetRelaxLoss,
-        "Dropout": TrainTargetNormalLoss,
+        "Dropout": TrainTargetNormal,
         "Mixup": TrainTargetMixup,
         "KnowledgeDistillation": TrainTargetKnowledgeDistillation,
         "AdvReg": TrainTargetAdvReg,

@@ -10,9 +10,9 @@ sys.path.append("../..")
 # class LabelSmoothingLoss(torch.nn.Module):
 from runx.logx import logx
 import torch.nn.functional as F
-from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss 
+from defenses.membership_inference.NormalLoss import TrainTargetNormal 
 import torch.nn as nn
-from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from defenses.membership_inference.loss_function_2 import get_loss, get_loss_adj
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 from tqdm import tqdm
@@ -106,7 +106,7 @@ def mixup_data(x, y, alpha=1.0, device = "cuda", use_cuda=True):
 def mixup_criterion(y_a, y_b, lam):
     return lambda criterion, pred: lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
-class TrainTargetMixupMMDLoss(TrainTargetNormalLoss):
+class TrainTargetMixupMMDLoss(TrainTargetNormal):
     def __init__(self, model, args, mixup=1, mixup_alpha=1.0, mmd_loss_lambda=3, 
                   **kwargs):
         """

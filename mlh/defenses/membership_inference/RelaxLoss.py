@@ -8,12 +8,12 @@ import time
 from runx.logx import logx
 import torch.nn.functional as F
 from defenses.membership_inference.trainer import Trainer
-from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
+from defenses.membership_inference.NormalLoss import TrainTargetNormal
 import torch.nn as nn
-from defenses.membership_inference.loss_function import*
+from defenses.membership_inference.loss_function_2 import*
 from utils import CrossEntropy_soft, one_hot_embedding
 
-from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from defenses.membership_inference.loss_function_2 import get_loss, get_loss_adj
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 from tqdm import tqdm
@@ -43,7 +43,7 @@ from functools import partial
 #         return torch.mean(torch.sum(-true_dist * pred, dim=self.dim))
 
 
-class TrainTargetRelaxLoss(TrainTargetNormalLoss):
+class TrainTargetRelaxLoss(TrainTargetNormal):
     def __init__(self, model, args, **kwargs):
 
         super().__init__(model, args, **kwargs)

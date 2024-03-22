@@ -39,7 +39,7 @@ from utility.metrics import Metrics, StaMetrics
 #         return torch.mean(torch.sum(-true_dist * pred, dim=self.dim))
 
 
-class TrainTargetNormalLoss(Trainer):
+class TrainTargetNormal(Trainer):
     def __init__(self, model, args, momentum=0.9, weight_decay=5e-4, smooth_eps=0.8, log_path="./"):
 
         super().__init__()
@@ -54,20 +54,9 @@ class TrainTargetNormalLoss(Trainer):
         self.loss_type = args.loss_type
         self.learning_rate = args.learning_rate
         self.optimizer = get_optimizer(args.optimizer, self.model.parameters(),self.learning_rate, momentum, self.weight_decay)
-        #self.optimizer = torch.optim.SGD( self.model.parameters(), self.learning_rate, momentum, weight_decay)
         self.sta_book = StaMetrics()
         self.scheduler = get_scheduler(scheduler_name = args.scheduler, optimizer =self.optimizer, t_max=self.epochs)
-        #self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epochs)
         self.criterion = self.initialize_criterion()
-        
-        # self.log_path = "%smodel_%s_bs_%s_dataset_%s/%s/label_smoothing_%.1f" % (self.opt.model_save_path, self.opt.model,
-        # #                                                                              self.opt.batch_size, self.opt.dataset, self.opt.mode, self.opt.smooth_eps)
-        # self.model_save_name = 'model_%s_label_smoothing_%.1f' % (
-        #     self.opt.mode, self.opt.smooth_eps)
-
-        # logx.initialize(logdir=self.log_path,
-        #                 coolname=False, tensorboard=False)
-
         self.log_path = log_path
         logx.initialize(logdir=self.log_path,
                         coolname=False, tensorboard=False)

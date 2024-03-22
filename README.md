@@ -19,7 +19,7 @@ python setup.py install;
 
 ```
 cd MLHospital/mlh/examples;
-python train_target_models.py --mode target;
+python train_models.py --mode target --training_type Normal --loss_type  --alpha 0.5 ;
 python train_target_models.py --mode shadow;
 ```
 Note that you can also specify the `--training_type` with different defense mechanisms, e.g., `Normal`, `LabelSmoothing`, `AdvReg`, `DP`, `MixupMMD`, and `PATE`.

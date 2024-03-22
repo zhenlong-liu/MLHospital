@@ -34,11 +34,11 @@ from opacus import PrivacyEngine
 from opacus.validators import ModuleValidator
 from tqdm import tqdm
 from utils import get_optimizer, get_scheduler, get_init_args, dict_str
-from defenses.membership_inference.loss_function import get_loss
-from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
+from defenses.membership_inference.loss_function_2 import get_loss
+from defenses.membership_inference.NormalLoss import TrainTargetNormal
 
 
-class TrainTargetDPSGD(TrainTargetNormalLoss):
+class TrainTargetDPSGD(TrainTargetNormal):
     def __init__(self, model, args, delta=1e-5,momentum=0.9, weight_decay=5e-4, **kwargs):
         
         super().__init__(model, args, **kwargs)

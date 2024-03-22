@@ -26,7 +26,7 @@ import os
 import time
 from runx.logx import logx
 import torch.nn as nn
-from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss
+from defenses.membership_inference.NormalLoss import TrainTargetNormal
 from defenses.membership_inference.trainer import Trainer
 
 import sys
@@ -35,7 +35,7 @@ sys.path.append("../..")
 
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
-from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from defenses.membership_inference.loss_function_2 import get_loss, get_loss_adj
 from tqdm import tqdm
 from utils import get_optimizer, get_scheduler, get_init_args, dict_str
 from utility.main_parse import save_namespace_to_yaml, save_dict_to_yaml
@@ -78,7 +78,7 @@ class AttackAdvReg(nn.Module):
         return self.output(is_member)
 
 
-class TrainTargetAdvReg(TrainTargetNormalLoss):
+class TrainTargetAdvReg(TrainTargetNormal):
     def __init__(self, model, args, delta=1e-5,momentum=0.9, weight_decay=5e-4, **kwargs):
 
         super().__init__(model, args, **kwargs)

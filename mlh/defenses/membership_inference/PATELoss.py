@@ -41,9 +41,9 @@ sys.path.append("../..")
 # class LabelSmoothingLoss(torch.nn.Module):
 from runx.logx import logx
 import torch.nn.functional as F
-from defenses.membership_inference.NormalLoss import TrainTargetNormalLoss 
+from defenses.membership_inference.NormalLoss import TrainTargetNormal 
 import torch.nn as nn
-from defenses.membership_inference.loss_function import get_loss, get_loss_adj
+from defenses.membership_inference.loss_function_2 import get_loss, get_loss_adj
 
 from tqdm import tqdm
 from utils import get_optimizer, get_scheduler, get_init_args, dict_str
@@ -78,7 +78,7 @@ class Classifier(nn.Module):
 
 # https://github.com/tensorflow/privacy maybe also check it to update?
 
-class TrainTargetPATELoss(TrainTargetNormalLoss):
+class TrainTargetPATELoss(TrainTargetNormal):
     def __init__(self, model, args, num_teacher=20, pate_epsilon=0.2, log_path="./", **kwargs):
        
          
