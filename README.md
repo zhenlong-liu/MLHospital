@@ -19,8 +19,8 @@ python setup.py install;
 
 ```
 cd MLHospital/mlh/examples;
-python train_models.py --mode target --training_type Normal --loss_type ccel --alpha 0.5;
-python train_models.py --mode shadow --training_type Normal --loss_type ccel --alpha 0.5;
+python train_models.py --mode target --training_type Normal --loss_type ccel --alpha 0.5 --gpu 0;
+python train_models.py --mode shadow --training_type Normal --loss_type ccel --alpha 0.5 --gpu 0;
 ```
 Note that you can also specify the `--loss_type` with different loss function, e.g., `ce`, `focal` and `ccql`.
 
