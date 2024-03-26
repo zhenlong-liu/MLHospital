@@ -110,8 +110,6 @@ class CCQL(nn.Module):
 
 
 
-
-
 class FocalCCEL(nn.Module):
     def __init__(self, alpha = 1, beta = 1, gamma=1.0,reduction='mean'):
         super(FocalCCEL, self).__init__()
