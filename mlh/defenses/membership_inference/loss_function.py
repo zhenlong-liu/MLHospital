@@ -878,6 +878,37 @@ class ConcaveExpOneLoss(nn.Module):
     def forward(self, input, target):
         return self.beta*ce_concave_exp_loss(F.cross_entropy(input, target, reduction="none"), self.alpha, (1-self.alpha), self.gamma, reduction = self.reduction)
 
+
+def ce_concave_exp_loss_0(input_values, alpha, beta):
+    p = torch.exp(-input_values)
+    
+    loss = alpha * input_values - beta *torch.exp(p)
+    return loss
+
+class CCEL(nn.Module):
+    def __init__(self, alpha = 0.5, beta = 1, gamma=1.0, tau =1, reduction='mean'):
+        super(CCEL, self).__init__()
+        assert gamma >= 1e-7
+        self.gamma = gamma
+        self.alpha = alpha
+        self.beta = beta
+        self.reduction_ = reduction
+    def forward(self, input, target):
+        # Calculate the cross-entropy loss without reduction
+        ce_loss = F.cross_entropy(input, target, reduction="none")
+        # Pass the calculated cross-entropy loss along with other parameters to your custom loss function
+        # Ensure that the 'reduction' argument is not passed again if it's already expected by ce_concave_exp_loss function
+        modified_loss = ce_concave_exp_loss_0(ce_loss, self.alpha, (1-self.alpha))
+        # Apply the beta scaling and reduce the loss as needed
+        if self.reduction_ == 'mean':
+            return self.beta * modified_loss.mean()
+        elif self.reduction_ == 'sum':
+            return self.beta * modified_loss.sum()
+        else:
+            # If reduction is 'none', just return the scaled loss
+            return self.beta * modified_loss
+
+
 class ConcaveQ(nn.Module):
     def __init__(self, alpha = 1, beta = 1, gamma=1.0, tau =1,reduction='mean'):
         super(ConcaveQ, self).__init__()
