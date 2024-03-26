@@ -130,7 +130,7 @@ def generate_save_path_2(opt):
     gamma_save = standard_float(opt.gamma)
     tau_save = standard_float(opt.tau)
     #alpha_save = str(opt.alpha).rstrip('0').rstrip('.') if '.' in str(opt.alpha) else str(opt.alpha)
-    save_path2 =  f"{opt.loss_type}/epochs{opt.epochs}/seed{opt.seed}/{temp_save}/{alpha_save}/{gamma_save}/{tau_save}"
+    save_path2 =  f"{opt.loss_type}/epochs{opt.epochs}/seed{opt.seed}/{temp_save}/{alpha_save}/{gamma_save}/{tau_save}/optimizer_{opt.optimizer}"
     return save_path2
         
 def standard_float(hyper_parameter):
@@ -153,9 +153,12 @@ def get_optimizer(optimizer_name, model_parameters, learning_rate=0.1, momentum=
     if optimizer_name.lower() == 'sgd':
         optimizer = optim.SGD(model_parameters, lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
     elif optimizer_name.lower() == 'adam':
-        optimizer = optim.Adam(model_parameters, lr=learning_rate, weight_decay=weight_decay)
+        optimizer = optim.Adam(model_parameters, lr=0.001)
     elif optimizer_name.lower() == "adamw":
         optimizer = AdamW(model_parameters, lr=learning_rate)
+    elif optimizer_name.lower() == "rmsprop":
+        optimizer = torch.optim.RMSprop(model_parameters, lr=0.001)
+
     else:
         raise ValueError("'sgd' or 'adam'.")
 
@@ -181,7 +184,7 @@ def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t
     """
     if isinstance(optimizer, torch.optim.Adam):
         return DummyScheduler()
-    if scheduler_name.lower() == 'dummy':
+    if scheduler_name.lower() in ['dummy','rmsprop'] :
         return DummyScheduler()
     if scheduler_name.lower() == 'step':
         scheduler = lr_scheduler.StepLR(optimizer, step_size=30, gamma=decay_factor)
