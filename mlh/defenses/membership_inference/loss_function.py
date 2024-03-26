@@ -10,8 +10,7 @@ def get_loss(loss_type, device, args, num_classes = 10, reduction = "mean"):
         "ccel":CCEL(alpha = args.alpha, beta = args.beta),
         "ccql":CCQL(alpha = args.alpha, beta = args.beta),
         "focal_ccel": FocalCCEL(alpha = args.alpha, beta = args.beta, gamma = args.gamma),
-        "cce": ConcaveExpOneLoss(alpha = args.alpha, beta = args.beta )
-    }
+        }
     return CONFIG[loss_type]
 
 
