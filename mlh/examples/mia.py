@@ -88,16 +88,10 @@ if __name__ == "__main__":
             target_train, target_test, shadow_train, shadow_test = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
         else:  
             target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers)
-    #target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader = s.get_data_supervised_ni()
 
-    target_model = get_target_model(name= args.model, num_classes=args.num_class)
-    
-    if args.training_type == "Dropout":
-        target_model = get_target_model(name=args.model, num_classes=args.num_class, dropout = args.tau)
-        shadow_model = get_target_model(name= args.model, num_classes=args.num_class, dropout = args.tau)
-    else: 
-        target_model = get_target_model(name=args.model, num_classes=args.num_class)
-        shadow_model = get_target_model(name= args.model, num_classes=args.num_class)
+
+    target_model = get_target_model(name=args.model, num_classes=args.num_class)
+    shadow_model = get_target_model(name= args.model, num_classes=args.num_class)
 
     temp_save = str(args.temp).rstrip('0').rstrip('.') if '.' in str(args.temp) else str(args.temp)
 
@@ -106,69 +100,25 @@ if __name__ == "__main__":
         load_path_target = f"{args.load_model_path}/{args.model}.pth"
         load_path_shadow = load_path_target.replace("/target/", "/shadow/")
         save_path = args.load_model_path
-    elif args.training_type == "DPSGD":
-        # load_path_target = f'{generate_save_path(args, mode = "target")}/{args.model}.pth'
-        # load_path_shadow = f'{generate_save_path(args, mode = "shadow")}/{args.model}.pth'
-        
-        load_path_target = f'{generate_save_path(args, mode = "target")}/{args.model}.pt'
-        load_path_shadow = f'{generate_save_path(args, mode = "shadow")}/{args.model}.pt'
-        save_path = generate_save_path(args, mode = "target")
-        
     else:
         load_path_target = f'{generate_save_path(args, mode = "target")}/{args.model}.pth'
         load_path_shadow = f'{generate_save_path(args, mode = "shadow")}/{args.model}.pth'
         save_path = generate_save_path(args, mode = "target")
     # load target/shadow model to conduct the attacks
+
+    target_model.load_state_dict(torch.load(load_path_target, map_location=args.device))
+    shadow_model.load_state_dict(torch.load(load_path_shadow, map_location=args.device))
     
-    if args.training_type == "DPSGD":
-        
-        #target_model = ModuleValidator.fix(target_model)
-        #shadow_model = ModuleValidator.fix(shadow_model)
-        
-        # target_model.load_state_dict(torch.load(load_path_target, map_location=args.device))
-        # shadow_model.load_state_dict(torch.load(load_path_shadow, map_location=args.device))
-        target_model = torch.load(load_path_target)
-        shadow_model = torch.load(load_path_shadow)
-    else:
-        target_model.load_state_dict(torch.load(load_path_target, map_location=args.device))
-        shadow_model.load_state_dict(torch.load(load_path_shadow, map_location=args.device))
-    
-    if args.plot_distribution:
-        plot_celoss_distribution_together(target_train,target_test,target_model,save_path=save_path,device= args.device) 
-        exit()
+
 
     target_model = target_model.to(args.device)
     target_model.eval()
     shadow_model = shadow_model.to(args.device)
     shadow_model.eval()
-    # generate attack dataset
-    # or "black-box, black-box-sorted", "black-box-top3", "metric-based", and "label-only"
     attack_type = args.attack_type
-    
-    # save_path = f'{args.log_path}/{args.dataset}/{args.model}/{args.training_type}/target/{args.loss_type}/epochs{args.epochs}/seed{seed}/{temp_save}'
-    
-    #plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
-    # check whether there exits loss distribtion
-    # if check_loss_distr:
-    #     plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
 
-    #     plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device)
-
-    # attack_type = "metric-based"
     if attack_type != "augmentation":
         input_shape = get_image_shape(target_train_loader)
-    if attack_type == "label-only":
-        attack_model = LabelOnlyMIA(
-            device=args.device,
-            target_model=target_model.eval(),
-            shadow_model=shadow_model.eval(),
-            save_path = save_path,
-            target_loader=(target_train_loader, target_test_loader),
-            shadow_loader=(shadow_train_loader, shadow_test_loader),
-            input_shape=input_shape,
-            nb_classes=args.num_class)
-        auc = attack_model.Infer()
-        print(auc)
     elif attack_type == "augmentation":
         attack_dataset_rotation = AugemtaionAttackDataset( args, "rotation" , target_model, shadow_model,
                                         target_train, target_test, shadow_train, shadow_test,device)
@@ -195,17 +145,6 @@ if __name__ == "__main__":
             batch_size=128)
     elif "metric-based" in attack_type:
 
-        attack_model = MetricBasedMIA(
-            args = args,
-            num_class=args.num_class,
-            device=args.device,
-            attack_type=attack_type,
-            attack_train_dataset=attack_dataset.attack_train_dataset,
-            attack_test_dataset=attack_dataset.attack_test_dataset,
-            #train_loader = target_train_loader,
-            save_path = save_path,
-            batch_size=128)
-    elif "white_box" in attack_type:
         attack_model = MetricBasedMIA(
             args = args,
             num_class=args.num_class,
