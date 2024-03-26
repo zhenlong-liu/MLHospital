@@ -9,7 +9,8 @@ def get_loss(loss_type, device, args, num_classes = 10, reduction = "mean"):
         "focal": FocalLoss(gamma = args.alpha, beta = args.beta),
         "ccel":CCEL(alpha = args.alpha, beta = args.beta),
         "ccql":CCQL(alpha = args.alpha, beta = args.beta),
-        "focal_ccel": FocalCCEL(alpha = args.alpha, beta = args.beta, gamma = args.gamma)
+        "focal_ccel": FocalCCEL(alpha = args.alpha, beta = args.beta, gamma = args.gamma),
+        "cce": ConcaveExpOneLoss(alpha = args.alpha, beta = args.beta )
     }
     return CONFIG[loss_type]
 
@@ -68,6 +69,9 @@ def ce_concave_exp_loss(input_values, alpha, beta):
     
     loss = alpha * input_values - beta *torch.exp(p)
     return loss
+
+
+
 
 class CCEL(nn.Module):
     def __init__(self, alpha = 0.5, beta = 1, gamma=1.0, tau =1, reduction='mean'):

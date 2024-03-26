@@ -40,7 +40,7 @@ def add_argument_parameter(parser):
     parser.add_argument('--augment_kwarg_translation', type=int, default=1, help='translation parameter')
     parser.add_argument('--augment_kwarg_rotation', type=int, default=4, help='rotation parameter')
     parser.add_argument('--noise_scale', type=float, default=100, help='noise scale for DPSGD')
-    parser.add_argument('--beta', type=float, default=0, help='Dropout rate')
+    parser.add_argument('--beta', type=float, default=1)
     parser.add_argument('--gamma', type=float, default=1, help='adjust parameter')
     parser.add_argument('--loss_adjust', action='store_true', default=False, help='if invoke loss_adj function')
     parser.add_argument('--inference', action='store_true', default=False, help='if spilt inference dataset')

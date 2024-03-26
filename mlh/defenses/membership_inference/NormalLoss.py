@@ -154,7 +154,7 @@ class TrainTargetNormal(Trainer):
                 # torch.Size([128, 10])
                 
                 loss = self.criterion(logits, label)
-                
+
                 loss.backward()
                 losses.append(loss.item())
                 self.optimizer.step()
