@@ -1,4 +1,4 @@
-name: mlh2
+name: ml-hospital
 channels:
   - pytorch
   - nvidia

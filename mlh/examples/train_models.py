@@ -46,7 +46,6 @@ if __name__ == "__main__":
     temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
     target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
     save_pth = generate_save_path(opt)
-    #save_pth = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}/{opt.mode}/{opt.loss_type}/epochs{opt.epochs}/seed{seed}/{temp_save}'
     if opt.training_type == "Normal":
         total_evaluator = TrainTargetNormal(
             model=target_model, args=opt, log_path=save_pth)
