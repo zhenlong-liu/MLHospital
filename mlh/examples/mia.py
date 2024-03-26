@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
     if attack_type != "augmentation":
         input_shape = get_image_shape(target_train_loader)
-    elif attack_type == "augmentation":
+    if attack_type == "augmentation":
         attack_dataset_rotation = AugemtaionAttackDataset( args, "rotation" , target_model, shadow_model,
                                         target_train, target_test, shadow_train, shadow_test,device)
         
