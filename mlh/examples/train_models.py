@@ -38,21 +38,13 @@ if __name__ == "__main__":
         target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =opt.batch_size, num_workers =opt.num_workers)
     #  target model  shadow model
     if opt.mode == "target":
-        train_loader, test_loader = target_train_loader, target_test_loader
-        
-    # train_loader is a dataloader, using next(), feature shape is [128,3,32,32], label shape [128]
-    
+        train_loader, test_loader = target_train_loader, target_test_loader    
     elif opt.mode == "shadow":
         train_loader, test_loader = shadow_train_loader, shadow_test_loader
     else:
         raise ValueError("opt.mode should be target or shadow")
     temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
-    if opt.training_type == "Dropout":
-        target_model = get_target_model(name=opt.model, num_classes=opt.num_class, dropout = opt.tau)
-    else: 
-        target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
-    if opt.finetune:
-        freeze_except_last_layer(target_model)
+    target_model = get_target_model(name=opt.model, num_classes=opt.num_class)
     save_pth = generate_save_path(opt)
     #save_pth = f'{opt.log_path}/{opt.dataset}/{opt.model}/{opt.training_type}/{opt.mode}/{opt.loss_type}/epochs{opt.epochs}/seed{seed}/{temp_save}'
     if opt.training_type == "Normal":
