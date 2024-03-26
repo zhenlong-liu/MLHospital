@@ -19,5 +19,5 @@ Note that you can also specify the `--loss_type` with different loss function, e
 
 ### Step 1: perform membership inference attacks
 ```
-python mia.py  --training_type Normal --loss_type ccel --alpha 0.5
+python mia.py  --training_type Normal --loss_type ccel --alpha 0.5 --scheduler multi_step --epoch 300 --learning_rate 0.1;
 ```
