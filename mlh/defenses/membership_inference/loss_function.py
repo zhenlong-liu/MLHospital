@@ -49,13 +49,7 @@ def taylor_exp(input_values, alpha, reduction="mean"):
         return loss.sum()
     else:
         raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
-    
-def ce_concave_exp_loss(input_values, alpha, beta):
-    """Computes the focal loss"""
-    p = torch.exp(-input_values)
-    
-    loss = alpha * input_values - beta *torch.exp(p)
-    return loss
+
 def concave_exp_loss(input_values, gamma =1, reduction="mean"):
     """Computes the focal loss"""
     p = torch.exp(-input_values)
@@ -68,7 +62,12 @@ def concave_exp_loss(input_values, gamma =1, reduction="mean"):
         return loss.sum()
     else:
         raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
-
+    
+def ce_concave_exp_loss(input_values, alpha, beta):
+    p = torch.exp(-input_values)
+    
+    loss = alpha * input_values - beta *torch.exp(p)
+    return loss
 
 class CCEL(nn.Module):
     def __init__(self, alpha = 0.5, beta = 1, gamma=1.0, tau =1, reduction='mean'):
