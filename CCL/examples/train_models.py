@@ -5,7 +5,7 @@ sys.path.append("../..")
 from utility.main_parse import add_argument_parameter
 from utility.utilis_train import load_teacher_model, freeze_except_last_layer, set_random_seed
 
-from defenses.membership_inference.NormalLoss import TrainTargetNormal
+from defenses.membership_inference.standard import TrainTargetNormal
 
 import torch
 import torch.nn as nn

@@ -184,9 +184,9 @@ A100_record
 
 .idea/
 
-mlh/examples/run_cmd/
+CCL/examples/run_cmd/
 cmd
-mlh/examples/run_cmd_record/parameter_space_cifar100_reference.py
+CCL/examples/run_cmd_record/parameter_space_cifar100_reference.py
 *.pdf
-mlh/defenses/membership_inference/lzl_test2.ipynb
+CCL/defenses/membership_inference/lzl_test2.ipynb
 *.png
