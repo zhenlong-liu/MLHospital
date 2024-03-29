@@ -19,7 +19,7 @@ def add_argument_parameter(parser):
                         help='dataset')
     parser.add_argument('--num_class', type=int, default=10,
                         help='number of classes')
-    parser.add_argument('--data_path', type=str, default='../datasets/',
+    parser.add_argument('--data_path', type=str, default='../data/',
                         help='data_path')
     parser.add_argument('--input_shape', type=str, default="32,32,3",
                         help='comma delimited input shape input')

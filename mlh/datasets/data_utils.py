@@ -1,5 +1,6 @@
 
 
+
 import torch
 import os
 
@@ -43,77 +44,21 @@ def count_dataset(targetTrainloader, targetTestloader, shadowTrainloader, shadow
     print(shadow_train)
     print(shadow_test)
 
-"""
-def prepare_dataset(dataset, select_num=None):
-    
-    length = len(dataset)
-    each_length = length//6
-    # if we specify a number, we use the number to split data
-    if select_num != None and select_num < each_length:
-        each_length = select_num
-    # print(dataset.category_label_index_dict)
-    torch.manual_seed(0)
-    target_train, target_inference, target_test, shadow_train,  shadow_inference, shadow_test, _ = torch.utils.data.random_split(
-        dataset, [each_length, each_length, each_length, each_length, each_length, each_length, len(dataset)-(each_length*6)])
-    
-    if select_num != None:
-        target_train, target_inference, target_test, shadow_train,  shadow_inference, shadow_test, _ = torch.utils.data.random_split(
-        dataset, select_num)
-    return target_train, target_inference, target_test, shadow_train, shadow_inference, shadow_test
-"""
-def prepare_dataset(dataset, select_num=None):
-    
-    length = len(dataset)
-    each_length = length//6
-    # if we specify a number, we use the number to split data
-    torch.manual_seed(0)
-    if select_num is None:
-        target_train, target_inference, target_test, shadow_train,  shadow_inference, shadow_test, _ = torch.utils.data.random_split(
-            dataset, [each_length, each_length, each_length, each_length, each_length, each_length, len(dataset)-(each_length*6)])
+
+def generate_dataset(dataset, split_size = None):
+    if split_size is None:
+        raise ValueError("nums should be a list of numbers")
     else:
-        target_train, target_inference, target_test, shadow_train,  shadow_inference, shadow_test = torch.utils.data.random_split(
-        dataset, select_num)
-    # print(dataset.category_label_index_dict)
-        
-    return target_train, target_inference, target_test, shadow_train, shadow_inference, shadow_test
-
-def prepare_dataset_ni(dataset, select_num=None):
-    # no inference
-    length = len(dataset)
-    each_length = length//4
-    # if we specify a number, we use the number to split data
-    torch.manual_seed(0)
-    if select_num is None:
-        target_train, target_test, shadow_train, shadow_test, _ = torch.utils.data.random_split(
-            dataset, [each_length, each_length, each_length, each_length, len(dataset)-(each_length*4)])
-    else:
-        target_train, target_test, shadow_train, shadow_test = torch.utils.data.random_split(
-        dataset, select_num)
-    # print(dataset.category_label_index_dict)
-        
-    return target_train, target_test, shadow_train, shadow_test
-
-def prepare_dataset_inference(dataset, select_num=None):
-    # no inference
-    length = len(dataset)
-    each_length = length//5
-    # if we specify a number, we use the number to split data
-    if select_num is None:
-        target_train, target_test,inference, shadow_train, shadow_test, _ = torch.utils.data.random_split(
-            dataset, [each_length, each_length, each_length, each_length, each_length, len(dataset)-(each_length*5)])
-    else:
-        target_train, target_test, inference, shadow_train, shadow_test = torch.utils.data.random_split(
-        dataset, select_num)
-    # print(dataset.category_label_index_dict)
-        
-    return target_train, target_test, inference, shadow_train, shadow_test
-
-
+        bin_size = len(dataset)//split_size
+        dataset_list = [bin_size for i in range(split_size)]
+        dataset = torch.utils.data.random_split(dataset, dataset_list)
+        return dataset
+    
+    
 def prepare_dataset_target(dataset, select_num=None):
 
     if select_num is None:
         select_num = [0.5, 0.5]
-    # print(dataset.category_label_index_dict)
     target_train, target_test= torch.utils.data.random_split(
         dataset, select_num)
     return target_train, target_test
@@ -171,15 +116,6 @@ def split_dataset(dataset, parts=3, part_size=None):
     return train_, inference_, test_
 
 
-def prepare_inference_dataset(dataset):
-    each_length = len(dataset) // 2
-    torch.manual_seed(0)
-    inference_train, inference_test, _ = torch.utils.data.random_split(
-        dataset, [each_length, each_length, len(dataset)-(each_length*2)]
-    )
-    return inference_train, inference_test
-
-
 def cut_dataset(dataset, num):
 
     length = len(dataset)
@@ -194,3 +130,12 @@ def count_dataset_for_class(num_class, dataset):
     for label in range(num_class):
         indices = [i for i in range(len(dataset)) if dataset[i][1] == label]
         print("class: %d,  data num: %d" % (label, len(indices)))
+
+
+SUPPORTED_IMAGE_DATASETS = set(["CIFAR10",
+                                "CIFAR100",
+                                "MNIST",
+                                "EMNIST",
+                                "FashionMNIST"
+                                "imagenet"
+                                ])

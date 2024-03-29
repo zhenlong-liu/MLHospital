@@ -1,13 +1,8 @@
 import os
-import sys
 import torch
 import numpy as np
 import urllib.request
 import tarfile
-#FILE_DIR = os.path.dirname(os.path.abspath(__file__))
-#DATA_ROOT = os.path.join(FILE_DIR, '../../data')
-#sys.path.append(os.path.join(FILE_DIR, '../'))
-
 from torch.utils.data import Dataset
 
 
