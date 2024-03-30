@@ -146,24 +146,9 @@ class WhiteBoxAttackModel(nn.Module):
         label_component_result = self.label_component(original_label)
         output_component_result = self.output_component(output)
         gradient_component_result = self.gradient_component(gradient)
-        # embedding_component_result = self.embedding_component(embedding)
-
         loss_component_result = self.loss_component(loss)
-
-        # Loss_Component_result = F.softmax(Loss_Component_result, dim=1)
-        # Gradient_Component_result = F.softmax(Gradient_Component_result, dim=1)
-
-        # final_inputs = Output_Component_result
-        # final_inputs = Loss_Component_result
-        # final_inputs = Gradient_Component_result
-        # final_inputs = Label_Component_result
-
-        # final_inputs = torch.cat((label_component_result, output_component_result,
-        #                           gradient_component_result, embedding_component_result, loss_component_result), 1)
         final_inputs = torch.cat((label_component_result, output_component_result,
                                   gradient_component_result, loss_component_result), 1)
-        # final_inputs = torch.cat((label_component_result, output_component_result, embedding_component_result, loss_component_result), 1)
-        # final_inputs = output_component_result
         final_result = self.encoder_component(final_inputs)
 
         return final_result
