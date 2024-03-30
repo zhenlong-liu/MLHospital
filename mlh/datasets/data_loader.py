@@ -124,13 +124,16 @@ class BuildDataLoader(object):
         return dataset
 
 
-    def get_split_dataset(self, batch_size, num_workers=2, split_size=4):
+    def get_split_dataset(self, batch_size, num_workers=2, split_size=4, get_dataset=False):
         train_transform = self.get_data_transform(self.args.dataset)
         test_transform = self.get_data_transform(self.args.dataset)
 
         dataset = self.get_dataset(train_transform, test_transform)
 
         dataset_all = generate_dataset(dataset, split_size=split_size)
+        
+        if(get_dataset):
+            return dataset_all
         
         print("Preparing dataloader!")
         print("dataset: ", len(dataset))
@@ -283,9 +286,8 @@ class BuildDataLoader(object):
         test_transform = self.get_data_transform(self.args.dataset)
         dataset = self.get_dataset(train_transform, test_transform)
 
-        target_train, _,  inference, shadow_train, _ = prepare_dataset_inference(
-            dataset, select_num=None)
-            # sort by label
+        target_train, _,  inference, shadow_train, _ = generate_dataset(dataset, split_size=5)
+        # sort by label
         target_train_sorted = self.get_ordered_dataset(target_train)
         target_inference_sorted = self.get_ordered_dataset(inference) # dataset
         shadow_train_sorted = self.get_ordered_dataset(shadow_train)
