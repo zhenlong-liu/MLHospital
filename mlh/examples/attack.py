@@ -10,8 +10,9 @@ from mlh.attacks.membership_inference.black_box_attack import BlackBoxMIA
 from mlh.attacks.membership_inference.label_only_attack import LabelOnlyMIA
 from mlh.attacks.membership_inference.metric_based_attack import MetricBasedMIA
 import torch
-from data_preprocessing.data_loader_target import BuildDataLoader
-from utils import get_target_model, generate_save_path, plot_celoss_distribution_together
+from datasets.data_loader import BuildDataLoader
+from models.model_utils import get_model
+from utils import generate_save_path
 import argparse
 import numpy as np
 import os
@@ -75,23 +76,23 @@ if __name__ == "__main__":
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)    
     os.environ['PYTHONHASHSEED'] = str(seed)
-    s = BuildDataLoader(args)
+    data_loader = BuildDataLoader(args)
     
     if args.inference:
         if args.attack_type == "augmentation":
-            target_train, target_test, _, shadow_train, shadow_test = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+            target_train, target_test, _, shadow_train, shadow_test = data_loader.get_split_dataset(batch_size =args.batch_size,  num_workers =args.num_workers, split_size=5, get_dataset=True)
         else:
-            target_train_loader, target_test_loader, _,shadow_train_loader, shadow_test_loader  = s.get_data_supervised_inference(batch_size =args.batch_size, num_workers =args.num_workers)
+            target_train_loader, target_test_loader, _,shadow_train_loader, shadow_test_loader  = data_loader.get_split_dataset(batch_size =args.batch_size, num_workers =args.num_workers,split_size=5)
         
     else:
         if args.attack_type == "augmentation":
-            target_train, target_test, shadow_train, shadow_test = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers, if_dataset=True)
+            target_train, target_test, shadow_train, shadow_test = data_loader.get_split_dataset(batch_size =args.batch_size, num_workers =args.num_workers, split_size=4, if_dataset=True)
         else:  
-            target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = s.get_data_supervised_ni(batch_size =args.batch_size, num_workers =args.num_workers)
+            target_train_loader, target_test_loader, shadow_train_loader, shadow_test_loader  = data_loader.get_split_dataset(batch_size =args.batch_size, num_workers =args.num_workers, split_size=4)
 
 
-    target_model = get_target_model(name=args.model, num_classes=args.num_class)
-    shadow_model = get_target_model(name= args.model, num_classes=args.num_class)
+    target_model = get_model(name=args.model, num_classes=args.num_class)
+    shadow_model = get_model(name= args.model, num_classes=args.num_class)
 
     temp_save = str(args.temp).rstrip('0').rstrip('.') if '.' in str(args.temp) else str(args.temp)
 

@@ -1,5 +1,5 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 
 
@@ -7,8 +7,8 @@ def get_loss(loss_type, device, args, num_classes = 10, reduction = "mean"):
     CONFIG = {
         "ce": nn.CrossEntropyLoss(),
         "focal": FocalLoss(gamma = args.alpha, beta = args.beta),
-        "ccel":CCEL(alpha = args.alpha, beta = args.beta),
-        "ccql":CCQL(alpha = args.alpha, beta = args.beta),
+        "ccel": CCEL(alpha = args.alpha, beta = args.beta),
+        "ccql": CCQL(alpha = args.alpha, beta = args.beta),
         "focal_ccel": FocalCCEL(alpha = args.alpha, beta = args.beta, gamma = args.gamma),
         }
     return CONFIG[loss_type]
@@ -26,7 +26,7 @@ def focal_loss(input_values, gamma, reduction="mean"):
     elif reduction == "sum":
         return loss.sum()
     else:
-        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'.")
+        raise ValueError("Invalid reduction option. Use 'none', 'mean', or 'sum'")
 class FocalLoss(nn.Module):
     def __init__(self, gamma=0., beta = 1,reduction='mean'):
         super(FocalLoss, self).__init__()
