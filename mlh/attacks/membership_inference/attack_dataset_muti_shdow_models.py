@@ -1,9 +1,6 @@
 import numpy as np
-import torch
-
 from attacks.membership_inference.attack_dataset import ModelParser
 from attacks.membership_inference.attack_utils import ensure_list
-
 
 class AttackDatasetMutiShadowModels:
     """

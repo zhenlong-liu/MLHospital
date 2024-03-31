@@ -1,24 +1,20 @@
 
 import sys
+import yaml
+import argparse
 import numpy as np
+import gc
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
 
-from torch.optim.adamw import AdamW
-
-from models.models_non_image import  Purchase,Texas
-import yaml
-from models.resnet import resnet20
+import torch
 import torch.nn as nn
-import torchvision
-#from transformers import ViTForImageClassification
 import torch.optim as optim
-from torch.optim.lr_scheduler import CosineAnnealingLR
-import torch, gc
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-import argparse
+from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader, Dataset
-#from transformers import AdamW
+import torch.optim.lr_scheduler as lr_scheduler
+
 sys.path.append("..")
 sys.path.append("../..")
 def store_dict_to_yaml(my_dict, save_path, file_name):
@@ -62,13 +58,8 @@ def call_function_from_module(module_name, function_name):
     """
 
     try:
-        # Dynamically import the specified module
         mod = importlib.import_module(module_name)
-
-        # Get the specified function from the module
         func = getattr(mod, function_name)
-
-        # Call the function and return its result
         return func
     except ImportError as e:
         print(f"Error importing module: {e}")
@@ -84,6 +75,7 @@ def dict_str(input_dict):
     for key, value in input_dict.items():
         input_dict[key] = str(value)
     return input_dict
+
 def get_init_args(obj):
     init_args = {}
     for attr_name in dir(obj):
@@ -101,12 +93,10 @@ def generate_save_path_1(opt):
 def generate_save_path_2(opt):
     if isinstance(opt, dict):
         opt = argparse.Namespace(**opt)
-    #temp_save = str(opt.temp).rstrip('0').rstrip('.') if '.' in str(opt.temp) else str(opt.temp)
     temp_save= standard_float(opt.temp)
     alpha_save = standard_float(opt.alpha)
     gamma_save = standard_float(opt.gamma)
     tau_save = standard_float(opt.tau)
-    #alpha_save = str(opt.alpha).rstrip('0').rstrip('.') if '.' in str(opt.alpha) else str(opt.alpha)
     save_path2 =  f"{opt.loss_type}/epochs{opt.epochs}/seed{opt.seed}/{temp_save}/{alpha_save}/{gamma_save}/{tau_save}"
     return save_path2
         
@@ -138,7 +128,6 @@ def get_optimizer(optimizer_name, model_parameters, learning_rate=0.1, momentum=
 
     return optimizer
 
-import torch.optim.lr_scheduler as lr_scheduler
 
 def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t_max=50):
     """
@@ -187,6 +176,7 @@ def get_scheduler(scheduler_name, optimizer, decay_epochs=1, decay_factor=0.1, t
 class DummyScheduler:
     def step(self):
         pass
+    
 def phi_stable_batch_epsilon( probs, labels, epsilon=1e-10):
     posterior_probs = probs + epsilon
 
@@ -201,6 +191,7 @@ def phi_stable_batch_epsilon( probs, labels, epsilon=1e-10):
     phi_stable = log_likelihood_correct - log_likelihood_incorrect
 
     return phi_stable
+
 def cross_entropy(prob, label):
     epsilon = 1e-12
     prob = np.clip(prob, epsilon, 1.0 - epsilon)
@@ -337,11 +328,6 @@ def plot_entropy_distribution_together(target_train_loader, target_test_loader, 
     torch.cuda.empty_cache()
     
 def plot_phi_distribution_together(data_in, data_out, save_path,name ="phi_distribution_target_comparison"):
-    # Calculate entropies for target_train_loader and target_test_loader
-    #target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
-    #target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
-    
-
     train_mean = np.mean(data_in)
     train_variance = np.var(data_in)
     test_mean = np.mean(data_out)
@@ -370,11 +356,6 @@ def plot_phi_distribution_together(data_in, data_out, save_path,name ="phi_distr
     
     
 def plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device):
-    # Calculate loss for target_train_loader and target_test_loader
-    #target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
-    #target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
-    
-    
     train_loss = compute_cross_entropy_losses(target_train_loader, target_model, device)
     test_loss = compute_cross_entropy_losses(target_test_loader, target_model, device)
     train_mean = np.mean(train_loss)
@@ -404,108 +385,6 @@ def plot_celoss_distribution_together(target_train_loader, target_test_loader, t
     gc.collect()
     torch.cuda.empty_cache()
     
-
-
-import torchvision
-import torch.nn as nn
-import torch.hub
-
-def get_target_model(name="resnet18", num_classes=10, dropout=None, fintune = False):
-    if name == "resnet18":
-        model = torchvision.models.resnet18(weights= fintune)
-        num_ftrs = model.fc.in_features
-        if dropout is not None:
-            model.fc = nn.Sequential(
-                nn.Linear(num_ftrs, num_classes),
-                nn.Dropout(dropout)
-            )
-        else:
-            model.fc = nn.Linear(num_ftrs, num_classes)
-    elif name == "resnet20":
-        model = resnet20(num_classes=num_classes)
-        if dropout is not None:
-            pass
-    elif name == "resnet34":
-        if fintune:
-            model = torchvision.models.resnet34(weights= "default")
-        else:
-            model = torchvision.models.resnet34(weights= None)
-        num_ftrs = model.fc.in_features
-        if dropout is not None:
-            model.fc = nn.Sequential(
-                nn.Linear(num_ftrs, num_classes),
-                nn.Dropout(dropout)
-            )
-        else:
-            model.fc = nn.Linear(num_ftrs, num_classes)
-    elif name == "resnet50":
-        model = torchvision.models.resnet50(weights= fintune)
-        num_ftrs = model.fc.in_features
-        if dropout is not None:
-            model.fc = nn.Sequential(
-                nn.Linear(num_ftrs, num_classes),
-                nn.Dropout(dropout)
-            )
-        else:
-            model.fc = nn.Linear(num_ftrs, num_classes)
-    elif name == "vgg11":
-        model = torchvision.models.vgg11(weights= fintune)
-        num_ftrs = model.classifier[-1].in_features
-        if dropout is not None:
-            model.classifier[-1] = nn.Sequential(
-                nn.Linear(num_ftrs, num_classes),
-                nn.Dropout(dropout)
-            )
-        else:
-            model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
-    elif name == "wide_resnet50":
-        model = torchvision.models.wide_resnet50_2(weights= fintune)
-        num_ftrs = model.fc.in_features
-        if dropout is not None:
-            model.fc = nn.Sequential(
-                nn.Linear(num_ftrs, num_classes),
-                nn.Dropout(dropout)
-            )
-        else:
-            model.fc = nn.Linear(num_ftrs, num_classes)
-    elif name == "densenet121":
-        if fintune:
-            model = torchvision.models.densenet121(weights= "default")
-        else:
-            model = torchvision.models.densenet121(weights= None)
-        num_ftrs = model.classifier.in_features
-        if dropout is not None:
-            model.classifier = nn.Sequential(
-                nn.Linear(num_ftrs, num_classes),
-                nn.Dropout(dropout)
-            )
-        else:
-            model.classifier = nn.Linear(num_ftrs, num_classes)
-            
-    elif name == "vit":
-        if fintune:
-            model = torchvision.models.vit_b_16(weights='IMAGENET1K_V1')
-        else: model = torchvision.models.vit_b_16()
-        num_ftrs = model.heads.head.in_features
-        if dropout is not None:
-            model.heads.head = nn.Sequential(
-                nn.Linear(num_ftrs, num_classes),
-                nn.Dropout(dropout)
-            )
-        else:
-            model.heads.head = nn.Linear(num_ftrs, num_classes)
-            
-    elif name == "TexasClassifier":
-        model= Texas(num_classes = num_classes, droprate = dropout)
-    elif name == "PurchaseClassifier":
-        model= Purchase(num_classes = num_classes, droprate = dropout)
-
-    else:
-        raise ValueError("Model not implemented yet :P")
-
-    return model
-
-
 def get_dropout_fc_layers(model, rate = 0.5):
     last_layer =list(model.children())[-1]
     if isinstance(last_layer, nn.Sequential):
