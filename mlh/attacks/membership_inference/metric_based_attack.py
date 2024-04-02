@@ -157,9 +157,6 @@ class MetricBasedMIA(MembershipInferenceAttack):
             plot_phi_distribution_together(self.phi_shadow_train, self.phi_shadow_test, self.save_path,
                                            "phi_distribution_shadow_comparison")
             
-            #plot_celoss_distribution_together()
-        # mia_dict # phi_distribution_shadow_comparison
-
     def print_result(self, name, given_tuple):
         print("%s" % name, "acc:%.3f, precision:%.3f, recall:%.3f, f1:%.3f, auc:%.3f" % given_tuple)
 
@@ -360,10 +357,6 @@ class MetricBasedMIA(MembershipInferenceAttack):
 
     def _mem_inf_thre(self, v_name, s_tr_values, s_te_values, t_tr_values, t_te_values):
 
-        # s_tr_values :15000
-        # perform membership inference attack by thresholding feature values: the feature can be prediction confidence,
-        # (negative) prediction entropy, and (negative) modified entropy
-
         train_mem_label = []
         # for shadow train label, it is 1, for test sample, it is 0.
         train_pred_label = []
@@ -379,10 +372,6 @@ class MetricBasedMIA(MembershipInferenceAttack):
 
         thre_list = [self._thre_setting(s_tr_values[self.s_tr_labels == num],
                                         s_te_values[self.s_te_labels == num]) for num in range(self.num_class)]
-        # s_tr_values shadow train set value. 15000
-        # len(self.s_tr_labels) = 15000
-        # len(s_tr_values[self.s_tr_labels == 1]) =1540
-        # thre_list  10
 
         # shadow train
         for i in range(len(s_tr_values)):

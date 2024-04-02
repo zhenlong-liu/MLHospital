@@ -100,7 +100,7 @@ class TrainTargetNormal(Trainer):
         
             self.scheduler.step()
             if epoch == self.epochs:
-                log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : e, "Total Sample": len(train_loader.dataset),
+                log_dict = {'Loss Type' : self.args.loss_type,"Train Epoch" : epoch, "Total Sample": len(train_loader.dataset),
                             "Train Acc": train_acc, "Test Acc": test_acc, "Loss": loss_num, "Total Time" : time.time() - t_start}
                 save_dict_to_yaml(log_dict,  f'{self.log_path}/train_log.yaml')
             

@@ -116,12 +116,6 @@ class ModelParser:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)
                 posteriors = F.softmax(outputs, dim=1)
-                # print(posteriors.shape) torch.Size([128, 10])
-
-                # add loss
-                # losses = self.criterion(outputs, targets)
-                # print(losses)
-                # exit()
                 target_list += targets.cpu().tolist()
                 posteriors_list += posteriors.detach().cpu().numpy().tolist()
                 # all_losses += losses.tolist()
@@ -180,8 +174,7 @@ class ModelParser:
         self.correctness = np.array(correctness_list).astype(int)
         self.phi_stable = np.array(phi_stable_list)
         self.modified_entropy = np.array(modified_entropy_list)
-        # print(type(self.losses))
-        # print(self.losses)
+
         
         
         
@@ -255,11 +248,7 @@ class AttackDataset:
                 shadow_train_dataloader)
             self.shadow_test_info = self.shadow_model_parser.get_posteriors(
                 shadow_test_dataloader)
-            # print(self.target_train_info)
-            # exit()
-            # _info contains posteriors, it is prob
-            # get_posteriors : return {"targets": target_list, "posteriors": posteriors_list}
-            # get attack dataset
+
         self.attack_train_dataset, self.attack_test_dataset = self.generate_attack_dataset()
 
     def parse_info(self, info, label=0):
@@ -283,7 +272,6 @@ class AttackDataset:
             raise ValueError("More implementation is needed :P")
         return mem_data, mem_label, original_label
 
-        ## mem_data posteriors prob; mem_label 0 or 1 ; original_label : class label 1-10
 
     def generate_attack_dataset(self):
 
@@ -311,9 +299,6 @@ class AttackDataset:
                 torch.from_numpy(np.array(original_label2 +
                                           original_label3)).type(torch.long),
             )
-
-        # attack_train_dataset
-        # (tensor([2.4628e-04, 3.9297e-01, 3.7773e-04, 9.3001e-05, 2.3009e-04, 3.6489e-04, 1.2535e-04, 6.5634e-05, 1.3375e-03, 6.0419e-01]), tensor(1), tensor(9))
 
         if self.attack_type == "white_box":
             attack_test_dataset = [

@@ -7,7 +7,6 @@ sys.path.append('..')
 sys.path.append('../..')
 sys.path.append('../../..')
 from mlh.utility.main_parse import save_dict_to_yaml
-# from mlh.models.utils import FeatureExtractor, VerboseExecution
 import torch
 import torch.nn.functional as F
 from torch.utils.data.dataset import Dataset

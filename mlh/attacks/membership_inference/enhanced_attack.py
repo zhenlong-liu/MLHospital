@@ -30,12 +30,7 @@ class ReferenceMIA(MembershipInferenceAttack):
         self.greater_metric = ["confidences","phi_stable","correctness"]
 
     def get_threshold(self,threshold_function, alphas,metrics = None):
-
         reference_mem_info_dict, reference_no_mem_info_dict = self.attack_train_dataset
-        # reference_mem_threshold ={f"{key}_threshold": threshold_function(reference_mem_info_dict[key],alphas) for key in reference_mem_info_dict.keys()}
-        #
-        # reference_no_mem_threshold = {f"{key}_threshold": threshold_function(reference_no_mem_info_dict[key],alphas) for key in reference_no_mem_info_dict.keys() }
-
         alphas = np.array(alphas)
         if metrics:
             metrics = ensure_list(metrics)
@@ -51,7 +46,6 @@ class ReferenceMIA(MembershipInferenceAttack):
                 reference_mem_threshold[metric] =  threshold_function(reference_mem_info_dict[metric].T,1- alphas) 
                 reference_no_mem_threshold[metric] = threshold_function(reference_no_mem_info_dict[metric].T,1- alphas)    
         
-         #reference_mem_info_dict[metric].T 15000 16
         return reference_mem_threshold, reference_no_mem_threshold
 
 
@@ -65,11 +59,7 @@ class ReferenceMIA(MembershipInferenceAttack):
 
             reference_member_threshold, reference_non_member_threshold = self.get_threshold(
                 threshold_function,fpr_tolerance_rate_list,metrics =metrics
-            )
-            #reference_member_threshold {metric: threshold } 2.299
-            # np.mean(reference_member_threshold["losses"][5,:]) 2.319
-            # 
-            
+            )             
             target_mem_info_dict, target_no_mem_info_dict = self.attack_test_dataset
 
 
@@ -81,15 +71,10 @@ class ReferenceMIA(MembershipInferenceAttack):
 
             target_no_mem_info_dict = {key: value.reshape(-1, 1).repeat(num_threshold,1).T for key, value in target_no_mem_info_dict.items() if key in metrics}
 
-            #breakpoint()
             less_metric = ["losses","entropies","modified_entropies"]
             greater_metric = ["confidences","phi_stable","correctness"]
             member_preds_dict = {}
-            non_member_preds_dict = {}
-            
-            # np.mean(target_mem_info_dict["losses"]) 0.0065
-            # np.mean(target_no_mem_info_dict["losses"]) 2.295
-            
+            non_member_preds_dict = {}          
             for key, value in target_mem_info_dict.items():
                 if key in less_metric:
                     member_preds_dict[key] = np.less(value, reference_member_threshold[key])
@@ -107,9 +92,7 @@ class ReferenceMIA(MembershipInferenceAttack):
             true_labels_dict = {key: np.concatenate(
                 [np.ones(len(member_preds_dict[key].T)), np.zeros(len(non_member_preds_dict[key].T))]
             ) for key in metrics}
-            # np.concatenate([np.ones(len(member_preds_dict["losses"].T)),np.zeros(len(non_member_preds_dict["losses"].T))])
-
-            # 
+ 
             result_metrics = {}
             for metric in metrics:
                 predictions = predictions_dict[metric] # 10,30000

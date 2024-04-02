@@ -87,9 +87,6 @@ def flatten_dict(result_metrics,alphas,keys =None):
             if keys:
                 if key not in keys:
                     continue
-            
-            
-            
             if np.isscalar(value):
                 new_key = f"{metric}_{key}"
                 flattened[new_key] = float(value)
