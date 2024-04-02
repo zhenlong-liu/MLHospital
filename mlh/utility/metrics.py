@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import numpy as np
 from collections import defaultdict
 import pandas as pd
+
 def merge_dict_of_np_arrays(dicts):
     merged = defaultdict(list)
     for d in dicts:
@@ -13,8 +14,6 @@ def merge_dict_of_np_arrays(dicts):
         merged[key] = np.concatenate(value_list)
 
     return dict(merged)
-
-
 
 class Metrics:
     def __init__(self, labels, logits=None, probs=None):
@@ -97,30 +96,3 @@ class StaMetrics:
         self._metrics_list = []
 
 
-
-# class StaMetrics:
-#     def __init__(self):
-        
-#         self._metrics_list = []
-#         #self.sta_book = {}
-#         self.sta_epochs = pd.DataFrame()
-        
-
-#     def add_metrics(self, metrics):
-#         self._metrics_list.append(metrics)
-    
-#     def add_total_variance(self, epoch, loader_type):
-#         sta_book = {}
-        
-        
-#         metric_book = merge_dict_of_np_arrays(self._metrics_list)
-#         for key, value_np in metric_book.items():
-#             sta_book[f"{key}_std"] = np.std(value_np)
-#             sta_book[f"{key}_mean"] = np.mean(value_np)
-#             sta_book[f"{key}_var"] = np.var(value_np)
-#         sta_book["epoch"] = epoch
-#         sta_book["loader_type"] = loader_type
-#         self._metrics_list = []
-#         self.sta_epochs.append(sta_book, ignore_index=True)
-    
-        

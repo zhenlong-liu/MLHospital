@@ -21,16 +21,9 @@ def plot_acc_auc(df_ce_ls, loss_type):
     plt.grid(True)
     plt.show()
     
-
-
-
 def plot_distribution_subplots(df, losstype , oject):
     df.sort_values(by='Hyper parameter', inplace=True)
-    
     plt.figure(figsize=(16, 6))  # Increase the figure width to fit two subplots side by side
-    # First subplot
-    
-
     plt.subplot(1, 2, 1)  # 1 row, 2 columns, first subplot
     sns.lineplot(x='Hyper parameter', y=f'{oject}_train_mean', data=df, label=f'{oject}_train_mean')
     sns.lineplot(x='Hyper parameter', y=f'{oject}_test_mean', data=df, label=f'{oject}_test_mean')
@@ -73,9 +66,6 @@ def plot_scatter_with_lines(dataframes, labels):
     for i, df in enumerate(sorted_dataframes):
         label = labels[i]
         plt.plot(df['modified entropy test auc'], df['Test Acc'], marker='^', linestyle='-', label=label)
-
-        
-
     plt.xlabel('Modified Entropy Test AUC')
     plt.ylabel('Test Accuracy')
     plt.title('Scatter Plot with Connecting Lines: Test Accuracy vs. Modified Entropy Test AUC')

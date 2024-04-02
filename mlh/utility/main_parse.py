@@ -1,32 +1,21 @@
 import argparse
-import torch
 import yaml
 import os
 from datetime import datetime
+
 def add_argument_parameter(parser):
-    parser.add_argument('--training_type', type=str, default="Normal",
-                        help='training type')
-    parser.add_argument('--batch_size', type=int, default=512,
-                        help='batch_size')
-    parser.add_argument('--num_workers', type=int, default=10,
-                        help='num of workers to use')
-    parser.add_argument('--epochs', type=int, default=100,
-                        help='number of training epochs')
-    parser.add_argument('--gpu', type=int, default=5,
-                        help='gpu index used for training')
+    parser.add_argument('--training_type', type=str, default="Normal", help='training type')
+    parser.add_argument('--batch_size', type=int, default=512, help='batch_size')
+    parser.add_argument('--num_workers', type=int, default=10, help='num of workers to use')
+    parser.add_argument('--epochs', type=int, default=100, help='number of training epochs')
+    parser.add_argument('--gpu', type=int, default=5, help='gpu index used for training')
     parser.add_argument('--model', type=str, default='resnet18')
-    parser.add_argument('--dataset', type=str, default='CIFAR10',
-                        help='dataset')
-    parser.add_argument('--num_class', type=int, default=10,
-                        help='number of classes')
-    parser.add_argument('--data_path', type=str, default='../data/',
-                        help='data_path')
-    parser.add_argument('--input_shape', type=str, default="32,32,3",
-                        help='comma delimited input shape input')
-    parser.add_argument('--log_path', type=str,
-                        default='./save', help='data_path')
-    parser.add_argument('--temp', type=float, default=1,
-                        help='temperature')
+    parser.add_argument('--dataset', type=str, default='CIFAR10', help='dataset')
+    parser.add_argument('--num_class', type=int, default=10, help='number of classes')
+    parser.add_argument('--data_path', type=str, default='../data/', help='data_path')
+    parser.add_argument('--input_shape', type=str, default="32,32,3", help='comma delimited input shape input')
+    parser.add_argument('--log_path', type=str, default='./save', help='data_path')
+    parser.add_argument('--temp', type=float, default=1, help='temperature')
     parser.add_argument('--tau', type=float, default=1, help = "logitclip tau")
     parser.add_argument('--weight_decay', type=float, default=5e-4, help = "logitclip tau")
     parser.add_argument('--loss_type', type=str, default="ce", help = "Loss function")
@@ -127,3 +116,8 @@ def save_dict_to_yaml(dict, output_path):
         yaml.dump(dict, yaml_file, default_flow_style=False)
 
     print(f"Training log saved to {output_yaml}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser('argument for training')
+    add_argument_parameter(parser)
+    print("load parser")

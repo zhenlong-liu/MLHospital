@@ -2,32 +2,13 @@ import re
 import os
 import pandas as pd
 import yaml
-# extract train mean train variance
 from ruamel.yaml import YAML
-
-
-def store_dict_to_yaml(my_dict, file_path):
-    """
-    Stores a dictionary into a YAML file at the specified file path.
-    
-    Parameters:
-    my_dict (dict): The dictionary to be stored.
-    file_path (str): The path where the YAML file should be created.
-    
-    Returns:
-    None
-    """
-    with open(file_path, 'w') as file:
-        yaml.dump(my_dict, file)
-
-
 
 def extract_metrics(log_file):
     with open(log_file, 'r') as file:
         text = file.read()
     
     pattern = r"(Entropies|Loss):\s+(\w+):\s+([\d.]+)\s+(\w+):\s+([\d.]+)\s+(\w+):\s+([\d.]+)\s+(\w+):\s+([\d.]+)"
-    #pattern =r"(Entropies|Loss):\s+train_mean: ([\d.]+)\s+train_variance: ([\d.]+)\s+test_mean: ([\d.]+)\s+test_variance: ([\d.]+)"
     matches = re.findall(pattern, text)
     metrics = {}
     for match in matches:
@@ -54,7 +35,6 @@ def extract_metrics(log_file):
     return metrics
 
 
-# get the ancestor directory name
 def get_grandparent_directory_name(path, n=4):
     for _ in range(n):
         path = os.path.dirname(path)
@@ -97,9 +77,6 @@ def extract_last_line_logging_info(log_file,df = False):
                         log_dict["Test Acc"]  = log_dict["Eval Acc"]
                     return log_dict
     return None
-
-
-
 
 def extract_mia_metrics(log_file):
     # Read the logging data from the log_file
@@ -288,8 +265,6 @@ def  process_files_yaml(root_dir, output_excel, var= None, if_round = True, data
                     
                     
                     data.append(data_config)
-                
-    
     if data:
         if if_round:
             df = pd.DataFrame(data)
@@ -342,10 +317,7 @@ def df_files(root_dir):
                             mia_metrics = extract_mia_metrics(mia_metrics_file)
                             distribution =  extract_metrics(mia_metrics_file)
                             row_data.update(mia_metrics)
-                            row_data.update(distribution)
-                        
-                            #`row_data.update(mia_metrics)` is a method that updates the `row_data` dictionary with the key-value pairs from the `mia_metrics` dictionary.
-                            
+                            row_data.update(distribution)                            
                         data.append(row_data)
     if data:
         df = pd.DataFrame(data)
