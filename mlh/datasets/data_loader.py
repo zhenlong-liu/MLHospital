@@ -127,22 +127,15 @@ class BuildDataLoader(object):
     def get_split_dataset(self, batch_size, num_workers=2, split_size=4, get_dataset=False):
         train_transform = self.get_data_transform(self.args.dataset)
         test_transform = self.get_data_transform(self.args.dataset)
-
         dataset = self.get_dataset(train_transform, test_transform)
-
         dataset_all = generate_dataset(dataset, split_size=split_size)
         
         if(get_dataset):
             return dataset_all
-        
-        print("Preparing dataloader!")
-        print("dataset: ", len(dataset))
-        
-        for i in range(len(dataset_all)):
-            dataset_all[i] = torch.utils.data.DataLoader(
-                dataset_all[i], batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
-
-        
+        else:
+            for i in range(len(dataset_all)):
+                dataset_all[i] = torch.utils.data.DataLoader(
+                    dataset_all[i], batch_size=batch_size, shuffle=self.shuffle, num_workers=num_workers, pin_memory=True)
         return dataset_all
         
     def get_data_supervised(self, num_workers=2, select_num=None):

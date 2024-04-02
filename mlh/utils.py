@@ -17,6 +17,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 
 sys.path.append("..")
 sys.path.append("../..")
+
 def store_dict_to_yaml(my_dict, save_path, file_name):
     """
     Stores a dictionary into a YAML file at the specified file path.
@@ -103,8 +104,6 @@ def generate_save_path_2(opt):
 def standard_float(hyper_parameter):
     return str(hyper_parameter).rstrip('0').rstrip('.') if '.' in str(hyper_parameter) else str(hyper_parameter)
     
-
-
 def generate_save_path(opt, mode = None):
     if isinstance(opt, dict):
         opt = argparse.Namespace(**opt)
@@ -113,8 +112,6 @@ def generate_save_path(opt, mode = None):
     else:
         save_pth = f'{generate_save_path_1(opt)}/{mode}/{generate_save_path_2(opt)}'
     return save_pth
-
-
 
 def get_optimizer(optimizer_name, model_parameters, learning_rate=0.1, momentum=0.9, weight_decay=1e-4):
     if optimizer_name.lower() == 'sgd':
@@ -125,7 +122,6 @@ def get_optimizer(optimizer_name, model_parameters, learning_rate=0.1, momentum=
         optimizer = AdamW(model_parameters, lr=learning_rate)
     else:
         raise ValueError("'sgd' or 'adam'.")
-
     return optimizer
 
 
@@ -268,12 +264,6 @@ def compute_phi_stable(data, model, device, batch_size=512):
             phi_stables.extend(phi_stable.tolist()) 
     return phi_stables
 
-
-
-
-
-
-
 def calculate_entropy(data_loader, model, device):
     entropies = []
     model.eval()
@@ -287,17 +277,10 @@ def calculate_entropy(data_loader, model, device):
             
             entropy = -(probabilities * torch.log(probabilities + 1e-9)).sum(dim=1)    
             entropies.extend(entropy.cpu().numpy())
-            #entropies.append(entropy)
-            
-    
     return entropies
 
 def plot_entropy_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device):
-    # Calculate entropies for target_train_loader and target_test_loader
-    #target_train_loader = [(data.to(device), target.to(device)) for data, target in target_train_loader]
-    #target_test_loader = [(data.to(device), target.to(device)) for data, target in target_test_loader]
-    
-    
+ 
     train_entropies = calculate_entropy(target_train_loader, target_model, device)
     test_entropies = calculate_entropy(target_test_loader, target_model, device)
     train_mean = np.mean(train_entropies)
@@ -327,6 +310,7 @@ def plot_entropy_distribution_together(target_train_loader, target_test_loader, 
     gc.collect()
     torch.cuda.empty_cache()
     
+    
 def plot_phi_distribution_together(data_in, data_out, save_path,name ="phi_distribution_target_comparison"):
     train_mean = np.mean(data_in)
     train_variance = np.var(data_in)
@@ -353,7 +337,6 @@ def plot_phi_distribution_together(data_in, data_out, save_path,name ="phi_distr
     plt.savefig(save_path)
     plt.close()
     gc.collect()
-    
     
 def plot_celoss_distribution_together(target_train_loader, target_test_loader, target_model, save_path, device):
     train_loss = compute_cross_entropy_losses(target_train_loader, target_model, device)
@@ -496,7 +479,6 @@ def check_and_transform_label_format(
                 "Shape of labels not recognised."
                 "Please provide labels in shape (nb_samples,) or (nb_samples, nb_classes)"
             )
-
     return labels
 
 

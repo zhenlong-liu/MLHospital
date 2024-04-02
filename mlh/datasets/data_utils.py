@@ -1,15 +1,13 @@
 
-
-
-import torch
 import os
-
+import torch
 from torch.utils.data import Subset
 
 torch.manual_seed(0)
 
 
 def count_dataset(targetTrainloader, targetTestloader, shadowTrainloader, shadowTestloader, num_classes, attr=None):
+    
     target_train = [0 for i in range(num_classes)]
     target_test = [0 for i in range(num_classes)]
     shadow_train = [0 for i in range(num_classes)]
@@ -91,8 +89,6 @@ def prepare_dataset_shadow_splits(dataset, num_splits, split_size = None, train_
     return splits
 
 
-
-
 def get_target_shadow_dataset(dataset, target_size=None, shadow_size=None):
     if target_size:
         target_dataset, shadow_dataset = cut_dataset(dataset, target_size)
@@ -104,23 +100,8 @@ def get_target_shadow_dataset(dataset, target_size=None, shadow_size=None):
     return target_dataset, shadow_dataset
 
 
-def split_dataset(dataset, parts=3, part_size=None):
-    length = len(dataset)
-    each_length = length//parts
-    # if we specify a number, we use the number to split data
-    if part_size != None and part_size < each_length:
-        each_length = part_size
-    torch.manual_seed(0)
-    train_, inference_, test_, _ = torch.utils.data.random_split(dataset,
-                                                                 [each_length, each_length, each_length, len(dataset)-(each_length*parts)])
-    return train_, inference_, test_
-
-
 def cut_dataset(dataset, num):
-
     length = len(dataset)
-
-    torch.manual_seed(0)
     selected_dataset, _ = torch.utils.data.random_split(
         dataset, [num, length - num])
     return selected_dataset
