@@ -1,7 +1,7 @@
 import copy
 import os
-import numpy as np
 import torch
+import numpy as np
 
 def set_random_seed(seed):
     np.random.seed(seed)
