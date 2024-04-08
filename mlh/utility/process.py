@@ -284,7 +284,7 @@ def  process_files_yaml(root_dir, output_excel, var= None, if_round = True, data
                             #print(log_file_path_train_log)
                             #exit()
                         data_config["p1"] = p_score(data_config["Test Acc"], data_config['cross entropy loss test acc'])
-                    #print(mia_metrics_file)
+                    #print(mia_metrics_file)    
                     
                     
                     data.append(data_config)
